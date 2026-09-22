@@ -1,0 +1,16 @@
+tracking_number,service_type,origin_lat,origin_lng,destination_lat,destination_lng,courier_id,courier_lat,courier_lng,distance_to_destination_m,status,pod_lat,pod_lng,pod_timestamp,pin_required,pin_status,note
+AJ2509000001,instant,-6.229000,106.854000,-6.175392,106.827153,STR-001,-6.175400,106.827160,1,delivered,-6.175400,106.827160,2026-09-22T09:14:00+07:00,true,verified,Normal exactly at destination
+AJ2509000002,instant,-6.229000,106.854000,-6.208763,106.821247,STR-002,-6.208770,106.821255,1,delivered,-6.208770,106.821255,2026-09-22T10:02:00+07:00,true,verified,Normal exactly at destination
+AJ2509000003,same_day,-6.229000,106.854000,-6.195000,106.832000,STR-003,-6.195200,106.832300,40,delivered,-6.195200,106.832300,2026-09-22T11:20:00+07:00,true,verified,Normal within same_day radius
+AJ2509000004,regular,-6.229000,106.854000,-6.260000,106.813000,STR-004,-6.260500,106.813600,85,delivered,-6.260500,106.813600,2026-09-22T13:45:00+07:00,false,none,Regular without PIN within radius
+AJ2509000005,instant,-6.229000,106.854000,-6.229000,106.854000,STR-005,-6.236000,106.860000,912,in_transit,,,2026-09-22T14:10:00+07:00,true,pending,Anomaly courier far from destination geofence fail
+AJ2509000006,same_day,-6.229000,106.854000,-6.225000,106.799000,STR-006,-6.230000,106.799000,556,delivered,-6.230000,106.799000,2026-09-22T15:30:00+07:00,true,verified,Anomaly POD outside geofence
+AJ2509000007,instant,-6.229000,106.854000,-6.236000,106.829000,STR-007,-6.236100,106.829100,15,failed,-6.236100,106.829100,2026-09-22T16:05:00+07:00,true,locked,Anomaly PIN locked after 3 wrong attempts
+AJ2509000008,instant,-6.229000,106.854000,-6.109000,106.742000,STR-008,-6.108900,106.742100,15,pending,,,2026-09-22T16:40:00+07:00,true,expired,Anomaly PIN expired not verified
+AJ2509000009,regular,-6.229000,106.854000,-6.157000,106.906000,STR-009,-6.157700,106.906800,100,delivered,-6.157700,106.906800,2026-09-23T08:15:00+07:00,false,none,Regular exactly at radius boundary
+AJ2509000010,same_day,-6.229000,106.854000,-6.183000,106.870000,STR-010,-6.183050,106.870050,7,delivered,-6.183050,106.870050,2026-09-23T09:00:00+07:00,true,verified,Anomaly device timestamp mismatch
+AJ2509000011,instant,-6.229000,106.854000,-6.175392,106.827153,STR-011,-6.175500,106.827300,21,pending,,,2026-09-23T09:45:00+07:00,true,pending,Within instant radius 30m not yet completed
+AJ2509000012,same_day,-6.229000,106.854000,-6.195000,106.832000,STR-012,-6.213000,106.845000,2170,in_transit,,,2026-09-23T10:30:00+07:00,true,pending,Courier still en route far from destination
+AJ2509000013,regular,-6.229000,106.854000,-6.260000,106.813000,STR-013,-6.259900,106.813100,16,failed,,,2026-09-23T11:10:00+07:00,false,none,Recipient not at location
+AJ2509000014,instant,-6.229000,106.854000,-6.208763,106.821247,STR-014,-6.210000,106.823000,260,delivered,-6.210000,106.823000,2026-09-23T12:00:00+07:00,true,verified,Geofence exception approved by admin
+AJ2509000015,same_day,-6.229000,106.854000,-6.225000,106.799000,STR-015,-6.225100,106.799100,15,delivered,-6.225100,106.799100,2026-09-23T13:20:00+07:00,true,verified,Normal same_day with PIN
