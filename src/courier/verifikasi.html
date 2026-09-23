@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Verifikasi Lokasi &amp; PIN — Satria | Anteraja Instant</title>
+  <meta name="description" content="Verifikasi lokasi geofence dan PIN otorisasi penerima sebelum pengiriman Anteraja Instant diselesaikan.">
+  <link rel="icon" href="../assets/img/logo-anteraja.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="../assets/js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="bg-surface-container-low text-on-surface font-sans antialiased min-h-screen flex flex-col" data-page="courier-verifikasi">
+
+  <header class="fixed top-0 inset-x-0 z-40 bg-surface-container-low/90 backdrop-blur-md pt-safe">
+    <div class="h-12 px-3 flex items-center justify-between max-w-md mx-auto">
+      <a class="w-9 h-9 -ml-1 rounded-full grid place-items-center text-on-surface hover:bg-black/5 transition-colors" href="tugas.html" aria-label="Kembali ke daftar tugas">
+        <span class="material-symbols-outlined text-[24px] font-light" aria-hidden="true">arrow_back_ios_new</span>
+      </a>
+      <h1 class="text-[17px] font-semibold text-on-surface tracking-tight">Verifikasi Pengiriman</h1>
+      <span class="w-9 text-right text-[12px] font-semibold text-on-surface-variant" aria-label="Langkah 2 dari 3">2/3</span>
+    </div>
+    <div class="w-full h-[2px] bg-black/5 relative overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="66" aria-label="Progres verifikasi">
+      <div class="absolute inset-y-0 left-0 bg-brand-magenta w-[66%] rounded-r-full"></div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-md mx-auto pt-[calc(3.5rem+env(safe-area-inset-top,0px))] pb-[calc(8rem+env(safe-area-inset-bottom,16px))] px-4 flex flex-col">
+
+    <section class="pt-5 pb-6 text-center flex flex-col items-center" aria-labelledby="judul-geofence">
+      <p class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/[0.03] text-[12px] font-semibold text-on-surface-variant mb-3">
+        <span class="text-[11px] font-mono-code tracking-wider text-on-surface-variant/70">ANT-INST-882910394</span>
+      </p>
+      <h2 id="judul-geofence" class="sr-only">Status geofence</h2>
+      <p class="flex items-baseline justify-center tracking-tight font-extrabold text-on-surface leading-none mb-2">
+        <span class="text-[52px]">28</span><span class="text-[26px] font-bold text-on-surface-variant ml-1">m</span>
+      </p>
+      <p id="geofence-status" class="status-inside inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[13px]">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span> Di dalam radius (Aman)
+      </p>
+      <p class="mt-2.5 text-[12px] text-on-surface-variant/70">Presisi GPS &plusmn;3 m &bull; Sinkronisasi PostGIS terverifikasi</p>
+    </section>
+
+    <section class="bg-surface-card rounded-2xl p-4 shadow-card border border-border-subtle mb-4" aria-labelledby="judul-radius">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <h3 id="judul-radius" class="text-[14px] font-bold text-on-surface">Validasi Radius</h3>
+        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Lulus</span>
+      </div>
+      <dl class="grid grid-cols-2 gap-3 pt-3 text-[12px]">
+        <div>
+          <dt class="text-on-surface-variant/70 uppercase tracking-wider font-semibold text-[10px]">Jarak kurir</dt>
+          <dd class="text-on-surface font-semibold mt-0.5">28 m</dd>
+        </div>
+        <div>
+          <dt class="text-on-surface-variant/70 uppercase tracking-wider font-semibold text-[10px]">Radius Instant</dt>
+          <dd class="text-on-surface font-semibold mt-0.5">30 m</dd>
+        </div>
+        <div>
+          <dt class="text-on-surface-variant/70 uppercase tracking-wider font-semibold text-[10px]">Titik tujuan</dt>
+          <dd class="text-on-surface font-semibold mt-0.5">Jl. Senopati No. 42</dd>
+        </div>
+        <div>
+          <dt class="text-on-surface-variant/70 uppercase tracking-wider font-semibold text-[10px]">Sumber keputusan</dt>
+          <dd class="text-on-surface font-semibold mt-0.5">Server (ST_Distance)</dd>
+        </div>
+      </dl>
+    </section>
+
+    <aside class="bg-surface-card rounded-2xl p-4 shadow-card border border-border-subtle mb-4" aria-labelledby="judul-titik-temu">
+      <h3 id="judul-titik-temu" class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Konteks Titik Temu</h3>
+      <ul class="flex items-center justify-between text-[12px] list-none p-0 m-0">
+        <li class="flex items-center gap-1.5 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[16px] text-brand-magenta" aria-hidden="true">two_wheeler</span> Kurir &rarr; Tujuan <strong class="text-on-surface">28 m</strong>
+        </li>
+        <li class="flex items-center gap-1.5 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant" aria-hidden="true">person_pin_circle</span> Tujuan &rarr; Pembeli <strong class="text-on-surface">12 m</strong>
+        </li>
+      </ul>
+    </aside>
+
+    <form id="pin-form" class="flex flex-col gap-4" autocomplete="off" novalidate>
+      <fieldset class="bg-surface-card rounded-2xl p-4 shadow-card border border-border-subtle">
+        <legend class="sr-only">Otorisasi PIN penerima</legend>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-[14px] font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-brand-magenta" aria-hidden="true">password</span> PIN Otorisasi Penerima
+          </h3>
+          <span class="text-[11px] font-semibold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full" id="pin-attempts">Percobaan 1 dari 3</span>
+        </div>
+        <p class="text-[12px] text-on-surface-variant mb-3">Masukkan 6 digit PIN yang dikirim ke kontak penerima saat kurir tiba.</p>
+        <div class="flex items-center justify-between gap-1.5" id="pin-group" role="group" aria-label="6 digit PIN">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-1" name="pin[]" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit PIN 1">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-2" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 2">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-3" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 3">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-4" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 4">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-5" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 5">
+          <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-6" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 6">
+        </div>
+        <div class="flex items-center justify-between mt-3">
+          <p class="text-[12px] text-on-surface-variant" id="pin-hint">PIN berlaku 15 menit sejak dikirim.</p>
+          <button class="text-[12px] font-semibold text-brand-magenta hover:opacity-80" id="btn-resend-pin" type="button">Kirim ulang PIN</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="bg-surface-card rounded-2xl p-4 shadow-card border border-border-subtle">
+        <legend class="sr-only">Konfirmasi serah terima</legend>
+        <h3 class="text-[14px] font-bold text-on-surface mb-3">Konfirmasi Serah Terima</h3>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">B</span>
+          <div>
+            <p class="text-[14px] font-semibold text-on-surface leading-tight">Bpk. Bambang Wijaya</p>
+            <p class="text-[12px] text-on-surface-variant">Penerima terdaftar</p>
+          </div>
+        </div>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Hubungan penerima</p>
+        <div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-xl" id="relation-tabs" role="tablist" aria-label="Hubungan penerima">
+          <button class="relation-tab flex-1 py-1.5 rounded-lg text-[12px] font-semibold bg-surface-container-lowest text-on-surface shadow-sm transition-all" data-relation="langsung" type="button" role="tab" aria-selected="true">Langsung</button>
+          <button class="relation-tab flex-1 py-1.5 rounded-lg text-[12px] font-medium text-on-surface-variant transition-all" data-relation="keluarga" type="button" role="tab" aria-selected="false">Keluarga</button>
+          <button class="relation-tab flex-1 py-1.5 rounded-lg text-[12px] font-medium text-on-surface-variant transition-all" data-relation="satpam" type="button" role="tab" aria-selected="false">Satpam</button>
+        </div>
+      </fieldset>
+    </form>
+  </main>
+
+  <div class="fixed bottom-0 inset-x-0 z-40 bg-surface-container-low/95 backdrop-blur-xl border-t border-black/[0.06] pb-safe">
+    <div class="max-w-md mx-auto px-4 py-3">
+      <a class="btn-primary w-full h-[52px] bg-brand-magenta hover:bg-brand-magenta/90 active:scale-[0.99] text-on-primary rounded-xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-brand-magenta/25 transition-all" id="btn-next-step" href="bukti-foto.html">
+        Lanjut Ambil Bukti Foto <span class="material-symbols-outlined text-[19px]" aria-hidden="true">arrow_forward</span>
+      </a>
+      <p class="text-center text-[11px] text-on-surface-variant/70 mt-2" id="lock-reason" hidden>Tombol terkunci: posisi di luar radius. Ajukan pengecualian ke Admin.</p>
+    </div>
+  </div>
+
+  <script src="../assets/js/app.js" defer></script>
+</body>
+</html>
