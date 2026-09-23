@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satria Rapid Field Dispatch — Purwarupa Anteraja Instant</title>
+  <meta name="description" content="Purwarupa antarmuka Anteraja Instant: aplikasi kurir Satria (mobile) dan konsol Admin/Hub (desktop) untuk integritas pengiriman berbasis geolokasi.">
+  <link rel="icon" href="assets/img/logo-anteraja.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="assets/js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="bg-surface-canvas text-on-surface font-sans antialiased min-h-screen flex flex-col" data-page="index">
+
+  <header class="w-full border-b border-border-subtle bg-surface-container-lowest">
+    <div class="max-w-5xl mx-auto px-5 h-16 flex items-center gap-2.5">
+      <img class="h-7 w-7" src="assets/img/logo-anteraja.svg" alt="">
+      <span class="text-[15px] font-extrabold tracking-tight text-brand-magenta">anteraja</span>
+      <span class="hidden sm:inline text-[12px] text-on-surface-variant border-l border-border-subtle pl-3 ml-1">Satria Rapid Field Dispatch</span>
+      <span class="ml-auto px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-bold uppercase tracking-wider">Purwarupa</span>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-5xl mx-auto px-5 py-10 flex flex-col gap-10">
+    <section class="text-center max-w-2xl mx-auto" aria-labelledby="judul-utama">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-magenta/10 text-brand-magenta text-[12px] font-bold uppercase tracking-wider mb-4">
+        <span class="material-symbols-outlined text-[15px]" aria-hidden="true">verified_user</span> Integritas Pengiriman
+      </span>
+      <h1 id="judul-utama" class="text-3xl sm:text-headline-xl font-extrabold tracking-tight text-on-surface">Purwarupa Antarmuka Anteraja Instant</h1>
+      <p class="mt-3 text-body-md text-on-surface-variant leading-relaxed">Kerangka web statis hasil konversi rancangan UI/UX. Pilih alur peran untuk mulai menjelajah. Setiap halaman saling terhubung dan mengacu pada PRD serta FRD-01 sampai FRD-05.</p>
+    </section>
+
+    <section class="grid gap-5 md:grid-cols-2" aria-label="Pilih alur">
+      <a class="group bg-surface-container-lowest rounded-2xl border border-border-subtle shadow-card hover:shadow-active transition-all p-6 flex flex-col gap-4" href="courier/tugas.html">
+        <span class="w-12 h-12 rounded-xl bg-brand-magenta/10 grid place-items-center text-brand-magenta" aria-hidden="true"><span class="material-symbols-outlined text-[26px]">two_wheeler</span></span>
+        <div>
+          <h2 class="text-title-lg font-bold text-on-surface">Aplikasi Kurir (Mobile)</h2>
+          <p class="text-body-sm text-on-surface-variant mt-1 leading-relaxed">Alur satu tangan untuk Satria: daftar tugas, verifikasi lokasi &amp; PIN, bukti foto, dan konfirmasi sukses.</p>
+        </div>
+        <ul class="mt-auto text-[12px] text-on-surface-variant space-y-1 list-none p-0">
+          <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-brand-magenta" aria-hidden="true">arrow_right_alt</span> FRD-01, FRD-02, FRD-03, FRD-04, FRD-05</li>
+          <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-brand-magenta" aria-hidden="true">devices</span> Optimal di lebar 375&ndash;780 px</li>
+        </ul>
+        <span class="inline-flex items-center gap-1.5 text-[13px] font-bold text-brand-magenta group-hover:gap-2.5 transition-all">Masuk sebagai Kurir <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></span>
+      </a>
+
+      <a class="group bg-surface-container-lowest rounded-2xl border border-border-subtle shadow-card hover:shadow-active transition-all p-6 flex flex-col gap-4" href="admin/dashboard.html">
+        <span class="w-12 h-12 rounded-xl bg-surface-container grid place-items-center text-on-surface" aria-hidden="true"><span class="material-symbols-outlined text-[26px]">monitor</span></span>
+        <div>
+          <h2 class="text-title-lg font-bold text-on-surface">Konsol Admin / Hub (Desktop)</h2>
+          <p class="text-body-sm text-on-surface-variant mt-1 leading-relaxed">Pemantauan operasional: dashboard pengiriman, audit trail, antrian pengecualian, dan pengaturan radius.</p>
+        </div>
+        <ul class="mt-auto text-[12px] text-on-surface-variant space-y-1 list-none p-0">
+          <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-on-surface-variant" aria-hidden="true">arrow_right_alt</span> FRD-01, FRD-04, FRD-05</li>
+          <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-on-surface-variant" aria-hidden="true">devices</span> Optimal di lebar 1280 px ke atas</li>
+        </ul>
+        <span class="inline-flex items-center gap-1.5 text-[13px] font-bold text-on-surface group-hover:gap-2.5 transition-all">Masuk sebagai Admin <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></span>
+      </a>
+    </section>
+
+    <section aria-labelledby="judul-peta-halaman">
+      <h2 id="judul-peta-halaman" class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Peta Halaman</h2>
+      <div class="grid gap-4 md:grid-cols-2">
+        <nav class="bg-surface-container-lowest rounded-xl border border-border-subtle p-4" aria-label="Halaman aplikasi kurir">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-brand-magenta mb-2">Kurir</p>
+          <ol class="text-[13px] space-y-1.5 list-none p-0 m-0">
+            <li><a class="text-on-surface hover:text-brand-magenta" href="courier/tugas.html">1. Daftar Tugas Pengiriman</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="courier/verifikasi.html">2. Verifikasi Lokasi &amp; PIN</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="courier/bukti-foto.html">3. Ambil Bukti Foto</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="courier/sukses.html">4. Konfirmasi Sukses</a></li>
+          </ol>
+        </nav>
+        <nav class="bg-surface-container-lowest rounded-xl border border-border-subtle p-4" aria-label="Halaman konsol admin">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Admin / Hub</p>
+          <ol class="text-[13px] space-y-1.5 list-none p-0 m-0">
+            <li><a class="text-on-surface hover:text-brand-magenta" href="admin/dashboard.html">1. Dashboard Pengiriman</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="admin/audit-trail.html">2. Detail Audit Trail</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="admin/antrian-pengecualian.html">3. Antrian Pengecualian</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="admin/pengecualian-detail.html">3b. Detail Pengecualian</a></li>
+            <li><a class="text-on-surface hover:text-brand-magenta" href="admin/pengaturan-radius.html">4. Pengaturan Radius</a></li>
+          </ol>
+        </nav>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-full border-t border-border-subtle">
+    <div class="max-w-5xl mx-auto px-5 py-6 text-[11px] text-on-surface-variant/70">
+      Capstone Anteraja Instant &bull; Purwarupa UI/UX (branch 7-prototype) &bull; Data contoh untuk keperluan demonstrasi.
+    </div>
+  </footer>
+
+  <script src="assets/js/app.js" defer></script>
+</body>
+</html>
