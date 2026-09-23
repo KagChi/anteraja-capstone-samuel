@@ -1,0 +1,289 @@
+// ============================================================================
+//  Anteraja Instant — Entity Relationship Diagram (crow's foot)
+//  Branch : 6-db
+//  Render : dot -Tpng -Gdpi=150 erd.dot -o erd.png && cwebp -q 90 erd.png -o erd.webp
+//  Legend : PK = primary key, FK = foreign key, UQ = unique constraint
+// ============================================================================
+digraph erd {
+  graph [
+    rankdir = TB,
+    splines = spline,
+    nodesep = 0.45,
+    ranksep = 0.90,
+    fontname = "Helvetica",
+    bgcolor = "white",
+    pad = 0.3,
+    compound = true,
+    newrank = true,
+    label = <<FONT POINT-SIZE="20" COLOR="#1C1B1B"><B>Anteraja Instant — Delivery Integrity Database</B></FONT><BR/>
+             <FONT POINT-SIZE="11" COLOR="#5b3f45">PostgreSQL + PostGIS · branch 6-db · crow's-foot notation</FONT><BR/> >,
+    labelloc = t,
+    labeljust = c
+  ];
+  node [shape = plaintext, fontname = "Helvetica", fontsize = 10, margin = 0];
+  edge [color = "#8f6f75", penwidth = 1.0, fontname = "Helvetica", fontsize = 8];
+
+  // ------------------------------------------------------------------ clusters
+  subgraph cluster_ref {
+    label = <<FONT COLOR="#735c00" POINT-SIZE="11"><B>REFERENCE &amp; CONFIG</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#FFF8E1"; color = "#EFC100";
+    service_areas; admins; geofence_policies;
+  }
+  subgraph cluster_people {
+    label = <<FONT COLOR="#00522d" POINT-SIZE="11"><B>PEOPLE</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#E4FFE8"; color = "#73DB9A";
+    couriers; recipients;
+  }
+  subgraph cluster_core {
+    label = <<FONT COLOR="#90003e" POINT-SIZE="11"><B>DELIVERY CORE</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#FFF0F5"; color = "#FFB1C1";
+    shipments; geofences; delivery_events;
+  }
+  subgraph cluster_verify {
+    label = <<FONT COLOR="#7a001f" POINT-SIZE="11"><B>VERIFICATION</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#FFD9DF"; color = "#E4BDC3";
+    delivery_proofs; pin_challenges; pin_deliveries;
+  }
+  subgraph cluster_exc {
+    label = <<FONT COLOR="#7a4200" POINT-SIZE="11"><B>EXCEPTIONS &amp; MATCHMAKING</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#FFF3E0"; color = "#F59E0B";
+    delivery_exceptions; meeting_points;
+  }
+  subgraph cluster_audit {
+    label = <<FONT COLOR="#1C1B1B" POINT-SIZE="11"><B>CLAIMS &amp; AUDIT</B></FONT>>;
+    style = "rounded,filled"; fillcolor = "#ECECEC"; color = "#9AA0A6";
+    claim_cases; claim_findings; anomaly_flags; audit_access_logs; admin_actions;
+  }
+
+  // ------------------------------------------------------------------- nodes
+  service_areas [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#735C00"><FONT COLOR="white"><B>service_areas</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">code</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">city</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">center</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+    </TABLE>>];
+
+  admins [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#735C00"><FONT COLOR="white"><B>admins</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">name / email</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">role</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">service_area_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  geofence_policies [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#735C00"><FONT COLOR="white"><B>geofence_policies</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">service_type</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">default_radius_m</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">requires_pin</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">pin_max_attempts / ttl</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">protocol_version</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">updated_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  couriers [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#00834B"><FONT COLOR="white"><B>couriers</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">code</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">phone</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">service_area_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  recipients [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#00834B"><FONT COLOR="white"><B>recipients</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">phone</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">email</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  shipments [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#E00065"><FONT COLOR="white"><B>shipments</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">tracking_number</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">service_type</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">courier_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">recipient_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">service_area_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">origin / destination</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">status / pin_required</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  geofences [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#E00065"><FONT COLOR="white"><B>geofences</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT> <FONT COLOR="#735C00">UQ*</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">center</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">radius_m</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">source</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">is_active</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  delivery_events [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#E00065"><FONT COLOR="white"><B>delivery_events</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">courier_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">event_type</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">point</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">distance_to_dest_m</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">actor_type / metadata</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  delivery_proofs [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#B2004F"><FONT COLOR="white"><B>delivery_proofs</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT> <FONT COLOR="#735C00">UQ*</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">courier_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">point</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">captured_at / device_at</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">watermark_hash</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">review_status</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">reviewed_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  pin_challenges [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#B2004F"><FONT COLOR="white"><B>pin_challenges</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT> <FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">recipient_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">code_hash</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">attempts / max_attempts</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">status / expires_at</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">override_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  pin_deliveries [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#B2004F"><FONT COLOR="white"><B>pin_deliveries</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">pin_challenge_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">channel / destination</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">attempt_no / status</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">sent_at</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  delivery_exceptions [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#B26A00"><FONT COLOR="white"><B>delivery_exceptions</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">courier_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">event_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">requested_point</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">distance_m / radius_m</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">status / reason</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">reviewed_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  meeting_points [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#B26A00"><FONT COLOR="white"><B>meeting_points</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">proposed_by_type / id</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">proposed_point</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">dist_destination_m</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">status / expires_at</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">approved_by_type / id</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  claim_cases [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>claim_cases</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">case_number</TD><TD ALIGN="LEFT"><FONT COLOR="#735C00">UQ</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">opened_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">status / summary</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">closed_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+    </TABLE>>];
+
+  claim_findings [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>claim_findings</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">claim_case_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">admin_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">finding</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  anomaly_flags [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>anomaly_flags</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT> <FONT COLOR="#735C00">UQ*</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">flag_type</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">weight / details</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">is_resolved</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  audit_access_logs [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>audit_access_logs</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">actor_type / actor_id</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">action</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">accessed_at</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  admin_actions [label = <
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>admin_actions</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">admin_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">action_type</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">target_type / target_id</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">reason</TD><TD ALIGN="LEFT"></TD></TR>
+    </TABLE>>];
+
+  // ------------------------------------------------------------------- edges
+  // one-to-many : arrowtail = tee (one)  |  arrowhead = crow (many)
+  // one-to-one  : tee on both ends
+  // Lookup edges: constraint=false so they do not distort the left->right spine.
+  service_areas -> couriers          [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  service_areas -> admins            [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  service_areas -> shipments         [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> geofence_policies [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  couriers      -> shipments         [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  recipients    -> shipments         [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  couriers      -> delivery_events   [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  couriers      -> delivery_proofs   [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> delivery_proofs   [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  recipients    -> pin_challenges    [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> pin_challenges    [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  couriers      -> delivery_exceptions [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  delivery_events -> delivery_exceptions [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> delivery_exceptions [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> claim_cases       [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> claim_findings    [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+  admins        -> admin_actions     [dir = both, arrowtail = tee, arrowhead = crow, constraint = false];
+
+  // Core spine: drives the left->right ranking.
+  shipments      -> geofences            [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> delivery_events     [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> delivery_proofs     [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> pin_challenges      [dir = both, arrowtail = tee, arrowhead = tee];
+  pin_challenges -> pin_deliveries      [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> delivery_exceptions [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> meeting_points      [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> claim_cases         [dir = both, arrowtail = tee, arrowhead = crow];
+  claim_cases    -> claim_findings      [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> anomaly_flags       [dir = both, arrowtail = tee, arrowhead = crow];
+  shipments      -> audit_access_logs   [dir = both, arrowtail = tee, arrowhead = crow];
+}
