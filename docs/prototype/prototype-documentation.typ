@@ -319,3 +319,20 @@ JavaScript/jQuery.
   Total 11 commit modular (melebihi syarat minimal 5). Lihat
   #link("https://github.com/KagChi/anteraja-capstone-samuel/tree/7-prototype")[branch 7-prototype].
 ]
+
+// ---------------------------- 8 ----------------------------
+= Bukti Branch
+
+#figure(
+  image("proof-branch.png", width: 100%),
+  caption: [Branch #text(font: font-mono, size: 9pt)[7-prototype] aktif pada repository GitHub
+    di atas basis #text(font: font-mono, size: 9pt)[main], dengan deretan commit modular
+    yang membangun purwarupa halaman demi halaman.],
+)
+
+#v(0.2em)
+#align(center)[
+  #link("https://github.com/KagChi/anteraja-capstone-samuel/tree/7-prototype")[
+    #text(size: 9.5pt, weight: "bold", fill: magenta)[github.com/KagChi/anteraja-capstone-samuel/tree/7-prototype]
+  ]
+]
