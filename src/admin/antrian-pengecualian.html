@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antrian Pengecualian Geofence — Admin Hub | Anteraja Instant</title>
+  <meta name="description" content="Antrian persetujuan dispensasi lokasi kurir di luar radius geofence resmi, dengan deviasi, alasan, dan aksi tinjau.">
+  <link rel="icon" href="../assets/img/logo-anteraja.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="../assets/js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="bg-surface-canvas text-on-surface font-sans antialiased min-h-screen" data-page="admin-antrian">
+  <a class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-2 focus:px-4 focus:py-2 focus:bg-brand-magenta focus:text-white focus:rounded-lg" href="#konten-utama">Lewati ke konten</a>
+
+  <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
+
+  <div class="min-h-screen lg:flex">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 bg-surface-container-lowest border-r border-border-subtle flex flex-col" aria-label="Navigasi konsol admin">
+      <div class="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle shrink-0">
+        <img class="h-7 w-7" src="../assets/img/logo-anteraja.svg" alt="">
+        <span class="text-[15px] font-extrabold tracking-tight text-brand-magenta">anteraja</span>
+        <span class="ml-auto text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">Hub</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto px-3 py-4">
+        <p class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Operasional Harian</p>
+        <ul class="space-y-1 list-none p-0 m-0">
+          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="dashboard.html"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">list_alt</span> Daftar Pengiriman</a></li>
+          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold bg-primary-fixed/40 text-brand-magenta" href="antrian-pengecualian.html" aria-current="page"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">approval</span> Antrian Pengecualian <span class="ml-auto text-[10px] font-bold bg-alert-amber/20 text-amber-700 px-1.5 py-0.5 rounded-full">4</span></a></li>
+          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub><span class="material-symbols-outlined text-[20px]" aria-hidden="true">photo_camera_back</span> Review POD</a></li>
+          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub><span class="material-symbols-outlined text-[20px]" aria-hidden="true">key</span> Kelola PIN</a></li>
+        </ul>
+        <p class="px-3 pt-5 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Konfigurasi Sistem</p>
+        <ul class="space-y-1 list-none p-0 m-0">
+          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="pengaturan-radius.html"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">radar</span> Pengaturan Radius</a></li>
+        </ul>
+      </nav>
+      <div class="p-3 border-t border-border-subtle shrink-0">
+        <div class="px-3 py-2 rounded-lg bg-surface-container-low"><p class="text-[11px] text-on-surface-variant">SLA Delivery</p><p class="text-[15px] font-extrabold text-tertiary">99.2%</p></div>
+        <div class="flex items-center gap-2.5 px-1 pt-3"><span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span><div class="leading-tight"><p class="text-[12px] font-semibold text-on-surface">Hub Admin Ops</p><p class="text-[11px] text-on-surface-variant">Jak-Sel</p></div></div>
+      </div>
+    </aside>
+
+    <div class="flex-1 min-w-0 flex flex-col">
+      <header class="sticky top-0 z-30 h-16 bg-surface-canvas/90 backdrop-blur-md border-b border-border-subtle flex items-center gap-3 px-4 lg:px-8" aria-label="Bilah atas konsol">
+        <button class="lg:hidden w-9 h-9 rounded-lg grid place-items-center text-on-surface hover:bg-surface-container" id="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka menu navigasi"><span class="material-symbols-outlined" aria-hidden="true">menu</span></button>
+        <nav class="text-[12px] text-on-surface-variant hidden sm:flex items-center gap-1" aria-label="Breadcrumb">
+          <a class="hover:text-on-surface" href="dashboard.html">Operasional Harian</a>
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
+          <span class="font-semibold text-on-surface">Antrian Pengecualian</span>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+          <a class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-subtle text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container" href="../index.html"><span class="material-symbols-outlined text-[16px]" aria-hidden="true">swap_horiz</span> Mode Kurir</a>
+          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
+        </div>
+      </header>
+
+      <main class="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-8 py-space-md flex flex-col gap-space-lg" id="konten-utama">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div class="flex flex-col gap-1">
+            <h1 class="text-headline-xl text-on-surface tracking-tight">Antrian Pengecualian</h1>
+            <p class="text-body-md text-on-surface-variant max-w-2xl">Persetujuan dispensasi lokasi kurir di luar radius resmi.</p>
+          </div>
+          <p class="flex items-center gap-3 self-start md:self-auto bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-subtle">
+            <span class="w-2 h-2 rounded-full bg-alert-amber shrink-0" aria-hidden="true"></span><span class="text-label-md text-on-surface">4 Menunggu</span>
+          </p>
+        </div>
+
+        <section class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-sm overflow-hidden" aria-labelledby="judul-daftar-pengajuan">
+          <div class="p-4 md:p-6 border-b border-border-subtle flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <h2 id="judul-daftar-pengajuan" class="flex items-center gap-3 text-title-md text-on-surface font-semibold">Daftar Pengajuan <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm">4 pengajuan</span></h2>
+              <p class="flex items-center gap-2 text-body-sm text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse" aria-hidden="true"></span><span class="font-medium">Auto-sync aktif</span></p>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-1.5 bg-surface-container-low/70 p-1 rounded-lg border border-border-subtle" id="exception-tabs" role="tablist" aria-label="Filter layanan">
+                <button class="filter-tab px-3 py-1 rounded-md text-label-sm bg-surface-container-lowest text-brand-magenta font-bold shadow-sm transition-all" data-service="all" type="button" role="tab" aria-selected="true">Semua (4)</button>
+                <button class="filter-tab px-3 py-1 rounded-md text-label-sm text-on-surface-variant hover:text-on-surface transition-all" data-service="instant" type="button" role="tab" aria-selected="false">Instant (2)</button>
+                <button class="filter-tab px-3 py-1 rounded-md text-label-sm text-on-surface-variant hover:text-on-surface transition-all" data-service="sameday" type="button" role="tab" aria-selected="false">Sameday (1)</button>
+                <button class="filter-tab px-3 py-1 rounded-md text-label-sm text-on-surface-variant hover:text-on-surface transition-all" data-service="regular" type="button" role="tab" aria-selected="false">Reguler (1)</button>
+              </div>
+              <div class="flex items-center gap-2.5 flex-1 max-w-sm ml-auto">
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low/50 border border-border-subtle rounded-lg w-full">
+                  <label class="sr-only" for="exception-search">Cari kurir, resi, deviasi</label>
+                  <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0" aria-hidden="true">search</span>
+                  <input class="bg-transparent border-none text-body-sm text-on-surface p-0 focus:ring-0 w-full placeholder:text-on-surface-variant/50" id="exception-search" placeholder="Cari kurir, resi, deviasi..." type="search">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+              <caption class="sr-only">Pengajuan pengecualian geofence yang menunggu keputusan admin</caption>
+              <thead>
+                <tr class="bg-surface-container-low/40 text-on-surface-variant/80 border-b border-border-subtle">
+                  <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Kurir</th>
+                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Nomor Resi</th>
+                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Layanan</th>
+                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Deviasi</th>
+                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Alasan Kurir</th>
+                  <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap text-right" scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-subtle/70" id="exception-table-body">
+                <tr class="exception-row hover:bg-surface-container-low/40 transition-colors" data-service="instant">
+                  <td class="py-3 px-5 align-middle whitespace-nowrap"><p class="text-title-md font-semibold text-on-surface">Budi Pratama <span class="text-[12px] text-on-surface-variant/70 font-normal">(SAT-8821)</span></p></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta" href="audit-trail.html">ANT-INST-99201</a></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[12px] font-semibold text-amber-700">+64 m <span class="text-on-surface-variant font-normal">/ maks 30 m</span></span></td>
+                  <td class="py-3 px-4 align-middle text-[12px] text-on-surface-variant max-w-[16rem] truncate">Gate cluster menutup, akses lewat pos satpam.</td>
+                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+                </tr>
+                <tr class="exception-row hover:bg-surface-container-low/40 transition-colors" data-service="instant">
+                  <td class="py-3 px-5 align-middle whitespace-nowrap"><p class="text-title-md font-semibold text-on-surface">Satria Dimas <span class="text-[12px] text-on-surface-variant/70 font-normal">(SAT-4021)</span></p></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta" href="audit-trail.html">ANT-INST-882910412</a></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[12px] font-semibold text-amber-700">+55 m <span class="text-on-surface-variant font-normal">/ maks 30 m</span></span></td>
+                  <td class="py-3 px-4 align-middle text-[12px] text-on-surface-variant max-w-[16rem] truncate">Jalan satu arah, harus putar balik ke lobi.</td>
+                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+                </tr>
+                <tr class="exception-row hover:bg-surface-container-low/40 transition-colors" data-service="sameday">
+                  <td class="py-3 px-5 align-middle whitespace-nowrap"><p class="text-title-md font-semibold text-on-surface">Rizky Pratama <span class="text-[12px] text-on-surface-variant/70 font-normal">(SAT-3390)</span></p></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta" href="audit-trail.html">ANT-SAME-771920412</a></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-amber-700 bg-secondary-container/60 px-2 py-0.5 rounded-full">Same-Day</span></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[12px] font-semibold text-amber-700">+41 m <span class="text-on-surface-variant font-normal">/ maks 50 m</span></span></td>
+                  <td class="py-3 px-4 align-middle text-[12px] text-on-surface-variant max-w-[16rem] truncate">Drop-off di gerbang tower, satpam tidak izinkan masuk.</td>
+                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+                </tr>
+                <tr class="exception-row hover:bg-surface-container-low/40 transition-colors" data-service="regular">
+                  <td class="py-3 px-5 align-middle whitespace-nowrap"><p class="text-title-md font-semibold text-on-surface">Dewi Lestari <span class="text-[12px] text-on-surface-variant/70 font-normal">(SAT-1188)</span></p></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta" href="audit-trail.html">ANT-REG-554109823</a></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Reguler</span></td>
+                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[12px] font-semibold text-amber-700">+118 m <span class="text-on-surface-variant font-normal">/ maks 100 m</span></span></td>
+                  <td class="py-3 px-4 align-middle text-[12px] text-on-surface-variant max-w-[16rem] truncate">Penerima minta titip di pos lingkungan.</td>
+                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="px-4 lg:px-8 py-6 text-[11px] text-on-surface-variant/70 border-t border-border-subtle">Keputusan dispensasi tercatat sebagai bagian jejak audit &bull; Data contoh untuk keperluan purwarupa.</footer>
+    </div>
+  </div>
+
+  <div class="fixed bottom-6 right-6 z-50 bg-surface-container-highest text-on-surface px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none" id="decision-toast" role="status" aria-live="polite">
+    <span class="material-symbols-outlined text-tertiary" id="toast-icon" aria-hidden="true">check_circle</span>
+    <span class="text-body-md font-semibold" id="toast-text">Keputusan berhasil diterapkan ke sistem.</span>
+  </div>
+
+  <script src="../assets/js/app.js" defer></script>
+</body>
+</html>
