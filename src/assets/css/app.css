@@ -1,0 +1,51 @@
+/* Satria Rapid Field Dispatch — base layer untuk prototype.
+ * Token warna/tipografi utama hidup di assets/js/tailwind.config.js (design system).
+ * Berkas ini menangani reset, safe-area iOS, dan detail lintas-halaman. */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overscroll-behavior: none;
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Sembunyikan scrollbar agar nuansa aplikasi mobile tetap bersih. */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Fokus keyboard yang jelas dan konsisten dengan brand. */
+:focus-visible {
+  outline: 2px solid #e00065;
+  outline-offset: 2px;
+}
+
+/* Material Symbols: default kurus, sesuai shell Stitch. */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.material-symbols-outlined[data-fill="1"] {
+  font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24;
+}
+
+/* Utilitas tipografi kode resi/AWB. */
+.font-mono-code {
+  font-variant-numeric: tabular-nums;
+}
