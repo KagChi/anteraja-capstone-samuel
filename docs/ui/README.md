@@ -167,3 +167,16 @@ standar operasional dan penyesuaian manual.
 - Screenshot dikonversi dari PNG ke `.webp` (kualitas 90) dengan `cwebp`.
 - Resolusi: mobile `706–780 px` (viewport HP); desktop high-resolution
   `2560×2048`, `2560×3002`, `2696×2048`, dan modal `2824×1614`.
+
+## Dokumentasi PDF
+
+Dokumen pengumpulan dibuat dari sumber Typst lalu diekspor ke PDF:
+
+```sh
+cd docs/ui
+typst compile --font-path fonts ui-documentation.typ ui-documentation.pdf
+```
+
+- [`ui-documentation.typ`](./ui-documentation.typ) — sumber dokumentasi (9 halaman A4).
+- [`ui-documentation.pdf`](./ui-documentation.pdf) — hasil ekspor untuk pengumpulan.
+- `fonts/` — Plus Jakarta Sans (OFL) agar tipografi sesuai design system saat build.
