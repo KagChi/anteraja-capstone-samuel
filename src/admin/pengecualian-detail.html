@@ -13,19 +13,47 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="../assets/css/app.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ParcelDelivery",
+        "trackingNumber": "ANT-INST-99201",
+        "deliveryStatus": "AttemptingDelivery",
+        "provider": { "@type": "Organization", "name": "Anteraja" },
+        "additionalProperty": [
+          { "@type": "PropertyValue", "name": "deviation_m", "value": 64 },
+          { "@type": "PropertyValue", "name": "hub_tolerance_m", "value": 30 },
+          { "@type": "PropertyValue", "name": "actual_distance_m", "value": 94 },
+          { "@type": "PropertyValue", "name": "gps_status", "value": "valid" }
+        ]
+      },
+      {
+        "@type": "DeliveryEvent",
+        "name": "Pengajuan pengecualian geofence ANT-INST-99201",
+        "startDate": "2024-09-22T14:41:00+07:00",
+        "actionStatus": "https://schema.org/PotentialActionStatus",
+        "object": { "@type": "ParcelDelivery", "trackingNumber": "ANT-INST-99201" },
+        "location": { "@type": "Place", "name": "Pos satpam cluster", "geo": { "@type": "GeoCoordinates", "latitude": -6.2418, "longitude": 106.8086 } },
+        "agent": { "@type": "Person", "name": "Budi Pratama", "jobTitle": "Kurir Anteraja" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="bg-surface-canvas text-on-surface font-sans antialiased min-h-screen" data-page="admin-pengecualian-detail">
   <a class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-2 focus:px-4 focus:py-2 focus:bg-brand-magenta focus:text-white focus:rounded-lg" href="#modal-exception">Lewati ke dialog</a>
 
-  <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
+  <span id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden" aria-hidden="true"></span>
 
   <div class="min-h-screen lg:flex">
     <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 bg-surface-container-lowest border-r border-border-subtle flex flex-col" aria-label="Navigasi konsol admin">
-      <div class="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle shrink-0">
+      <p class="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle shrink-0 m-0">
         <img class="h-7 w-7" src="../assets/img/logo-anteraja.svg" alt="">
         <span class="text-[15px] font-extrabold tracking-tight text-brand-magenta">anteraja</span>
         <span class="ml-auto text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">Hub</span>
-      </div>
+      </p>
       <nav class="flex-1 overflow-y-auto px-3 py-4">
         <p class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Operasional Harian</p>
         <ul class="space-y-1 list-none p-0 m-0">
@@ -39,13 +67,19 @@
           <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="pengaturan-radius.html"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">radar</span> Pengaturan Radius</a></li>
         </ul>
       </nav>
-      <div class="p-3 border-t border-border-subtle shrink-0">
-        <div class="px-3 py-2 rounded-lg bg-surface-container-low"><p class="text-[11px] text-on-surface-variant">SLA Delivery</p><p class="text-[15px] font-extrabold text-tertiary">99.2%</p></div>
-        <div class="flex items-center gap-2.5 px-1 pt-3"><span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span><div class="leading-tight"><p class="text-[12px] font-semibold text-on-surface">Hub Admin Ops</p><p class="text-[11px] text-on-surface-variant">Jak-Sel</p></div></div>
-      </div>
+      <footer class="p-3 border-t border-border-subtle shrink-0">
+        <section class="px-3 py-2 rounded-lg bg-surface-container-low">
+          <p class="text-[11px] text-on-surface-variant m-0">SLA Delivery</p>
+          <p class="text-[15px] font-extrabold text-tertiary m-0">99.2%</p>
+        </section>
+        <p class="flex items-center gap-2.5 px-1 pt-3 m-0">
+          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
+          <span class="leading-tight block"><span class="block text-[12px] font-semibold text-on-surface">Hub Admin Ops</span><span class="block text-[11px] text-on-surface-variant">Jak-Sel</span></span>
+        </p>
+      </footer>
     </aside>
 
-    <div class="flex-1 min-w-0 flex flex-col" aria-hidden="true">
+    <section class="flex-1 min-w-0 flex flex-col" aria-hidden="true">
       <header class="sticky top-0 z-30 h-16 bg-surface-canvas/90 backdrop-blur-md border-b border-border-subtle flex items-center gap-3 px-4 lg:px-8">
         <button class="lg:hidden w-9 h-9 rounded-lg grid place-items-center text-on-surface hover:bg-surface-container" id="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Buka menu navigasi"><span class="material-symbols-outlined">menu</span></button>
         <nav class="text-[12px] text-on-surface-variant hidden sm:flex items-center gap-1" aria-label="Breadcrumb">
@@ -54,51 +88,45 @@
       </header>
       <main class="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-8 py-6 opacity-40 pointer-events-none select-none">
         <h1 class="text-headline-xl font-bold tracking-tight mb-4">Antrian Pengecualian</h1>
-        <div class="h-40 rounded-xl border border-border-subtle bg-surface-container-lowest"></div>
+        <p class="h-40 rounded-xl border border-border-subtle bg-surface-container-lowest m-0"></p>
       </main>
-    </div>
+    </section>
   </div>
 
-  <div class="fixed inset-0 z-[55] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="exception-modal-overlay">
-    <section class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl border border-border-subtle max-h-[90vh] overflow-y-auto" id="modal-exception" role="dialog" aria-modal="true" aria-labelledby="judul-modal-pengecualian">
+  <section class="fixed inset-0 z-[55] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" id="exception-modal-overlay" aria-label="Tiruan latar antrian pengecualian">
+    <dialog class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl border border-border-subtle max-h-[90vh] overflow-y-auto p-0 m-0 block static" id="modal-exception" open aria-modal="true" aria-labelledby="judul-modal-pengecualian">
       <header class="flex items-start justify-between gap-4 p-5 border-b border-border-subtle sticky top-0 bg-surface-container-lowest">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span>
+        <section>
+          <p class="flex items-center gap-2 m-0">
+            <mark class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</mark>
             <span class="tracking-number text-[12px] font-mono-code text-on-surface-variant">#ANT-99201</span>
-          </div>
-          <h1 id="judul-modal-pengecualian" class="text-lg font-bold text-on-surface tracking-tight">Detail Pengecualian Geofence</h1>
-        </div>
+          </p>
+          <h1 id="judul-modal-pengecualian" class="text-lg font-bold text-on-surface tracking-tight mt-1">Detail Pengecualian Geofence</h1>
+        </section>
         <a class="w-8 h-8 rounded-lg grid place-items-center text-on-surface-variant hover:bg-surface-container shrink-0" href="antrian-pengecualian.html" id="btn-close-modal" aria-label="Tutup dialog">
           <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
         </a>
       </header>
 
-      <div class="p-5 space-y-5">
-        <div class="flex items-center gap-3">
+      <section class="p-5 space-y-5">
+        <p class="flex items-center gap-3 m-0">
           <span class="w-10 h-10 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[14px] font-bold shrink-0" aria-hidden="true">B</span>
-          <div class="leading-tight">
-            <p class="text-sm font-semibold text-on-surface">Budi Pratama <span class="text-[12px] text-on-surface-variant font-normal">(SAT-8821)</span></p>
-            <p class="text-[12px] text-on-surface-variant">Tiket dibuat 22 Sep 2024 &bull; 14:41 WIB</p>
-          </div>
-          <span class="ml-auto text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">GPS Valid</span>
-        </div>
+          <span class="leading-tight block">
+            <span class="block text-sm font-semibold text-on-surface">Budi Pratama <span class="text-[12px] text-on-surface-variant font-normal">(SAT-8821)</span></span>
+            <span class="block text-[12px] text-on-surface-variant">Tiket dibuat <time datetime="2024-09-22T14:41:00+07:00">22 Sep 2024 &bull; 14:41 WIB</time></span>
+          </span>
+          <mark class="ml-auto text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">GPS Valid</mark>
+        </p>
 
         <section class="bg-surface-container-low/60 rounded-xl border border-border-subtle p-4" aria-labelledby="judul-ringkasan-deviasi">
           <h2 id="judul-ringkasan-deviasi" class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Ringkasan Deviasi</h2>
-          <dl class="grid grid-cols-3 gap-3 text-center">
-            <div class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle">
-              <dt class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Selisih</dt>
-              <dd class="text-[18px] font-extrabold text-amber-600">+64 m</dd>
-            </div>
-            <div class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle">
-              <dt class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Toleransi Hub</dt>
-              <dd class="text-[18px] font-extrabold text-on-surface">30 m</dd>
-            </div>
-            <div class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle">
-              <dt class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Jarak Aktual</dt>
-              <dd class="text-[18px] font-extrabold text-on-surface">94 m</dd>
-            </div>
+          <dl class="grid grid-cols-3 gap-3 text-center m-0">
+            <dt class="sr-only">Selisih</dt>
+            <dd class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle m-0"><span class="block text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Selisih</span> <strong class="block text-[18px] font-extrabold text-amber-600">+64 m</strong></dd>
+            <dt class="sr-only">Toleransi Hub</dt>
+            <dd class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle m-0"><span class="block text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Toleransi Hub</span> <strong class="block text-[18px] font-extrabold text-on-surface">30 m</strong></dd>
+            <dt class="sr-only">Jarak Aktual</dt>
+            <dd class="bg-surface-container-lowest rounded-lg p-2.5 border border-border-subtle m-0"><span class="block text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Jarak Aktual</span> <strong class="block text-[18px] font-extrabold text-on-surface">94 m</strong></dd>
           </dl>
         </section>
 
@@ -115,16 +143,18 @@
             <span class="material-symbols-outlined text-[32px] text-white/25" aria-hidden="true">photo_camera</span>
             <figcaption class="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2">
               <span class="px-2 py-0.5 bg-black/70 text-[10px] text-white font-mono-code rounded">-6.2418, 106.8086</span>
-              <span class="px-2 py-0.5 bg-black/70 text-[10px] text-white font-mono-code rounded">22 Sep 2024 &bull; 14:40 WIB</span>
+              <time class="px-2 py-0.5 bg-black/70 text-[10px] text-white font-mono-code rounded" datetime="2024-09-22T14:40:00+07:00">22 Sep 2024 &bull; 14:40 WIB</time>
             </figcaption>
           </figure>
         </section>
 
-        <label class="block">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Catatan keputusan (opsional)</span>
-          <textarea class="mt-2 w-full p-3 rounded-xl bg-surface-container-low focus:bg-surface-container-lowest text-sm text-on-surface focus:outline-none border border-border-subtle resize-none" id="exception-note" placeholder="Alasan persetujuan atau penolakan..." rows="2"></textarea>
-        </label>
-      </div>
+        <p class="m-0">
+          <label class="block">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Catatan keputusan (opsional)</span>
+            <textarea class="mt-2 w-full p-3 rounded-xl bg-surface-container-low focus:bg-surface-container-lowest text-sm text-on-surface focus:outline-none border border-border-subtle resize-none" id="exception-note" placeholder="Alasan persetujuan atau penolakan..." rows="2"></textarea>
+          </label>
+        </p>
+      </section>
 
       <footer class="flex items-center justify-end gap-3 p-5 border-t border-border-subtle sticky bottom-0 bg-surface-container-lowest">
         <a class="px-4 py-2.5 rounded-xl border border-border-subtle text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-colors" id="btn-reject-exception" href="antrian-pengecualian.html">Tolak</a>
@@ -132,8 +162,8 @@
           <span class="material-symbols-outlined text-[18px]" aria-hidden="true">verified_user</span> Setujui Pengecualian
         </a>
       </footer>
-    </section>
-  </div>
+    </dialog>
+  </section>
 
   <script src="../assets/js/app.js" defer></script>
 </body>

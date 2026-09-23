@@ -13,19 +13,36 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="../assets/css/app.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Daftar pengiriman hari ini — Hub Jakarta Selatan",
+    "description": "Pantauan status integritas pengiriman kurir Satria; 4 pengiriman perlu tinjauan.",
+    "numberOfItems": 6,
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-INST-882910412", "deliveryStatus": "AttemptingDelivery", "provider": { "@type": "Organization", "name": "Anteraja" } } },
+      { "@type": "ListItem", "position": 2, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-INST-8829104", "deliveryStatus": "Completed", "provider": { "@type": "Organization", "name": "Anteraja" } } },
+      { "@type": "ListItem", "position": 3, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-SAME-771920412", "deliveryStatus": "Completed", "provider": { "@type": "Organization", "name": "Anteraja" } } },
+      { "@type": "ListItem", "position": 4, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-INST-99201", "deliveryStatus": "AttemptingDelivery", "provider": { "@type": "Organization", "name": "Anteraja" } } },
+      { "@type": "ListItem", "position": 5, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-REG-554109823", "deliveryStatus": "AttemptingDelivery", "provider": { "@type": "Organization", "name": "Anteraja" } } },
+      { "@type": "ListItem", "position": 6, "item": { "@type": "ParcelDelivery", "trackingNumber": "ANT-SAME-220193", "deliveryStatus": "Completed", "provider": { "@type": "Organization", "name": "Anteraja" } } }
+    ]
+  }
+  </script>
 </head>
 <body class="bg-surface-canvas text-on-surface font-sans antialiased min-h-screen" data-page="admin-dashboard">
   <a class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-2 focus:px-4 focus:py-2 focus:bg-brand-magenta focus:text-white focus:rounded-lg" href="#konten-utama">Lewati ke konten</a>
 
-  <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
+  <span id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden" aria-hidden="true"></span>
 
   <div class="min-h-screen lg:flex">
     <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 bg-surface-container-lowest border-r border-border-subtle flex flex-col" aria-label="Navigasi konsol admin">
-      <div class="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle shrink-0">
+      <p class="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle shrink-0 m-0">
         <img class="h-7 w-7" src="../assets/img/logo-anteraja.svg" alt="">
         <span class="text-[15px] font-extrabold tracking-tight text-brand-magenta">anteraja</span>
         <span class="ml-auto text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">Hub</span>
-      </div>
+      </p>
       <nav class="flex-1 overflow-y-auto px-3 py-4">
         <p class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Operasional Harian</p>
         <ul class="space-y-1 list-none p-0 m-0">
@@ -60,19 +77,19 @@
           </li>
         </ul>
       </nav>
-      <div class="p-3 border-t border-border-subtle shrink-0">
-        <div class="px-3 py-2 rounded-lg bg-surface-container-low">
-          <p class="text-[11px] text-on-surface-variant">SLA Delivery</p>
-          <p class="text-[15px] font-extrabold text-tertiary">99.2%</p>
-        </div>
-        <div class="flex items-center gap-2.5 px-1 pt-3">
+      <footer class="p-3 border-t border-border-subtle shrink-0">
+        <section class="px-3 py-2 rounded-lg bg-surface-container-low">
+          <p class="text-[11px] text-on-surface-variant m-0">SLA Delivery</p>
+          <p class="text-[15px] font-extrabold text-tertiary m-0">99.2%</p>
+        </section>
+        <p class="flex items-center gap-2.5 px-1 pt-3 m-0">
           <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
-          <div class="leading-tight">
-            <p class="text-[12px] font-semibold text-on-surface">Hub Admin Ops</p>
-            <p class="text-[11px] text-on-surface-variant">Jak-Sel</p>
-          </div>
-        </div>
-      </div>
+          <span class="leading-tight block">
+            <span class="block text-[12px] font-semibold text-on-surface">Hub Admin Ops</span>
+            <span class="block text-[11px] text-on-surface-variant">Jak-Sel</span>
+          </span>
+        </p>
+      </footer>
     </aside>
 
     <div class="flex-1 min-w-0 flex flex-col">
@@ -85,26 +102,26 @@
           <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
           <span class="font-semibold text-on-surface">Daftar Pengiriman</span>
         </nav>
-        <div class="ml-auto flex items-center gap-2">
+        <p class="ml-auto flex items-center gap-2 m-0">
           <a class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-subtle text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container" href="../index.html">
             <span class="material-symbols-outlined text-[16px]" aria-hidden="true">swap_horiz</span> Mode Kurir
           </a>
           <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
-        </div>
+        </p>
       </header>
 
       <main class="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-8 py-space-md flex flex-col gap-space-lg" id="konten-utama">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
-          <div class="flex flex-col">
-            <div class="flex items-center gap-space-xs text-on-surface-variant mb-1">
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+          <section>
+            <p class="flex items-center gap-space-xs text-on-surface-variant mb-1 m-0">
               <span class="text-label-sm uppercase tracking-wider text-brand-magenta font-bold">Integritas Operasional</span>
               <span class="text-outline-variant" aria-hidden="true">&bull;</span>
               <span class="text-label-sm text-on-surface-variant font-medium">Shift Aktif (08:00 - 20:00)</span>
-            </div>
+            </p>
             <h1 class="text-headline-lg text-on-surface tracking-tight">Daftar Pengiriman</h1>
             <p class="text-body-md text-on-surface-variant mt-0.5">Pantau status integritas pengiriman kurir Satria hari ini secara real-time.</p>
-          </div>
-          <p class="flex items-center gap-space-xs bg-surface-container px-space-md py-space-xs rounded-full self-start md:self-auto">
+          </section>
+          <p class="flex items-center gap-space-xs bg-surface-container px-space-md py-space-xs rounded-full self-start md:self-auto m-0">
             <span class="w-2 h-2 rounded-full bg-brand-magenta animate-ping" aria-hidden="true"></span>
             <span class="text-body-sm text-on-surface">
               <strong class="text-title-md">142</strong> pengiriman hari ini
@@ -114,24 +131,24 @@
               <span class="text-on-surface-variant">138 terverifikasi otomatis</span>
             </span>
           </p>
-        </div>
+        </header>
 
         <section class="bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-col md:flex-row items-center justify-between gap-space-sm" aria-label="Filter dan pencarian">
-          <div class="flex items-center p-1 bg-surface-container rounded-lg w-full md:w-auto" id="filter-tabs" role="tablist" aria-label="Filter status">
+          <nav class="flex items-center p-1 bg-surface-container rounded-lg w-full md:w-auto" id="filter-tabs" role="tablist" aria-label="Filter status">
             <button class="filter-tab px-space-md py-1 rounded text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status="all" type="button" role="tab" aria-selected="false">Semua</button>
             <button class="filter-tab px-space-md py-1 rounded text-label-md bg-surface-container-lowest text-brand-magenta shadow-sm transition-all flex items-center gap-1.5" data-status="review" type="button" role="tab" aria-selected="true">
               <span>Perlu Tinjauan</span><span class="w-1.5 h-1.5 rounded-full bg-brand-magenta" aria-hidden="true"></span>
             </button>
             <button class="filter-tab px-space-md py-1 rounded text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status="delivered" type="button" role="tab" aria-selected="false">Terkirim</button>
             <button class="filter-tab px-space-md py-1 rounded text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status="exception" type="button" role="tab" aria-selected="false">Pengecualian</button>
-          </div>
-          <div class="flex items-center gap-space-sm w-full md:w-auto justify-end">
-            <div class="relative flex-1 md:w-64">
-              <label class="sr-only" for="search-input">Cari resi, kurir, penerima</label>
+          </nav>
+          <search class="flex items-center gap-space-sm w-full md:w-auto justify-end">
+            <label class="relative flex-1 md:w-64 block">
+              <span class="sr-only">Cari resi, kurir, penerima</span>
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" aria-hidden="true">search</span>
               <input class="w-full bg-surface-container-low pl-9 pr-space-md py-1.5 rounded-lg text-on-surface text-body-sm focus:bg-surface-container-lowest focus:outline-none transition-all placeholder:text-on-surface-variant/50" id="search-input" placeholder="Cari resi, kurir, penerima..." type="search">
-            </div>
-            <div class="flex items-center gap-1 bg-surface-container-low px-2 py-1.5 rounded-lg">
+            </label>
+            <p class="flex items-center gap-1 bg-surface-container-low px-2 py-1.5 rounded-lg m-0">
               <label class="sr-only" for="filter-service">Layanan</label>
               <span class="material-symbols-outlined text-[16px] text-outline" aria-hidden="true">tune</span>
               <select class="bg-transparent text-label-md text-on-surface focus:outline-none cursor-pointer pr-1" id="filter-service">
@@ -140,8 +157,8 @@
                 <option value="sameday">Same-Day</option>
                 <option value="regular">Reguler</option>
               </select>
-            </div>
-            <div class="hidden lg:flex items-center gap-1 bg-surface-container-low px-2 py-1.5 rounded-lg">
+            </p>
+            <p class="hidden lg:flex items-center gap-1 bg-surface-container-low px-2 py-1.5 rounded-lg m-0">
               <label class="sr-only" for="filter-region">Wilayah</label>
               <span class="material-symbols-outlined text-[16px] text-outline" aria-hidden="true">location_on</span>
               <select class="bg-transparent text-label-md text-on-surface focus:outline-none cursor-pointer pr-1" id="filter-region">
@@ -149,106 +166,104 @@
                 <option selected value="jaksel">Jak-Sel</option>
                 <option value="jakpus">Jak-Pus</option>
               </select>
-            </div>
-          </div>
+            </p>
+          </search>
         </section>
 
         <section class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-sm overflow-hidden" aria-label="Tabel pengiriman">
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse">
-              <caption class="sr-only">Daftar pengiriman hari ini beserta status integritasnya</caption>
-              <thead>
-                <tr class="bg-surface-container-low/40 text-on-surface-variant/80 border-b border-border-subtle">
-                  <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Kurir</th>
-                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Nomor Resi</th>
-                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Layanan</th>
-                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Status Integritas</th>
-                  <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap hidden lg:table-cell" scope="col">Wilayah</th>
-                  <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap text-right" scope="col">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border-subtle/70" id="delivery-table-body">
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors bg-primary-fixed/10" data-flag="review" data-service="instant">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">S</span>
-                      <span class="text-title-md text-on-surface font-semibold">Satria Dimas <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-4021)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-882910412</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-amber-700 bg-alert-amber/15 px-2.5 py-1 rounded-full">Perlu Tinjauan (+52 m)</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="instant">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">A</span>
-                      <span class="text-title-md text-on-surface font-semibold">Ahmad Satria <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-4821)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-8829104</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi (+12 m)</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">R</span>
-                      <span class="text-title-md text-on-surface font-semibold">Rizky Pratama <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-3390)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-SAME-771920412</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-amber-700 bg-secondary-container/60 px-2 py-0.5 rounded-full">Same-Day</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="exception" data-service="instant">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">B</span>
-                      <span class="text-title-md text-on-surface font-semibold">Budi Pratama <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-8821)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-99201</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-orange-700 bg-orange-100 px-2.5 py-1 rounded-full">Pengecualian Menunggu</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="review" data-service="regular">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">D</span>
-                      <span class="text-title-md text-on-surface font-semibold">Dewi Lestari <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-1188)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-REG-554109823</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Reguler</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-amber-700 bg-alert-amber/15 px-2.5 py-1 rounded-full">Perlu Tinjauan (PIN gagal)</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Pus</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-                <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
-                  <td class="py-3 px-5 align-middle whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">F</span>
-                      <span class="text-title-md text-on-surface font-semibold">Fajar Nugroho <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-2055)</span></span>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-SAME-220193</a></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-bold uppercase text-amber-700 bg-secondary-container/60 px-2 py-0.5 rounded-full">Same-Day</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap"><span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi</span></td>
-                  <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
-                  <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="w-full text-left border-collapse">
+            <caption class="sr-only">Daftar pengiriman hari ini beserta status integritasnya</caption>
+            <thead>
+              <tr class="bg-surface-container-low/40 text-on-surface-variant/80 border-b border-border-subtle">
+                <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Kurir</th>
+                <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Nomor Resi</th>
+                <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Layanan</th>
+                <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap" scope="col">Status Integritas</th>
+                <th class="py-3.5 px-4 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap hidden lg:table-cell" scope="col">Wilayah</th>
+                <th class="py-3.5 px-5 text-label-sm tracking-wider uppercase font-bold whitespace-nowrap text-right" scope="col">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle/70" id="delivery-table-body">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors bg-primary-fixed/10" data-flag="review" data-service="instant">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">S</span>
+                    <span class="text-title-md text-on-surface font-semibold">Satria Dimas <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-4021)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-882910412</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-amber-700 bg-alert-amber/15 px-2.5 py-1 rounded-full">Perlu Tinjauan (+52 m)</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="instant">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">A</span>
+                    <span class="text-title-md text-on-surface font-semibold">Ahmad Satria <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-4821)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-8829104</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi (+12 m)</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">R</span>
+                    <span class="text-title-md text-on-surface font-semibold">Rizky Pratama <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-3390)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-SAME-771920412</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-amber-700 bg-secondary-container/60 px-2 py-0.5 rounded-full">Same-Day</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="exception" data-service="instant">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">B</span>
+                    <span class="text-title-md text-on-surface font-semibold">Budi Pratama <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-8821)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-INST-99201</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-brand-magenta bg-brand-magenta/10 px-2 py-0.5 rounded-full">Instant</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-orange-700 bg-orange-100 px-2.5 py-1 rounded-full">Pengecualian Menunggu</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="review" data-service="regular">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">D</span>
+                    <span class="text-title-md text-on-surface font-semibold">Dewi Lestari <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-1188)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-REG-554109823</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Reguler</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-amber-700 bg-alert-amber/15 px-2.5 py-1 rounded-full">Perlu Tinjauan (PIN gagal)</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Pus</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
+                <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
+                  <p class="flex items-center gap-3 m-0">
+                    <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">F</span>
+                    <span class="text-title-md text-on-surface font-semibold">Fajar Nugroho <span class="text-body-sm text-on-surface-variant/70 font-normal">(#STR-2055)</span></span>
+                  </p>
+                </th>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><a class="tracking-number text-barcode-tracking text-on-surface font-bold hover:text-brand-magenta" href="audit-trail.html">ANT-SAME-220193</a></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-bold uppercase text-amber-700 bg-secondary-container/60 px-2 py-0.5 rounded-full">Same-Day</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap"><mark class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">Terverifikasi</mark></td>
+                <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
+                <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
+              </tr>
+            </tbody>
+          </table>
         </section>
       </main>
 

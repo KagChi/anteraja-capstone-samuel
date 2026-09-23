@@ -13,60 +13,89 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="../assets/css/app.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ParcelDelivery",
+        "trackingNumber": "ANT-INST-882910394",
+        "deliveryStatus": "Completed",
+        "deliveryTime": "2024-09-22T15:14:28+07:00",
+        "provider": { "@type": "Organization", "name": "Anteraja" },
+        "recipient": { "@type": "Person", "name": "Bambang Wijaya" },
+        "deliveryAddress": { "@type": "PostalAddress", "streetAddress": "Jl. Senopati No. 42", "addressLocality": "Kebayoran Baru", "addressRegion": "DKI Jakarta", "addressCountry": "ID" }
+      },
+      {
+        "@type": "DeliveryEvent",
+        "name": "Pengiriman tuntas ANT-INST-882910394",
+        "startDate": "2024-09-22T14:32:00+07:00",
+        "endDate": "2024-09-22T14:32:00+07:00",
+        "actionStatus": "https://schema.org/CompletedActionStatus",
+        "additionalProperty": [
+          { "@type": "PropertyValue", "name": "geofence_radius_m", "value": 30 },
+          { "@type": "PropertyValue", "name": "distance_to_destination_m", "value": 28 },
+          { "@type": "PropertyValue", "name": "pin_verified", "value": true },
+          { "@type": "PropertyValue", "name": "audit_hash", "value": "AUD-SEC-9912-SHA256" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="bg-surface text-on-surface font-sans antialiased min-h-screen flex flex-col" data-page="courier-sukses">
 
   <header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-border-subtle pt-safe">
-    <div class="h-14 px-5 flex items-center justify-between max-w-md mx-auto">
+    <p class="h-14 px-5 flex items-center justify-between max-w-md mx-auto m-0">
       <a class="flex items-center gap-2.5" href="../index.html" aria-label="Kembali ke beranda Satria">
         <img class="h-7 w-7" src="../assets/img/logo-anteraja.svg" alt="Anteraja">
         <span class="text-[15px] font-extrabold tracking-tight text-brand-magenta">anteraja</span>
       </a>
-      <div class="flex items-center gap-2.5">
-        <div class="flex flex-col items-end leading-tight">
+      <span class="flex items-center gap-2.5">
+        <span class="flex flex-col items-end leading-tight">
           <span class="text-[13px] text-on-surface font-semibold">Satria</span>
           <span class="text-[11px] text-on-surface-variant">#4821 &bull; Jak-Sel</span>
-        </div>
+        </span>
         <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[13px] font-bold ring-1 ring-border-subtle" aria-hidden="true">S</span>
-      </div>
-    </div>
+      </span>
+    </p>
   </header>
 
   <main class="flex-1 flex flex-col justify-between w-full max-w-md mx-auto pt-20 pb-28 px-5">
     <section class="flex flex-col items-center w-full my-auto" aria-labelledby="judul-sukses">
-      <div class="relative flex items-center justify-center my-6">
+      <p class="relative flex items-center justify-center my-6 m-0">
         <span class="absolute w-24 h-24 rounded-full bg-brand-magenta/10 animate-ping opacity-60 pointer-events-none" aria-hidden="true"></span>
         <span class="w-20 h-20 rounded-full bg-brand-magenta grid place-items-center text-white shadow-lg shadow-brand-magenta/20" aria-hidden="true">
           <span class="material-symbols-outlined text-[42px]" data-fill="1">check</span>
         </span>
-      </div>
-      <div class="text-center space-y-1">
+      </p>
+      <header class="text-center space-y-1">
         <h1 id="judul-sukses" class="text-[24px] font-bold text-on-surface tracking-tight">Pengiriman Berhasil</h1>
         <p class="text-[13px] text-on-surface-variant tracking-wide font-medium">Tercatat resmi dalam sistem audit kriptografis</p>
-      </div>
+      </header>
 
       <article class="w-full mt-7 bg-surface-card rounded-2xl border border-border-subtle shadow-card p-4 text-left space-y-3.5">
         <header class="flex items-center justify-between border-b border-border-subtle pb-3">
-          <span class="flex items-center gap-1.5 text-on-surface-variant">
+          <p class="flex items-center gap-1.5 text-on-surface-variant m-0">
             <span class="material-symbols-outlined text-[17px]" aria-hidden="true">inventory_2</span>
             <span class="text-[12px] font-medium tracking-wide">Nomor Resi</span>
-          </span>
-          <span class="tracking-number font-mono-code text-[13px] font-bold text-on-surface tracking-tight bg-surface-container-low px-2 py-0.5 rounded-md">ANT-INST-882910394</span>
+          </p>
+          <p class="tracking-number font-mono-code text-[13px] font-bold text-on-surface tracking-tight bg-surface-container-low px-2 py-0.5 rounded-md m-0">ANT-INST-882910394</p>
         </header>
-        <div class="flex items-start gap-3 pt-0.5">
+        <section class="flex items-start gap-3 pt-0.5">
           <span class="w-8 h-8 rounded-full bg-surface-container grid place-items-center shrink-0 mt-0.5 text-brand-magenta" aria-hidden="true">
             <span class="material-symbols-outlined text-[18px]">person_pin_circle</span>
           </span>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
+          <section class="min-w-0 flex-1">
+            <header class="flex items-center justify-between gap-2">
               <h2 class="text-[14px] font-semibold text-on-surface truncate">Bpk. Bambang Wijaya</h2>
-              <span class="text-[11px] text-tertiary font-semibold flex items-center gap-0.5 shrink-0">
+              <p class="text-[11px] text-tertiary font-semibold flex items-center gap-0.5 shrink-0 m-0">
                 <span class="material-symbols-outlined text-[13px]" data-fill="1" aria-hidden="true">check_circle</span> Diterima
-              </span>
-            </div>
+              </p>
+            </header>
             <p class="text-[12px] text-on-surface-variant mt-0.5 leading-relaxed">Jl. Senopati No. 42, Kebayoran Baru</p>
-          </div>
-        </div>
+          </section>
+        </section>
       </article>
 
       <details class="group w-full mt-3 bg-surface-card/70 rounded-xl border border-border-subtle/70 overflow-hidden text-left" id="audit-details">
@@ -76,23 +105,15 @@
           </span>
           <span class="material-symbols-outlined text-[18px] transition-transform duration-200 group-open:rotate-180" aria-hidden="true">expand_more</span>
         </summary>
-        <dl class="px-4 pb-3 pt-1 border-t border-border-subtle/60 text-[11px] space-y-2 font-mono-code bg-surface-container-lowest/50">
-          <div class="flex justify-between items-center">
-            <dt class="text-on-surface-variant">Radius Geofence</dt>
-            <dd class="text-tertiary font-bold">28 m (Batas 30 m) &bull; Valid</dd>
-          </div>
-          <div class="flex justify-between items-center">
-            <dt class="text-on-surface-variant">Verifikasi PIN</dt>
-            <dd class="text-on-surface font-semibold">Tervalidasi Penerima</dd>
-          </div>
-          <div class="flex justify-between items-center">
-            <dt class="text-on-surface-variant">Stempel Waktu NTP</dt>
-            <dd class="text-on-surface font-semibold">22 Sep 2024 &bull; 15:14:28 WIB</dd>
-          </div>
-          <div class="flex justify-between items-center">
-            <dt class="text-on-surface-variant">Kode Hash Audit</dt>
-            <dd class="text-brand-magenta font-semibold">AUD-SEC-9912-SHA256</dd>
-          </div>
+        <dl class="px-4 pb-3 pt-1 border-t border-border-subtle/60 text-[11px] space-y-2 font-mono-code bg-surface-container-lowest/50 m-0">
+          <dt class="text-on-surface-variant">Radius Geofence</dt>
+          <dd class="text-tertiary font-bold m-0">28 m (Batas 30 m) &bull; Valid</dd>
+          <dt class="text-on-surface-variant">Verifikasi PIN</dt>
+          <dd class="text-on-surface font-semibold m-0">Tervalidasi Penerima</dd>
+          <dt class="text-on-surface-variant">Stempel Waktu NTP</dt>
+          <dd class="text-on-surface font-semibold m-0"><time datetime="2024-09-22T15:14:28+07:00">22 Sep 2024 &bull; 15:14:28 WIB</time></dd>
+          <dt class="text-on-surface-variant">Kode Hash Audit</dt>
+          <dd class="text-brand-magenta font-semibold m-0">AUD-SEC-9912-SHA256</dd>
         </dl>
       </details>
 
@@ -102,16 +123,16 @@
       </p>
     </section>
 
-    <div class="w-full pt-4">
+    <footer class="w-full pt-4">
       <a class="btn-primary w-full h-12 bg-brand-magenta hover:bg-brand-magenta/90 active:scale-[0.98] text-white rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 shadow-md shadow-brand-magenta/25 transition-all" href="tugas.html">
         <span>Lanjut ke Tugas Berikutnya</span>
         <span class="material-symbols-outlined text-[19px]" aria-hidden="true">arrow_forward</span>
       </a>
-    </div>
+    </footer>
   </main>
 
   <nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-md border-t border-border-subtle" aria-label="Navigasi utama kurir">
-    <div class="flex justify-around items-center h-16 px-2 max-w-md mx-auto">
+    <p class="flex justify-around items-center h-16 px-2 max-w-md mx-auto m-0">
       <a class="tab-item flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[48px] text-on-surface-variant hover:text-brand-magenta transition-colors" href="tugas.html">
         <span class="material-symbols-outlined text-[22px]" aria-hidden="true">local_shipping</span>
         <span class="text-[10px]">Tugas</span>
@@ -128,7 +149,7 @@
         <span class="material-symbols-outlined text-[22px]" aria-hidden="true">account_circle</span>
         <span class="text-[10px]">Profil</span>
       </a>
-    </div>
+    </p>
   </nav>
 
   <script src="../assets/js/app.js" defer></script>
