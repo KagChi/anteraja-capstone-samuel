@@ -159,7 +159,8 @@
   5. Data Contoh \
   6. Query Verifikasi \
   7. Pemetaan FRD → Tabel \
-  8. Cara Menjalankan & Tautan Branch
+  8. Cara Menjalankan & Tautan Branch \
+  9. Lampiran — Bukti Branch
 ]
 
 // ------------------------------------------------------------
@@ -501,4 +502,23 @@
       #text(fill: magenta)[github.com/KagChi/anteraja-capstone-samuel/tree/6-db]
     ]
   ]
+]
+
+// ------------------------------------------------------------
+//  LAMPIRAN — BUKTI BRANCH
+// ------------------------------------------------------------
+#page[
+  #heading(level: 1)[9. Lampiran — Bukti Branch]
+
+  Seluruh pekerjaan basis data ini dikerjakan pada branch Git *6-db* di repositori
+  Anteraja Capstone. Tangkapan layar berikut menjadi bukti bahwa branch telah dibuat
+  dan dipakai sebagai wadah pengumpulan berkas `schema.sql`, `seed.sql`, `queries.sql`,
+  `erd.webp`, dan `README.md`.
+
+  #v(0.4em)
+  #box(width: 100%, fill: soft, stroke: 0.6pt + hair, radius: 8pt, inset: 0.6em)[
+    #image("proof_branch.png", width: 100%)
+  ]
+  #v(0.3em)
+  #text(size: 8pt, fill: luma(40%))[Gambar: Bukti branch `6-db` pada repositori Git Anteraja Capstone.]
 ]
