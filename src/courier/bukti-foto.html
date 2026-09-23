@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ambil Bukti Foto (POD) — Satria | Anteraja Instant</title>
+  <meta name="description" content="Kamera dalam aplikasi untuk Proof of Delivery ber-watermark koordinat, alamat, penerima, dan waktu server.">
+  <link rel="icon" href="../assets/img/logo-anteraja.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="../assets/js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="bg-black text-white font-sans antialiased h-screen flex flex-col overflow-hidden" data-page="courier-pod">
+
+  <header class="w-full z-30 pt-safe px-4 shrink-0">
+    <div class="h-12 flex items-center justify-between max-w-md mx-auto">
+      <a class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all grid place-items-center text-white/90" href="verifikasi.html" aria-label="Kembali ke verifikasi">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_back_ios_new</span>
+      </a>
+      <h1 class="text-[16px] font-semibold text-white tracking-tight">Bukti Foto</h1>
+      <span class="w-9 h-9" aria-hidden="true"></span>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col justify-between px-4 pt-2 pb-safe overflow-hidden max-w-md mx-auto w-full">
+    <figure class="pod-viewfinder relative w-full flex-1 min-h-[360px] rounded-[28px] overflow-hidden bg-gradient-to-br from-neutral-800 via-neutral-900 to-neutral-950 border border-white/10 shadow-2xl grid place-items-center m-0" id="pod-viewfinder">
+      <span class="material-symbols-outlined text-[64px] text-white/15" aria-hidden="true">photo_camera</span>
+      <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[11px] font-semibold text-white/80">Kamera dalam aplikasi</span>
+      <span class="absolute inset-x-4 top-1/2 -translate-y-1/2 h-24 rounded-2xl border border-dashed border-brand-magenta/50 pointer-events-none" aria-hidden="true"></span>
+      <figcaption class="absolute bottom-3 left-3 right-3">
+        <span class="mx-auto flex w-fit items-center px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[11px] text-white/85 font-medium tracking-wide" id="pod-watermark">
+          15:14 WIB &bull; Senopati, Jaksel
+        </span>
+      </figcaption>
+    </figure>
+
+    <div class="shrink-0 pt-4 pb-2 space-y-4">
+      <div class="text-center space-y-1 py-1">
+        <p class="text-[14px] font-semibold text-white tracking-tight">Bpk. Bambang Wijaya</p>
+        <p class="text-[12px] text-white/50">Penerima Langsung &bull; Paket Sesuai</p>
+      </div>
+      <div class="flex flex-col items-center gap-3 pt-2">
+        <a class="btn-primary w-full h-12 bg-brand-magenta hover:bg-brand-magenta/90 active:scale-[0.98] text-white rounded-xl font-bold text-[15px] flex items-center justify-center gap-2 transition-all" id="btn-confirm-pod" href="sukses.html">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">check_circle</span> Konfirmasi &amp; Selesaikan
+        </a>
+        <button class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/70 hover:text-white py-1 transition-colors" id="btn-retake-photo" type="button">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">replay</span> Ambil Ulang Foto
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/app.js" defer></script>
+</body>
+</html>
