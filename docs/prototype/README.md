@@ -37,6 +37,7 @@ src/
     js/app.js                   # Perilaku dasar (sidebar, stub link)
     css/app.css                 # Reset, safe-area, ikon
     img/logo-anteraja.png       # Logo resmi Anteraja (anteraja.id)
+    img/favicon.svg             # Ikon web (mark magenta)
 ```
 
 ## 2. Pemetaan Halaman → PRD/FRD
