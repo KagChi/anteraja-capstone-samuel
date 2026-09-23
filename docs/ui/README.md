@@ -177,6 +177,6 @@ cd docs/ui
 typst compile --font-path fonts ui-documentation.typ ui-documentation.pdf
 ```
 
-- [`ui-documentation.typ`](./ui-documentation.typ) — sumber dokumentasi (9 halaman A4).
+- [`ui-documentation.typ`](./ui-documentation.typ) — sumber dokumentasi (10 halaman A4).
 - [`ui-documentation.pdf`](./ui-documentation.pdf) — hasil ekspor untuk pengumpulan.
 - `fonts/` — Plus Jakarta Sans (OFL) agar tipografi sesuai design system saat build.

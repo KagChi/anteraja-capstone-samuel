@@ -367,3 +367,22 @@
   - Berkas sumber berada pada `docs/ui/` di branch `5-ui`; dokumen ini dihasilkan dari
     sumber Typst (`ui-documentation.typ`).
 ]
+
+// ------------------------------------------------------------
+//  LAMPIRAN — BUKTI BRANCH
+// ------------------------------------------------------------
+#page[
+  #heading(level: 1)[6. Lampiran — Bukti Pembuatan Branch]
+
+  Seluruh pekerjaan rancangan antarmuka ini dikerjakan pada branch Git `5-ui` di
+  repositori Anteraja Capstone. Tangkapan layar berikut menjadi bukti bahwa branch
+  telah dibuat dan dipakai sebagai wadah pengumpulan dokumen serta aset desain.
+
+  #v(0.5em)
+  #box(
+    width: 100%, fill: soft, stroke: 0.6pt + hair, radius: 8pt, inset: 0.5em,
+    image("proof-branch.png", width: 100%),
+  )
+  #v(0.35em)
+  #text(size: 8pt, fill: luma(40%))[Gambar: Bukti branch `5-ui` pada repositori Git Anteraja Capstone.]
+]
