@@ -137,8 +137,11 @@ alasan, dan aksi tinjau. Tersedia filter layanan, pencarian, dan auto-sync.
 
 ![Modal Detail Pengecualian](./desktop-03b-modal-detail-pengecualian.webp)
 
-Modal tinjauan satu tiket pengecualian: detail deviasi GPS, kurir, waktu tiket, dan
-aksi keputusan (setujui / tolak). Dilengkapi pencarian dan filter status.
+Modal tinjauan **Detail Pengecualian Geofence** untuk satu tiket (`Instant #ANT-99201`).
+Menampilkan kurir (`Budi Pratama • SAT-8821`) dan waktu tiket, ringkasan deviasi
+(`Selisih +64m`, toleransi hub `30m`, jarak aktual `94m`, status GPS `Valid`), alasan
+kurir, serta thumbnail **Foto Bukti Lokasi (POD)** dengan koordinat. Aksi keputusan:
+**Tolak** atau **Setujui Pengecualian**.
 
 **Kebutuhan FRD yang ditangani**
 - FRD-01: keputusan dispensasi geofence yang tercatat.
@@ -162,3 +165,5 @@ standar operasional dan penyesuaian manual.
 - Palet: magenta `#E00065`, kuning energetik `#FFCF0E`, hijau verifikasi `#00834B`.
 - Tipografi: Plus Jakarta Sans.
 - Screenshot dikonversi dari PNG ke `.webp` (kualitas 90) dengan `cwebp`.
+- Resolusi: mobile `706–780 px` (viewport HP); desktop high-resolution
+  `2560×2048`, `2560×3002`, `2696×2048`, dan modal `2824×1614`.
