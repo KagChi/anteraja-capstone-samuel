@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -45,8 +45,6 @@
         <ul class="space-y-1 list-none p-0 m-0">
           <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="dashboard.html"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">list_alt</span> Daftar Pengiriman</a></li>
           <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold bg-primary-fixed/40 text-brand-magenta" href="antrian-pengecualian.html" aria-current="page"><span class="material-symbols-outlined text-[20px]" aria-hidden="true">approval</span> Antrian Pengecualian <span class="ml-auto text-[10px] font-bold bg-alert-amber/20 text-amber-700 px-1.5 py-0.5 rounded-full">4</span></a></li>
-          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub><span class="material-symbols-outlined text-[20px]" aria-hidden="true">photo_camera_back</span> Review POD</a></li>
-          <li><a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub><span class="material-symbols-outlined text-[20px]" aria-hidden="true">key</span> Kelola PIN</a></li>
         </ul>
         <p class="px-3 pt-5 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Konfigurasi Sistem</p>
         <ul class="space-y-1 list-none p-0 m-0">
@@ -86,14 +84,14 @@
             <p class="text-body-md text-on-surface-variant max-w-2xl">Persetujuan dispensasi lokasi kurir di luar radius resmi.</p>
           </section>
           <p class="flex items-center gap-3 self-start md:self-auto bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-subtle m-0">
-            <span class="w-2 h-2 rounded-full bg-alert-amber shrink-0" aria-hidden="true"></span><span class="text-label-md text-on-surface">4 Menunggu</span>
+            <span class="w-2 h-2 rounded-full bg-alert-amber shrink-0" aria-hidden="true"></span><span class="text-label-md text-on-surface" id="pending-count">4 Menunggu</span>
           </p>
         </header>
 
         <section class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-sm overflow-hidden" aria-labelledby="judul-daftar-pengajuan">
           <header class="p-4 md:p-6 border-b border-border-subtle flex flex-col gap-4">
             <section class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <h2 id="judul-daftar-pengajuan" class="flex items-center gap-3 text-title-md text-on-surface font-semibold">Daftar Pengajuan <mark class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm">4 pengajuan</mark></h2>
+              <h2 id="judul-daftar-pengajuan" class="flex items-center gap-3 text-title-md text-on-surface font-semibold">Daftar Pengajuan <mark class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm" id="exception-count">4 pengajuan</mark></h2>
               <p class="flex items-center gap-2 text-body-sm text-on-surface-variant m-0"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse" aria-hidden="true"></span><span class="font-medium">Auto-sync aktif</span></p>
             </section>
             <section class="flex flex-wrap items-center justify-between gap-3">
@@ -157,6 +155,9 @@
                 <td class="py-3 px-4 align-middle text-[12px] text-on-surface-variant max-w-[16rem] truncate">Penerima minta titip di pos lingkungan.</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
+              <tr id="exception-empty" hidden>
+                <td class="py-10 px-5 text-center text-on-surface-variant text-body-sm" colspan="6">Tidak ada pengajuan pengecualian yang cocok dengan filter atau pencarian.</td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -171,6 +172,6 @@
     <span class="text-body-md font-semibold" id="toast-text">Keputusan berhasil diterapkan ke sistem.</span>
   </output>
 
-  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/app.js?v=8" defer></script>
 </body>
 </html>

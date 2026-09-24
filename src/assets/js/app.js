@@ -760,6 +760,129 @@
     }
   }
 
+  function initAdminAntrian() {
+    var rows = $$(".exception-row");
+    var tabs = $$("#exception-tabs .filter-tab");
+    var search = $("#exception-search");
+    var decisions = getDecisions();
+    var activeService = "all";
+
+    var tabActive = ["bg-surface-container-lowest", "text-brand-magenta", "font-bold", "shadow-sm"];
+    var tabIdle = ["text-on-surface-variant", "hover:text-on-surface"];
+
+    function labelFor(tab) {
+      var service = tab.dataset.service;
+      var count = rows.filter(function (row) {
+        return service === "all" || row.dataset.service === service;
+      }).length;
+      var names = { all: "Semua", instant: "Instant", sameday: "Sameday", regular: "Reguler" };
+      tab.textContent = (names[service] || service) + " (" + count + ")";
+    }
+
+    function apply() {
+      var query = search ? search.value.trim().toLowerCase() : "";
+      rows.forEach(function (row) {
+        var okService = activeService === "all" || row.dataset.service === activeService;
+        var okSearch = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+        row.hidden = !(okService && okSearch);
+      });
+      tabs.forEach(labelFor);
+      var empty = $("#exception-empty");
+      if (empty) {
+        empty.hidden = rows.some(function (row) {
+          return !row.hidden;
+        });
+      }
+      refreshSummary();
+    }
+
+    function refreshSummary() {
+      var pending = rows.length;
+      var pendingCount = $("#pending-count");
+      var countMark = $("#exception-count");
+      if (pendingCount) pendingCount.textContent = pending + " Menunggu";
+      if (countMark) countMark.textContent = pending + " pengajuan";
+    }
+
+    rows.forEach(function (row) {
+      var link = row.querySelector(".tracking-number");
+      var key = link ? link.textContent.trim() : "";
+      if (key && decisions[key]) row.remove();
+    });
+    rows = $$(".exception-row");
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activeService = tab.dataset.service;
+        activateTab(tabs, tab, tabActive, tabIdle);
+        apply();
+      });
+    });
+
+    var debounce;
+    if (search) {
+      search.addEventListener("input", function () {
+        window.clearTimeout(debounce);
+        debounce = window.setTimeout(apply, 150);
+      });
+    }
+
+    var initial = tabs.find(function (tab) {
+      return tab.dataset.service === "all";
+    });
+    if (initial) activateTab(tabs, initial, tabActive, tabIdle);
+    apply();
+
+    var params = new window.URLSearchParams(window.location.search);
+    var decision = params.get("decision");
+    if (decision) {
+      var toast = $("#decision-toast");
+      var text = $("#toast-text");
+      var icon = $("#toast-icon");
+      if (text) {
+        text.textContent = decision === "approve"
+          ? "Pengecualian disetujui dan tercatat pada jejak audit."
+          : "Pengecualian ditolak. Kurir diminta mengulang verifikasi.";
+      }
+      if (icon) icon.textContent = decision === "approve" ? "check_circle" : "block";
+      if (toast) {
+        toast.classList.remove("translate-y-24", "opacity-0");
+        window.setTimeout(function () {
+          toast.classList.add("translate-y-24", "opacity-0");
+        }, 3600);
+      }
+      window.history.replaceState({}, "", "antrian-pengecualian.html");
+    }
+  }
+
+  function initAdminPengecualianDetail() {
+    var modal = $("#modal-exception");
+    var tracking = (modal && modal.dataset.tracking) || "ANT-INST-99201";
+    var note = $("#exception-note");
+    var approve = $("#btn-approve-exception");
+    var reject = $("#btn-reject-exception");
+
+    function decide(kind, button) {
+      withLoading(button, kind === "approve" ? "Menyetujui..." : "Menolak...", 850, function () {
+        setDecision(tracking, kind, note ? note.value : "");
+        window.location.href = "antrian-pengecualian.html?decision=" + kind;
+      });
+    }
+
+    if (approve) {
+      approve.addEventListener("click", function (event) {
+        event.preventDefault();
+        decide("approve", approve);
+      });
+    }
+    if (reject) {
+      reject.addEventListener("click", function (event) {
+        event.preventDefault();
+        decide("reject", reject);
+      });
+    }
+  }
+
   var PAGES = {
     index: initIndex,
     "courier-tugas": initCourierTugas,
@@ -767,7 +890,9 @@
     "courier-pod": initCourierPod,
     "courier-sukses": initCourierSukses,
     "admin-dashboard": initAdminDashboard,
-    "admin-audit": initAdminAudit
+    "admin-audit": initAdminAudit,
+    "admin-antrian": initAdminAntrian,
+    "admin-pengecualian-detail": initAdminPengecualianDetail
   };
 
   function start() {
