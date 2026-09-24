@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -79,7 +79,7 @@
           <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-brand-magenta" aria-hidden="true">devices</span> Optimal di lebar 375&ndash;780 px</li>
         </ul>
         <p class="m-0">
-          <a class="inline-flex items-center gap-1.5 text-[13px] font-bold text-brand-magenta group-hover:gap-2.5 transition-all" href="courier/tugas.html">Masuk sebagai Kurir <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></a>
+          <a class="inline-flex items-center gap-1.5 text-[13px] font-bold text-brand-magenta group-hover:gap-2.5 transition-all" href="courier/tugas.html" data-role="courier">Masuk sebagai Kurir <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></a>
         </p>
       </article>
 
@@ -94,7 +94,7 @@
           <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-on-surface-variant" aria-hidden="true">devices</span> Optimal di lebar 1280 px ke atas</li>
         </ul>
         <p class="m-0">
-          <a class="inline-flex items-center gap-1.5 text-[13px] font-bold text-on-surface group-hover:gap-2.5 transition-all" href="admin/dashboard.html">Masuk sebagai Admin <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></a>
+          <a class="inline-flex items-center gap-1.5 text-[13px] font-bold text-on-surface group-hover:gap-2.5 transition-all" href="admin/dashboard.html" data-role="admin">Masuk sebagai Admin <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span></a>
         </p>
       </article>
     </nav>
@@ -131,6 +131,35 @@
     </p>
   </footer>
 
-  <script src="assets/js/app.js" defer></script>
+  <dialog class="app-dialog" id="login-modal" aria-labelledby="login-title">
+    <form class="bg-surface-container-lowest rounded-2xl shadow-2xl border border-border-subtle overflow-hidden m-0" id="login-form" autocomplete="off" novalidate>
+      <header class="flex items-start justify-between gap-4 p-5 border-b border-border-subtle">
+        <section class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-brand-magenta/10 text-brand-magenta grid place-items-center shrink-0" aria-hidden="true"><span class="material-symbols-outlined text-[22px]">badge</span></span>
+          <section>
+            <h2 id="login-title" class="text-title-lg font-bold text-on-surface tracking-tight">Masuk Purwarupa</h2>
+            <p class="text-[12px] text-on-surface-variant m-0" id="login-role-label">Aplikasi Kurir (Mobile)</p>
+          </section>
+        </section>
+        <button class="w-8 h-8 rounded-lg grid place-items-center text-on-surface-variant hover:bg-surface-container shrink-0" type="button" data-close-modal aria-label="Tutup dialog">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <section class="p-5 space-y-4">
+        <p class="m-0">
+          <label class="block text-label-md uppercase tracking-wider text-on-surface-variant mb-2" for="login-name">Nama / Username</label>
+          <input class="w-full h-12 px-3 rounded-xl bg-surface-container-low border border-border-subtle text-on-surface text-body-md focus:outline-none focus:border-brand-magenta focus:ring-0" id="login-name" name="username" type="text" autocomplete="username" placeholder="Satria" required>
+        </p>
+        <p class="text-[12px] text-on-surface-variant m-0 leading-relaxed">Identitas ini dipakai untuk menampilkan sapaan di halaman tujuan. Tidak ada data yang dikirim ke server.</p>
+      </section>
+      <footer class="flex items-center justify-end gap-3 p-5 border-t border-border-subtle bg-surface-container-low/40">
+        <button class="inline-flex items-center justify-center gap-2 px-5 h-11 min-w-[7rem] rounded-xl bg-brand-magenta hover:bg-primary text-on-primary text-sm font-bold shadow-sm transition-all" id="btn-login" type="submit">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">login</span> Masuk
+        </button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="assets/js/app.js?v=8" defer></script>
 </body>
 </html>
