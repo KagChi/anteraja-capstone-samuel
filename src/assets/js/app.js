@@ -710,13 +710,64 @@
     apply();
   }
 
+  function initAdminAudit() {
+    var form = $("#audit-form");
+    var notes = $("#audit-notes");
+    var save = $("#btn-save-case");
+    var saveStatus = $("#save-status");
+    var exportButton = $("#btn-export-audit");
+    var approve = $("#audit-decision-approve");
+    var reject = $("#audit-decision-reject");
+    var tracking = "ANT-INST-8829104";
+
+    function rejectSelected() {
+      return reject && reject.checked;
+    }
+
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (rejectSelected() && notes && !notes.value.trim()) {
+          showToast("Catatan wajib diisi saat menolak / investigasi.", "error");
+          notes.focus();
+          notes.classList.add("is-error");
+          return;
+        }
+        setDecision(tracking, rejectSelected() ? "reject" : "approve", notes ? notes.value : "");
+        withLoading(save, "Menyimpan...", 900, function () {
+          if (saveStatus) {
+            saveStatus.classList.remove("hidden");
+            saveStatus.classList.add("flex");
+          }
+          showToast(rejectSelected() ? "Kasus ditandai untuk investigasi." : "Kasus disahkan dan ditutup.");
+        });
+      });
+    }
+
+    if (notes) {
+      notes.addEventListener("input", function () {
+        notes.classList.remove("is-error");
+      });
+    }
+
+    if (exportButton) {
+      exportButton.addEventListener("click", function () {
+        withLoading(exportButton, "Menyiapkan PDF...", 900, function () {
+          showToast("Menyiapkan berkas audit untuk diunduh.");
+          window.print();
+        });
+      });
+    }
+  }
+
   var PAGES = {
     index: initIndex,
     "courier-tugas": initCourierTugas,
     "courier-verifikasi": initCourierVerifikasi,
     "courier-pod": initCourierPod,
     "courier-sukses": initCourierSukses,
-    "admin-dashboard": initAdminDashboard
+    "admin-dashboard": initAdminDashboard,
+    "admin-audit": initAdminAudit
   };
 
   function start() {
