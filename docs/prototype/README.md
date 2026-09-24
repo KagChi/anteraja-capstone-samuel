@@ -4,7 +4,8 @@ Kerangka web statis hasil konversi rancangan UI/UX (`docs/ui/`) menjadi halaman
 fungsional yang saling terhubung. Setiap layar mengacu pada **PRD**
 (`docs/PRD-anteraja-instant.md`) dan lima **FRD** di `docs/frd/`. Purwarupa ini
 menjadi fondasi visual untuk latihan berikutnya: menambahkan interaksi dengan
-JavaScript/jQuery memakai selector yang sudah disiapkan.
+JavaScript di `src/assets/js/app.js` memakai selector yang sudah disiapkan
+(lihat §10).
 
 | | |
 |---|---|
@@ -34,7 +35,7 @@ src/
     pengaturan-radius.html      # Pengaturan radius layanan
   assets/
     js/tailwind.config.js       # Design token (DESIGN.md)
-    js/app.js                   # Perilaku dasar (sidebar, stub link)
+    js/app.js                   # Interaksi per halaman (objek PAGES, lihat §10)
     css/app.css                 # Reset, safe-area, ikon
     img/logo-anteraja.png       # Logo resmi Anteraja (anteraja.id)
     img/favicon.svg             # Ikon web (mark magenta)
@@ -92,9 +93,10 @@ Heading testable berjenjang (`h1` → `h2` → `h3`), skip-link, dan ARIA
 Jumlah `<div>` per halaman setelah penyaringan semantik: **0–3** (hanya untuk
 pembungkus tata letak yang tidak punya padanan semantik, mis. kolom flex sidebar).
 
-## 5. Selector untuk Latihan JS/jQuery
+## 5. Selector Antarmuka
 
-Setiap elemen interaktif punya `id`/`class` stabil:
+Setiap elemen interaktif punya `id`/`class` stabil yang mengendalikan perilaku
+JavaScript di §10:
 
 | Elemen | Selector |
 |---|---|
@@ -140,6 +142,22 @@ python3 -m http.server 8080 --directory src
 | `feat(prototype)` | Landing index |
 | `refactor(prototype)` | Semantic HTML + JSON-LD di semua halaman |
 
+### Commit interaksi UX (min. 5 interaksi berbeda)
+
+Setiap interaksi user experience diimplementasikan pada commit terpisah agar
+jejak DOM manipulation dan event handler mudah ditelusuri:
+
+| Hash | Commit | Interaksi |
+|---|---|---|
+| `4d5f411` | `feat(ux): add login dialog with loader and session greeting` | Dialog login + sesi + sapaan pengguna |
+| `22ec73e` | `feat(courier): add task filter and manual resi scan UX` | Filter segmen & pindai resi |
+| `a5b01f2` | `feat(courier): add PIN autofill, attempt limit and resend countdown UX` | PIN auto-lanjut, batas percobaan, resend |
+| `4d7284e` | `feat(courier): add POD watermark, shutter feedback and audit hash UX` | Watermark jam, shutter, hash audit |
+| `f6757a0` | `feat(admin): add dashboard combined filters and empty-state UX` | Filter gabungan & empty-state |
+| `0dab9ad` | `feat(admin): add audit decision validation, loader and PDF export UX` | Validasi keputusan, loader, ekspor |
+| `84185f5` | `feat(admin): add exception decision flow with toast and row removal UX` | Keputusan pengecualian & toast |
+| `3c1d9e8` | `feat(admin): add radius stepper with dirty-state apply/reset UX` | Stepper radius, terapkan/batalkan |
+
 ## 9. Dokumentasi PDF
 
 ```sh
@@ -151,3 +169,53 @@ typst compile --font-path ../ui/fonts prototype-documentation.typ prototype-docu
 - [`prototype-documentation.pdf`](./prototype-documentation.pdf) — hasil ekspor LMS.
 - [`proof-branch.png`](./proof-branch.png) — bukti branch.
 - `shots/` — tangkapan layar hasil build.
+
+## 10. Interaksi JavaScript
+
+Seluruh perilaku interaktif berada di `src/assets/js/app.js` (vanilla JS, tanpa
+dependensi). Berkas ini memakai objek `PAGES` yang memetakan nilai
+`<body data-page="...">` ke fungsi `init` per halaman. Helper bersama: `$`/`$$`
+(selector), `storage` (`localStorage`), `withLoading()` (animasi loader + tombol
+nonaktif), `showToast()`, `activateTab()`, `greet()`, dan `clamp()`. Gaya toast
+disuntikkan oleh `ensureToast()` lewat `<style id="app-toast-style">` sehingga
+tidak bergantung pada urutan/cache `app.css`; aset bersama juga diberi query
+`?v=8` di semua halaman.
+
+Konsep yang diterapkan: variabel (`var`/objek), function (deklarasi + callback),
+operator (`===`, `&&`, `||`, `?:`, aritmetika), dan selection condition
+(`if`/`else`, guard clause, `switch` lewat objek `PAGES`).
+
+| Halaman | Interaksi |
+|---|---|
+| `index.html` | Klik **Masuk sebagai ...** membuka `<dialog>` login; submit menyimpan `anteraja.session` lalu loader, lantas redirect sesuai peran |
+| `courier/tugas` | Filter segmen memfilter `.task-card[data-category]` dan memperbarui jumlah tersisa; Pindai Resi Manual mencari serta menyorot kartu; sapaan nama kurir |
+| `courier/verifikasi` | PIN 6 digit auto-advance/backspace/paste; PIN demo `123456`; PIN salah menambah `#pin-attempts` (maks 3 lalu terkunci); `#btn-resend-pin` countdown 30 detik; pilihan hubungan penerima; loader ke `bukti-foto.html` |
+| `courier/bukti-foto` | Watermark jam berjalan; klik viewfinder atau ambil ulang memicu kilatan shutter; loader ke `sukses.html` |
+| `courier/sukses` | Kode hash audit dibuat acak, stempel waktu diperbarui, jumlah tugas selesai dihitung dari `localStorage` |
+| `admin/dashboard` | Filter status, pencarian, layanan, dan wilayah digabung (AND); jumlah baris serta empty-state dinamis; sapaan admin |
+| `admin/audit-trail` | Catatan wajib saat Tolak/Investigasi; tombol simpan menampilkan loader lalu status tersimpan; Ekspor Audit memicu dialog cetak PDF |
+| `admin/antrian-pengecualian` | Filter layanan dan pencarian; keputusan dari halaman detail menghapus baris serta menampilkan `#decision-toast` |
+| `admin/pengecualian-detail` | Tombol Setujui/Tolak menampilkan loader, menyimpan keputusan beserta catatan, lalu kembali ke antrian |
+| `admin/pengaturan-radius` | Stepper plus/minus dengan batas min-maks per segmen; tombol simpan aktif hanya saat ada perubahan; terapkan dan batalkan |
+
+### Data contoh dan penyimpanan
+
+`localStorage` dipakai untuk mensimulasikan sesi/status tanpa backend:
+
+| Kunci | Isi |
+|---|---|
+| `anteraja.session` | `{ role, name, at }` dari form login |
+| `anteraja.decisions` | Keputusan pengecualian per nomor resi |
+| `anteraja.radii` | Radius geofence per segmen hasil Terapkan |
+| `anteraja.completed` | Daftar resi yang sudah dituntaskan |
+
+PIN demo di halaman verifikasi adalah **123456** (tertera di `#pin-hint` dan
+diulang saat menekan "Kirim ulang PIN"). Bersihkan `localStorage` untuk mengulang
+alur dari awal.
+
+### Uji cepat
+
+```sh
+python3 -m http.server 8080 --directory src
+# buka http://localhost:8080/ lalu pilih peran dan masuk
+```

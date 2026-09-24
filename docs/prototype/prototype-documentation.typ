@@ -74,8 +74,9 @@
   #line(length: 60%, stroke: 1pt + hair)
   #v(0.9em)
   #text(size: 11pt)[
-    Purwarupa antarmuka berbasis *HTML semantik* dan *JSON-LD schema.org*, hasil
-    konversi rancangan UI pada `docs/ui/` menjadi halaman web yang saling terhubung.
+    Purwarupa antarmuka berbasis *HTML semantik*, *JSON-LD schema.org*, dan
+    *interaksi JavaScript*, hasil konversi rancangan UI pada `docs/ui/` menjadi
+    halaman web yang saling terhubung.
   ]
   #v(1.2cm)
 ]
@@ -106,10 +107,9 @@
 
 Purwarupa ini mengubah rancangan layar pada `docs/ui/` menjadi *kerangka web*
 (HTML statis) yang dapat dibuka langsung di peramban dan saling terhubung antar
-halaman. Fokusnya adalah fondasi visual dan struktur: *semantic HTML*,
-responsivitas, serta data terstruktur JSON-LD. Interaksi penuh
-(JavaScript/jQuery) dikerjakan pada latihan berikutnya memakai selector
-`id`/`class` yang sudah disiapkan tiap elemen.
+halaman. Fokusnya mencakup fondasi visual dan struktur (*semantic HTML*,
+responsivitas, data terstruktur JSON-LD) sekaligus *interaksi fungsional* yang
+ditulis pada `src/assets/js/app.js` memakai selector `id`/`class` tiap elemen.
 
 Keputusan teknis:
 
@@ -119,6 +119,8 @@ Keputusan teknis:
   `figure`, `details`, `fieldset`, `table`, `dl`, `ol/ul`, `time`, `mark`,
   `address`, `search`, `output`, `dialog`.
 - *JSON-LD schema.org* disematkan di *seluruh* halaman.
+- *Interaksi JavaScript* (vanilla, tanpa dependensi) untuk filter, verifikasi
+  PIN, unggah POD, keputusan admin, dan pengaturan radius (lihat §7).
 - Logo resmi Anteraja (anteraja.id) untuk brand; ikon web memakai mark tersendiri.
 
 #figure(
@@ -267,10 +269,10 @@ dan label eksplisit pada input.
 )
 
 // ---------------------------- 6 ----------------------------
-= Selector untuk Latihan Berikutnya
+= Selector Antarmuka
 
-Setiap elemen interaktif memiliki `id`/`class` stabil agar mudah dikendalikan
-JavaScript/jQuery.
+Setiap elemen interaktif memiliki `id`/`class` stabil yang mengendalikan
+perilaku JavaScript pada §7.
 
 #table(
   columns: (4.4cm, 1fr),
@@ -292,6 +294,74 @@ JavaScript/jQuery.
 )
 
 // ---------------------------- 7 ----------------------------
+= Interaksi JavaScript
+
+Seluruh perilaku interaktif berada pada `src/assets/js/app.js` (*vanilla
+JavaScript*, tanpa dependensi). Objek `PAGES` memetakan nilai
+`<body data-page="...">` tiap halaman ke fungsi `init`-nya, sehingga satu berkas
+melayani kesepuluh layar. Tiap interaksi *memanipulasi DOM* (menyembunyikan baris,
+mengubah teks/kelas/atribut ARIA, memasang elemen loader) dan dipicu oleh *event*
+(`click`, `input`, `submit`, `keydown`, `change`, `paste`). Helper bersama:
+
+#table(
+  columns: (4.6cm, 1fr),
+  inset: 6pt,
+  stroke: 0.5pt + hair,
+  align: (left, left),
+  fill: (x, y) => if y == 0 { codebg } else { white },
+  [*Helper*], [*Peran*],
+  [`$` / `$$`], [Pembungkus `querySelector` / `querySelectorAll`.],
+  [`storage`], [Akses `localStorage` (`get`/`set`/`remove`) dengan pengaman `try/catch`.],
+  [`withLoading()`], [Menampilkan spinner dan menonaktifkan tombol selama proses.],
+  [`showToast()`], [Notifikasi ringan (sukses/gagal); gaya disuntikkan lewat `<style id="app-toast-style">`.],
+  [`activateTab()`], [Mengatur kelas aktif/idle pada sekumpulan tab.],
+  [`greet()` / `welcome()`], [Mengisi nama pengguna dari sesi dan menyapa saat halaman dibuka.],
+  [`clamp()`], [Membatasi nilai pada rentang min–maks (PIN, radius).],
+  [`formatClock()` / `formatStamp()`], [Watermark jam berjalan dan stempel waktu audit.],
+)
+
+#table(
+  columns: (3.2cm, 1fr),
+  inset: 6pt,
+  stroke: 0.5pt + hair,
+  align: (left, left),
+  fill: (x, y) => if y == 0 { codebg } else { white },
+  [*Halaman*], [*Interaksi*],
+  [`index`], [Klik *Masuk sebagai ...* membuka `<dialog>` login; submit menyimpan `anteraja.session`, menampilkan loader, lalu mengalihkan sesuai peran.],
+  [`courier/tugas`], [Filter segmen menyaring `.task-card[data-category]` dan memperbarui jumlah tersisa; *Pindai Resi* mencari dan menyorot kartu; sapaan nama kurir.],
+  [`courier/verifikasi`], [PIN 6 digit auto-lanjut/backspace/tempel; PIN demo `123456`; PIN salah menambah `#pin-attempts` (maks 3 lalu terkunci); `#btn-resend-pin` hitung mundur 30 detik; pilihan hubungan penerima; loader ke `bukti-foto.html`.],
+  [`courier/bukti-foto`], [Watermark jam berjalan; klik viewfinder atau ambil ulang memicu kilatan shutter; loader ke `sukses.html`.],
+  [`courier/sukses`], [Kode hash audit acak, stempel waktu diperbarui, jumlah tugas selesai dihitung dari `localStorage`.],
+  [`admin/dashboard`], [Filter status, pencarian, layanan, dan wilayah digabung (AND); jumlah baris serta empty-state dinamis; sapaan admin.],
+  [`admin/audit-trail`], [Catatan wajib saat Tolak/Investigasi; tombol simpan menampilkan loader lalu status tersimpan; *Ekspor Audit* memicu dialog cetak.],
+  [`admin/antrian-pengecualian`], [Filter layanan dan pencarian; keputusan dari halaman detail menghapus baris serta menampilkan `#decision-toast`.],
+  [`admin/pengecualian-detail`], [Tombol Setujui/Tolak menampilkan loader, menyimpan keputusan beserta catatan, lalu kembali ke antrian.],
+  [`admin/pengaturan-radius`], [Stepper plus/minus dengan batas min–maks per segmen; tombol simpan aktif hanya saat ada perubahan; *Terapkan* dan *Batalkan*.],
+)
+
+*Data contoh dan penyimpanan.* `localStorage` dipakai untuk mensimulasikan
+sesi/status tanpa backend:
+
+#table(
+  columns: (5cm, 1fr),
+  inset: 6pt,
+  stroke: 0.5pt + hair,
+  align: (left, left),
+  fill: (x, y) => if y == 0 { codebg } else { white },
+  [*Kunci*], [*Isi*],
+  [`anteraja.session`], [`{ role, name, at }` dari form login.],
+  [`anteraja.decisions`], [Keputusan pengecualian per nomor resi.],
+  [`anteraja.radii`], [Radius geofence per segmen hasil *Terapkan*.],
+  [`anteraja.completed`], [Daftar resi yang sudah dituntaskan.],
+)
+
+Konsep yang diterapkan: variabel (`var`/objek), function (deklarasi + callback),
+operator (`===`, `&&`, `||`, `?:`, aritmetika), serta selection condition
+(`if`/`else`, guard clause, `switch` lewat objek `PAGES`). PIN demo di halaman
+verifikasi adalah *123456* (tertera di `#pin-hint`). Bersihkan `localStorage`
+untuk mengulang alur dari awal.
+
+// ---------------------------- 8 ----------------------------
 = Commit Modular
 
 #table(
@@ -312,15 +382,27 @@ JavaScript/jQuery.
   [`ba35fc7`], [`refactor(prototype): semantic HTML pass and schema.org JSON-LD on all pages`],
   [`d81fa00`], [`feat(assets): use official Anteraja logo (anteraja.id) across pages`],
   [`bec7137`], [`fix(assets): use dedicated favicon mark instead of wordmark for web icon`],
+  [`93dcab1`], [`docs(prototype): add full-page build screenshots for all 10 pages`],
+  [`ce99123`], [`docs(prototype): add Typst documentation PDF with branch proof`],
+  [`3484957`], [`docs(prototype): embed branch proof screenshot in documentation PDF`],
+  [`4d5f411`], [`feat(ux): add login dialog with loader and session greeting`],
+  [`22ec73e`], [`feat(courier): add task filter and manual resi scan UX`],
+  [`a5b01f2`], [`feat(courier): add PIN autofill, attempt limit and resend countdown UX`],
+  [`4d7284e`], [`feat(courier): add POD watermark, shutter feedback and audit hash UX`],
+  [`f6757a0`], [`feat(admin): add dashboard combined filters and empty-state UX`],
+  [`0dab9ad`], [`feat(admin): add audit decision validation, loader and PDF export UX`],
+  [`84185f5`], [`feat(admin): add exception decision flow with toast and row removal UX`],
+  [`3c1d9e8`], [`feat(admin): add radius stepper with dirty-state apply/reset UX`],
 )
 
 #v(0.4em)
 #text(size: 9pt, fill: luma(40%))[
-  Total 11 commit modular (melebihi syarat minimal 5). Lihat
+  Total 22 commit modular, termasuk *8 commit interaksi UX* yang terpisah (melebihi
+  syarat minimal 5). Lihat
   #link("https://github.com/KagChi/anteraja-capstone-samuel/tree/7-prototype")[branch 7-prototype].
 ]
 
-// ---------------------------- 8 ----------------------------
+// ---------------------------- 9 ----------------------------
 = Bukti Branch
 
 #figure(
