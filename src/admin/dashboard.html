@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -56,16 +56,6 @@
               <span class="ml-auto text-[10px] font-bold bg-alert-amber/20 text-amber-700 px-1.5 py-0.5 rounded-full">4</span>
             </a>
           </li>
-          <li>
-            <a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub>
-              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">photo_camera_back</span> Review POD
-            </a>
-          </li>
-          <li>
-            <a class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-on-surface-variant hover:bg-surface-container" href="#" data-stub>
-              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">key</span> Kelola PIN
-            </a>
-          </li>
         </ul>
         <p class="px-3 pt-5 pb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Konfigurasi Sistem</p>
         <ul class="space-y-1 list-none p-0 m-0">
@@ -82,9 +72,9 @@
           <p class="text-[15px] font-extrabold text-tertiary m-0">99.2%</p>
         </section>
         <p class="flex items-center gap-2.5 px-1 pt-3 m-0">
-          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
+          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true" data-admin-avatar>D</span>
           <span class="leading-tight block">
-            <span class="block text-[12px] font-semibold text-on-surface">Hub Admin Ops</span>
+            <span class="block text-[12px] font-semibold text-on-surface" id="admin-name">Hub Admin Ops</span>
             <span class="block text-[11px] text-on-surface-variant">Jak-Sel</span>
           </span>
         </p>
@@ -105,7 +95,7 @@
           <a class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-subtle text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container" href="../index.html">
             <span class="material-symbols-outlined text-[16px]" aria-hidden="true">swap_horiz</span> Mode Kurir
           </a>
-          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true">D</span>
+          <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[12px] font-bold" aria-hidden="true" data-admin-avatar>D</span>
         </p>
       </header>
 
@@ -125,7 +115,7 @@
             <span class="text-body-sm text-on-surface">
               <strong class="text-title-md">142</strong> pengiriman hari ini
               <span class="mx-1.5 text-outline-variant" aria-hidden="true">&bull;</span>
-              <strong class="text-brand-magenta text-title-md">4</strong> perlu tinjauan
+              <strong class="text-brand-magenta text-title-md" id="review-count">4</strong> perlu tinjauan
               <span class="mx-1.5 text-outline-variant" aria-hidden="true">&bull;</span>
               <span class="text-on-surface-variant">138 terverifikasi otomatis</span>
             </span>
@@ -170,6 +160,10 @@
         </section>
 
         <section class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-sm overflow-hidden" aria-label="Tabel pengiriman">
+          <header class="flex items-center justify-between gap-3 px-5 py-3 border-b border-border-subtle bg-surface-container-low/40">
+            <p class="text-[12px] text-on-surface-variant m-0">Menampilkan <strong class="text-on-surface" id="visible-count">0</strong> pengiriman</p>
+            <p class="text-[12px] text-on-surface-variant m-0 hidden sm:block">Klik <strong class="text-on-surface">Tinjau</strong> untuk membuka audit trail</p>
+          </header>
           <table class="w-full text-left border-collapse">
             <caption class="sr-only">Daftar pengiriman hari ini beserta status integritasnya</caption>
             <thead>
@@ -183,7 +177,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle/70" id="delivery-table-body">
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors bg-primary-fixed/10" data-flag="review" data-service="instant">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors bg-primary-fixed/10" data-flag="review" data-service="instant" data-region="jaksel">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">S</span>
@@ -196,7 +190,7 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="instant">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="instant" data-region="jaksel">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">A</span>
@@ -209,7 +203,7 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday" data-region="jaksel">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">R</span>
@@ -222,7 +216,7 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="exception" data-service="instant">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="exception" data-service="instant" data-region="jaksel">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">B</span>
@@ -235,7 +229,7 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="pengecualian-detail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="review" data-service="regular">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="review" data-service="regular" data-region="jakpus">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">D</span>
@@ -248,7 +242,7 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Pus</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80" href="audit-trail.html">Tinjau <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
-              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday">
+              <tr class="delivery-row group hover:bg-surface-container-low/40 transition-colors" data-flag="delivered" data-service="sameday" data-region="jaksel">
                 <th class="py-3 px-5 align-middle whitespace-nowrap font-normal" scope="row">
                   <p class="flex items-center gap-3 m-0">
                     <span class="w-7 h-7 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[11px] font-bold shrink-0" aria-hidden="true">F</span>
@@ -261,6 +255,9 @@
                 <td class="py-3 px-4 align-middle whitespace-nowrap hidden lg:table-cell text-body-sm text-on-surface-variant">Jak-Sel</td>
                 <td class="py-3 px-5 align-middle whitespace-nowrap text-right"><a class="inline-flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant hover:text-on-surface" href="audit-trail.html">Detail <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span></a></td>
               </tr>
+              <tr id="delivery-empty" hidden>
+                <td class="py-10 px-5 text-center text-on-surface-variant text-body-sm" colspan="6">Tidak ada pengiriman yang cocok dengan filter atau pencarian.</td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -272,6 +269,6 @@
     </div>
   </div>
 
-  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/app.js?v=8" defer></script>
 </body>
 </html>

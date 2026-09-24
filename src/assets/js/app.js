@@ -638,12 +638,85 @@
     }
   }
 
+  function initAdminDashboard() {
+    var name = greet("#admin-name", "Hub Admin Ops");
+    if (name) {
+      $$("[data-admin-avatar]").forEach(function (avatar) {
+        avatar.textContent = name.charAt(0).toUpperCase();
+      });
+    }
+    welcome(name);
+
+    var rows = $$(".delivery-row");
+    var tabs = $$("#filter-tabs .filter-tab");
+    var search = $("#search-input");
+    var service = $("#filter-service");
+    var region = $("#filter-region");
+    var empty = $("#delivery-empty");
+    var reviewCount = $("#review-count");
+    var visibleCount = $("#visible-count");
+    var activeStatus = "review";
+
+    var tabActive = ["bg-surface-container-lowest", "text-brand-magenta", "shadow-sm"];
+    var tabIdle = ["text-on-surface-variant", "hover:text-on-surface"];
+
+    function matches(row) {
+      var okStatus = activeStatus === "all" || row.dataset.flag === activeStatus;
+      var okService = !service.value || row.dataset.service === service.value;
+      var okRegion = !region.value || row.dataset.region === region.value;
+      var query = search.value.trim().toLowerCase();
+      var okSearch = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+      return okStatus && okService && okRegion && okSearch;
+    }
+
+    function apply() {
+      var visible = 0;
+      rows.forEach(function (row) {
+        var ok = matches(row);
+        row.hidden = !ok;
+        if (ok) visible += 1;
+      });
+      if (empty) empty.hidden = visible !== 0;
+      if (visibleCount) visibleCount.textContent = String(visible);
+      if (reviewCount) {
+        reviewCount.textContent = String(rows.filter(function (row) {
+          return row.dataset.flag === "review";
+        }).length);
+      }
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activeStatus = tab.dataset.status;
+        activateTab(tabs, tab, tabActive, tabIdle);
+        apply();
+      });
+    });
+
+    var debounce;
+    if (search) {
+      search.addEventListener("input", function () {
+        window.clearTimeout(debounce);
+        debounce = window.setTimeout(apply, 150);
+      });
+    }
+    if (service) service.addEventListener("change", apply);
+    if (region) region.addEventListener("change", apply);
+
+    var initial = tabs.find(function (tab) {
+      return tab.dataset.status === activeStatus;
+    });
+    if (initial) activateTab(tabs, initial, tabActive, tabIdle);
+    apply();
+  }
+
   var PAGES = {
     index: initIndex,
     "courier-tugas": initCourierTugas,
     "courier-verifikasi": initCourierVerifikasi,
     "courier-pod": initCourierPod,
-    "courier-sukses": initCourierSukses
+    "courier-sukses": initCourierSukses,
+    "admin-dashboard": initAdminDashboard
   };
 
   function start() {
