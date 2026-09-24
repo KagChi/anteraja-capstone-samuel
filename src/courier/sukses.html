@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -52,7 +52,7 @@
       </a>
       <span class="flex items-center gap-2.5">
         <span class="flex flex-col items-end leading-tight">
-          <span class="text-[13px] text-on-surface font-semibold">Satria</span>
+          <span class="text-[13px] text-on-surface font-semibold" id="courier-name">Satria</span>
           <span class="text-[11px] text-on-surface-variant">#4821 &bull; Jak-Sel</span>
         </span>
         <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[13px] font-bold ring-1 ring-border-subtle" aria-hidden="true">S</span>
@@ -110,15 +110,15 @@
           <dt class="text-on-surface-variant">Verifikasi PIN</dt>
           <dd class="text-on-surface font-semibold m-0">Tervalidasi Penerima</dd>
           <dt class="text-on-surface-variant">Stempel Waktu NTP</dt>
-          <dd class="text-on-surface font-semibold m-0"><time datetime="2024-09-22T15:14:28+07:00">22 Sep 2024 &bull; 15:14:28 WIB</time></dd>
+          <dd class="text-on-surface font-semibold m-0"><time datetime="2024-09-22T15:14:28+07:00" id="audit-stamp">22 Sep 2024 &bull; 15:14:28 WIB</time></dd>
           <dt class="text-on-surface-variant">Kode Hash Audit</dt>
-          <dd class="text-brand-magenta font-semibold m-0">AUD-SEC-9912-SHA256</dd>
+          <dd class="text-brand-magenta font-semibold m-0" id="audit-hash">AUD-SEC-9912-SHA256</dd>
         </dl>
       </details>
 
       <p class="mt-6 flex items-center justify-center gap-2 text-center text-on-surface-variant text-[12px]">
         <span class="material-symbols-outlined text-[15px] text-tertiary" aria-hidden="true">task_alt</span>
-        <span><strong class="text-on-surface font-semibold">9 dari 12</strong> tugas selesai hari ini <span class="text-on-surface-variant/40 mx-1">&bull;</span> <span class="text-tertiary font-semibold">100% tepat waktu</span></span>
+        <span><strong class="text-on-surface font-semibold"><span id="done-count">9</span> dari <span id="total-count">12</span></strong> tugas selesai hari ini <span class="text-on-surface-variant/40 mx-1">&bull;</span> <span class="text-tertiary font-semibold">100% tepat waktu</span></span>
       </p>
     </section>
 
@@ -151,6 +151,6 @@
     </p>
   </nav>
 
-  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/app.js?v=8" defer></script>
 </body>
 </html>

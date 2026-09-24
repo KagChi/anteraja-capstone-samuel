@@ -578,10 +578,72 @@
     refreshStep();
   }
 
+  function initCourierPod() {
+    var watermark = $("#pod-watermark");
+    var viewfinder = $("#pod-viewfinder");
+    var retake = $("#btn-retake-photo");
+    var confirm = $("#btn-confirm-pod");
+
+    function paintWatermark() {
+      if (watermark) watermark.textContent = formatClock() + " WIB \u2022 Senopati, Jaksel";
+    }
+
+    function flash() {
+      if (!viewfinder) return;
+      viewfinder.classList.remove("pod-flash");
+      void viewfinder.offsetWidth;
+      viewfinder.classList.add("pod-flash");
+    }
+
+    paintWatermark();
+    window.setInterval(paintWatermark, 1000);
+
+    if (viewfinder) {
+      viewfinder.addEventListener("click", flash);
+    }
+    if (retake) {
+      retake.addEventListener("click", function () {
+        flash();
+        showToast("Foto diambil ulang. Arahkan kamera kembali.");
+      });
+    }
+    if (confirm && confirm.tagName === "A") {
+      confirm.addEventListener("click", function (event) {
+        event.preventDefault();
+        withLoading(confirm, "Mengunggah bukti...", 1000, function () {
+          window.location.href = confirm.getAttribute("href");
+        });
+      });
+    }
+  }
+
+  function initCourierSukses() {
+    greet("#courier-name", "Satria");
+
+    var tracking = "ANT-INST-882910394";
+    var completed = markCompleted(tracking);
+    var done = $("#done-count");
+    var total = $("#total-count");
+    if (done) done.textContent = String(8 + completed.length);
+    if (total) total.textContent = "12";
+
+    var hash = $("#audit-hash");
+    if (hash) hash.textContent = "AUD-SEC-" + randomDigits(4) + "-SHA256";
+
+    var stamp = $("#audit-stamp");
+    if (stamp) {
+      var now = new Date();
+      stamp.textContent = formatStamp(now);
+      stamp.setAttribute("datetime", now.toISOString());
+    }
+  }
+
   var PAGES = {
     index: initIndex,
     "courier-tugas": initCourierTugas,
-    "courier-verifikasi": initCourierVerifikasi
+    "courier-verifikasi": initCourierVerifikasi,
+    "courier-pod": initCourierPod,
+    "courier-sukses": initCourierSukses
   };
 
   function start() {
