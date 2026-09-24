@@ -373,9 +373,215 @@
     }
   }
 
+  function initCourierVerifikasi() {
+    var group = $("#pin-group");
+    var form = $("#pin-form");
+    var inputs = $$(".pin-digit", group || document);
+    var attemptsLabel = $("#pin-attempts");
+    var next = $("#btn-next-step");
+    var resend = $("#btn-resend-pin");
+    var relationTabs = $$(".relation-tab");
+    var lockReason = $("#lock-reason");
+    var DEMO_PIN = "123456";
+    var MAX_ATTEMPTS = 3;
+    var attempts = 1;
+    var locked = false;
+    var verified = false;
+    var resetToken = 0;
+
+    var relationActive = ["bg-surface-container-lowest", "text-on-surface", "shadow-sm", "font-semibold"];
+    var relationIdle = ["text-on-surface-variant", "font-medium"];
+
+    function code() {
+      return inputs.map(function (input) {
+        return input.value;
+      }).join("");
+    }
+
+    function clearState() {
+      inputs.forEach(function (input) {
+        input.classList.remove("is-error", "is-ok");
+      });
+    }
+
+    function setLocked(reason) {
+      locked = true;
+      if (lockReason) lockReason.hidden = false;
+      if (next) {
+        next.classList.add("opacity-50", "pointer-events-none");
+        next.setAttribute("aria-disabled", "true");
+      }
+      showToast(reason || "Verifikasi terkunci.", "error");
+    }
+
+    function refreshStep() {
+      var complete = code().length === inputs.length;
+      if (!next) return;
+      if (locked) return;
+      var ready = complete && verified;
+      next.classList.toggle("opacity-50", !ready);
+      next.classList.toggle("pointer-events-none", !ready);
+      next.setAttribute("aria-disabled", ready ? "false" : "true");
+    }
+
+    function failPin() {
+      inputs.forEach(function (input) {
+        input.classList.add("is-error");
+      });
+      if (group) {
+        group.classList.remove("shake");
+        void group.offsetWidth;
+        group.classList.add("shake");
+      }
+      if (attempts >= MAX_ATTEMPTS) {
+        setLocked("PIN salah " + MAX_ATTEMPTS + " kali. Hubungi Admin untuk membuka akses.");
+        return;
+      }
+      attempts += 1;
+      if (attemptsLabel) attemptsLabel.textContent = "Percobaan " + attempts + " dari " + MAX_ATTEMPTS;
+      showToast("PIN salah. Coba lagi.", "error");
+      var token = (resetToken += 1);
+      window.setTimeout(function () {
+        if (token !== resetToken || verified) return;
+        clearState();
+        inputs.forEach(function (input) {
+          input.value = "";
+        });
+        if (inputs[0]) inputs[0].focus();
+        refreshStep();
+      }, 500);
+    }
+
+    function evaluate() {
+      if (locked) return;
+      var value = code();
+      if (value.length !== inputs.length) {
+        verified = false;
+        clearState();
+        refreshStep();
+        return;
+      }
+      if (value === DEMO_PIN) {
+        verified = true;
+        resetToken += 1;
+        clearState();
+        inputs.forEach(function (input) {
+          input.classList.add("is-ok");
+        });
+        showToast("PIN terverifikasi.");
+        refreshStep();
+      } else {
+        verified = false;
+        failPin();
+      }
+    }
+
+    inputs.forEach(function (input, index) {
+      input.addEventListener("input", function () {
+        var digits = input.value.replace(/\D/g, "");
+        input.value = digits.slice(-1);
+        if (input.value && index < inputs.length - 1) inputs[index + 1].focus();
+        evaluate();
+      });
+      input.addEventListener("keydown", function (event) {
+        if (event.key === "Backspace" && !input.value && index > 0) {
+          event.preventDefault();
+          inputs[index - 1].value = "";
+          inputs[index - 1].focus();
+          evaluate();
+        } else if (event.key === "ArrowLeft" && index > 0) {
+          inputs[index - 1].focus();
+        } else if (event.key === "ArrowRight" && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          submitPin();
+        }
+      });
+      input.addEventListener("paste", function (event) {
+        event.preventDefault();
+        var text = (event.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "");
+        if (!text) return;
+        for (var i = 0; i < inputs.length; i += 1) {
+          inputs[i].value = text[i] || "";
+        }
+        var last = clamp(text.length, 0, inputs.length - 1);
+        inputs[last].focus();
+        evaluate();
+      });
+    });
+
+    function submitPin() {
+      if (locked) return;
+      if (code().length < inputs.length) {
+        showToast("Lengkapi 6 digit PIN terlebih dahulu.", "error");
+        var empty = inputs.find(function (input) {
+          return !input.value;
+        });
+        if (empty) empty.focus();
+        return;
+      }
+      if (!verified) {
+        showToast("PIN belum terverifikasi.", "error");
+        return;
+      }
+      if (next) {
+        withLoading(next, "Memverifikasi...", 900, function () {
+          window.location.href = next.getAttribute("href");
+        });
+      }
+    }
+
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        submitPin();
+      });
+    }
+
+    if (next && next.tagName === "A") {
+      next.addEventListener("click", function (event) {
+        event.preventDefault();
+        submitPin();
+      });
+    }
+
+    if (resend) {
+      resend.addEventListener("click", function () {
+        if (resend.dataset.loading === "1") return;
+        var seconds = 30;
+        resend.disabled = true;
+        resend.dataset.loading = "1";
+        var original = resend.textContent;
+        showToast("PIN baru dikirim ke penerima: " + DEMO_PIN);
+        var timer = window.setInterval(function () {
+          seconds -= 1;
+          if (seconds <= 0) {
+            window.clearInterval(timer);
+            resend.disabled = false;
+            resend.textContent = original;
+            delete resend.dataset.loading;
+            return;
+          }
+          resend.textContent = "Kirim ulang (" + seconds + "s)";
+        }, 1000);
+      });
+    }
+
+    relationTabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activateTab(relationTabs, tab, relationActive, relationIdle);
+        storage.set("anteraja.relation", tab.dataset.relation);
+      });
+    });
+
+    refreshStep();
+  }
+
   var PAGES = {
     index: initIndex,
-    "courier-tugas": initCourierTugas
+    "courier-tugas": initCourierTugas,
+    "courier-verifikasi": initCourierVerifikasi
   };
 
   function start() {

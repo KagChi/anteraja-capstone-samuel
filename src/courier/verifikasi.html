@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -125,7 +125,7 @@
           <input class="pin-digit w-11 h-12 text-center text-[20px] font-bold rounded-xl border-[1.5px] border-border-subtle bg-surface-container-lowest text-on-surface focus:border-brand-magenta focus:ring-0" id="pin-6" name="pin[]" type="text" inputmode="numeric" maxlength="1" aria-label="Digit PIN 6">
         </p>
         <footer class="flex items-center justify-between mt-3">
-          <p class="text-[12px] text-on-surface-variant m-0" id="pin-hint">PIN berlaku 15 menit sejak dikirim.</p>
+          <p class="text-[12px] text-on-surface-variant m-0" id="pin-hint">PIN demo: <strong class="text-brand-magenta font-semibold" id="pin-demo">123456</strong> &bull; berlaku 15 menit sejak dikirim.</p>
           <button class="text-[12px] font-semibold text-brand-magenta hover:opacity-80" id="btn-resend-pin" type="button">Kirim ulang PIN</button>
         </footer>
       </fieldset>
@@ -159,6 +159,6 @@
     </section>
   </footer>
 
-  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/app.js?v=8" defer></script>
 </body>
 </html>
