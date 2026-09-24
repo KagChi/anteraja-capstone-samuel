@@ -883,6 +883,94 @@
     }
   }
 
+  function initAdminRadius() {
+    var CONFIG = {
+      "radius-instant": { min: 10, max: 100 },
+      "radius-sameday": { min: 20, max: 200 },
+      "radius-reguler": { min: 25, max: 500 },
+      "radius-kargo": { min: 50, max: 1000 }
+    };
+    var fields = Object.keys(CONFIG).map(function (id) {
+      return { id: id, input: $("#" + id), config: CONFIG[id] };
+    }).filter(function (item) {
+      return item.input;
+    });
+    var save = $("#btn-save-radius");
+    var reset = $("#btn-reset-radius");
+    var saved = storage.get(STORAGE.radii, null);
+    var baseline = {};
+
+    fields.forEach(function (item) {
+      var start = saved && saved[item.id] != null ? saved[item.id] : parseInt(item.input.value, 10) || item.config.min;
+      baseline[item.id] = start;
+      item.input.value = String(clamp(start, item.config.min, item.config.max));
+    });
+
+    function isDirty() {
+      return fields.some(function (item) {
+        return parseInt(item.input.value, 10) !== baseline[item.id];
+      });
+    }
+
+    function refreshSave() {
+      if (!save) return;
+      var dirty = isDirty();
+      save.classList.toggle("opacity-50", !dirty);
+      save.classList.toggle("pointer-events-none", !dirty);
+      save.setAttribute("aria-disabled", dirty ? "false" : "true");
+    }
+
+    $$(".stepper-btn[data-stepper]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var item = fields.find(function (entry) {
+          return entry.id === button.dataset.stepper;
+        });
+        if (!item) return;
+        var delta = parseInt(button.dataset.delta, 10) || 0;
+        var current = parseInt(item.input.value, 10) || item.config.min;
+        var next = clamp(current + delta, item.config.min, item.config.max);
+        if (next === current) {
+          showToast("Batas " + item.config.min + "-" + item.config.max + " meter tercapai.", "error");
+          return;
+        }
+        item.input.value = String(next);
+        refreshSave();
+      });
+    });
+
+    if (save) {
+      save.addEventListener("click", function () {
+        if (!isDirty()) {
+          showToast("Belum ada perubahan untuk diterapkan.", "error");
+          return;
+        }
+        withLoading(save, "Menerapkan...", 900, function () {
+          var payload = {};
+          fields.forEach(function (item) {
+            var value = parseInt(item.input.value, 10);
+            baseline[item.id] = value;
+            payload[item.id] = value;
+          });
+          storage.set(STORAGE.radii, payload);
+          refreshSave();
+          showToast("Kebijakan radius berhasil diterapkan.");
+        });
+      });
+    }
+
+    if (reset) {
+      reset.addEventListener("click", function () {
+        fields.forEach(function (item) {
+          item.input.value = String(baseline[item.id]);
+        });
+        refreshSave();
+        showToast("Perubahan dibatalkan.");
+      });
+    }
+
+    refreshSave();
+  }
+
   var PAGES = {
     index: initIndex,
     "courier-tugas": initCourierTugas,
@@ -892,7 +980,8 @@
     "admin-dashboard": initAdminDashboard,
     "admin-audit": initAdminAudit,
     "admin-antrian": initAdminAntrian,
-    "admin-pengecualian-detail": initAdminPengecualianDetail
+    "admin-pengecualian-detail": initAdminPengecualianDetail,
+    "admin-radius": initAdminRadius
   };
 
   function start() {
