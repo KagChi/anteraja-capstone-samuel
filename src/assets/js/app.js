@@ -304,8 +304,78 @@
     });
   }
 
+  function initCourierTugas() {
+    var name = greet("#courier-name", "Satria");
+    welcome(name);
+
+    var bar = $("#segment-bar");
+    var buttons = $$(".seg-btn", bar || document);
+    var cards = $$(".task-card");
+    var remaining = $("#task-remaining");
+    var done = $("#task-done");
+
+    var activeClasses = ["bg-surface-container-lowest", "text-on-surface", "font-semibold", "shadow-sm"];
+    var idleClasses = ["text-on-surface-variant", "font-medium", "hover:text-on-surface"];
+
+    function baseDone() {
+      return 8 + getCompleted().length;
+    }
+
+    function applyFilter(filter) {
+      var visible = 0;
+      cards.forEach(function (card) {
+        var item = card.closest("li");
+        var match = filter === "all" || card.dataset.category === filter;
+        if (item) item.hidden = !match;
+        if (match) visible += 1;
+      });
+      if (remaining) remaining.textContent = String(visible);
+      if (done) done.textContent = String(baseDone());
+    }
+
+    buttons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        activateTab(buttons, button, activeClasses, idleClasses);
+        applyFilter(button.dataset.filter);
+      });
+    });
+
+    applyFilter("all");
+
+    var scan = $("#btn-scan-resi");
+    if (scan) {
+      scan.addEventListener("click", function () {
+        var code = window.prompt("Masukkan nomor resi yang ingin dipindai:");
+        if (!code) return;
+        var query = code.trim().toLowerCase();
+        if (!query) return;
+        var found = cards.find(function (card) {
+          return card.dataset.tracking.toLowerCase().indexOf(query) !== -1;
+        });
+        if (!found) {
+          showToast("Resi tidak ditemukan: " + code.trim(), "error");
+          return;
+        }
+        var activeButton = buttons.find(function (button) {
+          return button.dataset.filter === "all";
+        });
+        activateTab(buttons, activeButton, activeClasses, idleClasses);
+        applyFilter("all");
+        var item = found.closest("li");
+        if (item) {
+          item.scrollIntoView({ behavior: "smooth", block: "center" });
+          found.classList.remove("is-flash");
+          void found.offsetWidth;
+          found.classList.add("is-flash");
+        }
+        showToast("Resi ditemukan: " + found.dataset.tracking);
+      });
+    }
+  }
+
   var PAGES = {
-    index: initIndex
+    index: initIndex,
+    "courier-tugas": initCourierTugas
   };
 
   function start() {

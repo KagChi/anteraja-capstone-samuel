@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="../assets/js/tailwind.config.js"></script>
-  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app.css?v=8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -68,7 +68,7 @@
       </a>
       <span class="flex items-center gap-3">
         <span class="text-right leading-tight block">
-          <span class="block text-[13px] font-semibold text-on-surface">Satria</span>
+          <span class="block text-[13px] font-semibold text-on-surface" id="courier-name">Satria</span>
           <span class="block text-[11px] text-on-surface-variant font-medium">#4821 &bull; Jak-Sel</span>
         </span>
         <span class="w-8 h-8 rounded-full bg-brand-magenta/10 text-brand-magenta grid place-items-center text-[13px] font-bold ring-1 ring-black/10" aria-hidden="true">S</span>
@@ -79,7 +79,7 @@
   <main class="flex-1 w-full max-w-md mx-auto px-4 pt-4 pb-28 flex flex-col gap-4">
     <section class="px-1" aria-labelledby="judul-tugas">
       <h1 id="judul-tugas" class="text-[26px] font-bold tracking-tight text-on-surface">Pengiriman</h1>
-      <p class="text-[13px] text-on-surface-variant">3 tersisa &bull; 8 selesai hari ini</p>
+      <p class="text-[13px] text-on-surface-variant"><span id="task-remaining">3</span> tersisa &bull; <span id="task-done">8</span> selesai hari ini</p>
     </section>
 
     <nav class="p-0.5 rounded-[10px] bg-surface-container-high flex items-center shadow-inner" id="segment-bar" role="tablist" aria-label="Filter layanan">
@@ -182,6 +182,6 @@
     </p>
   </nav>
 
-  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/app.js?v=8" defer></script>
 </body>
 </html>
