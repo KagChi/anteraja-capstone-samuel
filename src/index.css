@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+/* Design tokens ported from docs/ui/DESIGN.md (formerly tailwind.config.js).
+   Only tokens actually referenced by the app are kept here; everything else is
+   expressed with Tailwind utilities directly in the components. */
+@theme {
+  --color-surface: #fdf8f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f2f2;
+  --color-surface-container: #f1edec;
+  --color-surface-container-high: #ece7e7;
+  --color-surface-container-highest: #e6e1e1;
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #5b3f45;
+  --color-outline: #8f6f75;
+  --color-outline-variant: #e4bdc3;
+  --color-primary: #b2004f;
+  --color-on-primary: #ffffff;
+  --color-primary-fixed: #ffd9df;
+  --color-secondary: #735c00;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #ffcf12;
+  --color-on-secondary-container: #6f5900;
+  --color-on-secondary-fixed: #231b00;
+  --color-tertiary: #00673a;
+  --color-tertiary-container: #00834b;
+  --color-error: #ba1a1a;
+  --color-brand-magenta: #e00065;
+  --color-energetic-yellow: #ffcf0e;
+  --color-alert-amber: #f59e0b;
+  --color-surface-canvas: #fcf9f8;
+  --color-surface-card: #ffffff;
+  --color-border-subtle: #eae7e7;
+
+  --font-sans:
+    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-headline-xl: 32px;
+  --text-headline-xl--line-height: 40px;
+  --text-headline-xl--letter-spacing: -0.02em;
+  --text-headline-xl--font-weight: 800;
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 700;
+  --text-title-lg: 18px;
+  --text-title-lg--line-height: 24px;
+  --text-title-lg--font-weight: 600;
+  --text-title-md: 16px;
+  --text-title-md--line-height: 22px;
+  --text-title-md--font-weight: 600;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 16px;
+  --text-body-sm--font-weight: 400;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.02em;
+  --text-label-md--font-weight: 700;
+  --text-label-sm: 10px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.04em;
+  --text-label-sm--font-weight: 700;
+  --text-barcode-tracking: 15px;
+  --text-barcode-tracking--line-height: 20px;
+  --text-barcode-tracking--letter-spacing: 0.08em;
+  --text-barcode-tracking--font-weight: 800;
+
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-lg: 1rem;
+
+  --shadow-card: 0px 2px 4px rgba(28, 27, 27, 0.04);
+  --shadow-active: 0px 8px 18px rgba(224, 0, 101, 0.12);
+
+  --animate-spinner: app-spin 0.6s linear infinite;
+  --animate-flash: app-flash 0.9s ease;
+  --animate-viewfinder: app-viewfinder 0.45s ease;
+  --animate-shake: app-shake 0.35s ease;
+
+  @keyframes app-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes app-flash {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(224, 0, 101, 0);
+    }
+    35% {
+      box-shadow: 0 0 0 5px rgba(224, 0, 101, 0.35);
+    }
+  }
+
+  @keyframes app-viewfinder {
+    0% {
+      opacity: 1;
+    }
+    30% {
+      opacity: 0.2;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes app-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-4px);
+    }
+    75% {
+      transform: translateX(4px);
+    }
+  }
+}
+
+@layer base {
+  /* Hide scrollbars to keep the mobile app feel clean. */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Clear and consistent keyboard focus, aligned with the brand. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-magenta);
+    outline-offset: 2px;
+  }
+}
