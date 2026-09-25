@@ -1,18 +1,18 @@
 # Anteraja Instant — Purwarupa Antarmuka (branch `7-prototype`)
 
-Kerangka web statis hasil konversi rancangan UI/UX (`docs/ui/`) menjadi halaman
-fungsional yang saling terhubung. Setiap layar mengacu pada **PRD**
-(`docs/PRD-anteraja-instant.md`) dan lima **FRD** di `docs/frd/`. Purwarupa ini
-menjadi fondasi visual untuk latihan berikutnya: menambahkan interaksi dengan
-JavaScript di `src/assets/js/app.js` memakai selector yang sudah disiapkan
-(lihat §10).
+Purwarupa interaktif hasil konversi rancangan UI/UX (`docs/ui/`) menjadi
+aplikasi **React + Vite + TypeScript** dengan **Tailwind CSS v4**. Versi statis
+awal (HTML + Tailwind Play CDN) telah dipindahkan ke dalam komponen dan rute di
+`src/`, sambil mempertahankan JSON-LD, markup semantik, dan kontrak aksesibilitas.
+Setiap layar mengacu pada **PRD** (`docs/PRD-anteraja-instant.md`) dan lima
+**FRD** di `docs/frd/`.
 
 | | |
 |---|---|
 | **Produk** | Anteraja — Satria Rapid Field Dispatch |
 | **Branch** | `7-prototype` |
-| **Stack** | HTML statis + Tailwind Play CDN; design token di `src/assets/js/tailwind.config.js` (dari `docs/ui/DESIGN.md`) |
-| **Tipografi** | Plus Jakarta Sans + Material Symbols (Google Fonts) |
+| **Stack** | React 19 + Vite + TypeScript (strict); Tailwind CSS v4; react-router-dom; Biome untuk lint/format; Bun sebagai package manager |
+| **Tipografi** | Plus Jakarta Sans + Material Symbols (Google Fonts di `index.html`) |
 | **Referensi** | `docs/PRD-anteraja-instant.md`, `docs/frd/FRD-01..05`, `docs/ui/` |
 
 ---
@@ -20,44 +20,72 @@ JavaScript di `src/assets/js/app.js` memakai selector yang sudah disiapkan
 ## 1. Struktur Berkas
 
 ```
+index.html                    # Shell Vite: meta dasar + Google Fonts
+public/
+  logo-anteraja.png           # Logo resmi Anteraja (anteraja.id)
+  favicon.svg                 # Ikon web (mark magenta)
 src/
-  index.html                    # Landing: pemilih alur Kurir / Admin
-  courier/                      # Aplikasi kurir (mobile)
-    tugas.html                  # Daftar tugas pengiriman
-    verifikasi.html             # Verifikasi lokasi & PIN
-    bukti-foto.html             # Ambil bukti foto (POD)
-    sukses.html                 # Konfirmasi sukses
-  admin/                        # Konsol Admin/Hub (desktop)
-    dashboard.html              # Dashboard pengiriman
-    audit-trail.html            # Detail audit trail
-    antrian-pengecualian.html   # Antrian pengecualian
-    pengecualian-detail.html    # Modal detail pengecualian
-    pengaturan-radius.html      # Pengaturan radius layanan
-  assets/
-    js/tailwind.config.js       # Design token (DESIGN.md)
-    js/app.js                   # Interaksi per halaman (objek PAGES, lihat §10)
-    css/app.css                 # Reset, safe-area, ikon
-    img/logo-anteraja.png       # Logo resmi Anteraja (anteraja.id)
-    img/favicon.svg             # Ikon web (mark magenta)
+  main.tsx                    # Bootstrap React
+  App.tsx                     # Provider (Session, Toast) + definisi rute
+  index.css                   # Tailwind v4 @theme (design token) + @layer base
+  types.ts                    # Tipe domain (Task, Shipment, Radius, dll.)
+  lib/
+    format.ts                 # Helper format (Rupiah, waktu, hash audit)
+    storage.ts                # Pembungkus localStorage + kunci
+  data/
+    tasks.ts                  # Data tugas kurir
+    shipments.ts              # Data pengiriman admin
+    nav.ts                    # Item navigasi courier/admin
+    seo.ts                    # Judul, meta, dan JSON-LD per rute
+  hooks/
+    useSeo.ts                 # Menyuntik title/meta/JSON-LD
+    useWelcomeToast.ts        # Sapaan pengguna dari sesi
+    useDebouncedValue.ts      # Debounce input pencarian
+  context/
+    SessionContext.tsx        # Sesi pengguna (localStorage)
+    ToastContext.tsx          # Toast global (aria-live)
+  components/
+    MaterialIcon.tsx          # Ikon Material Symbols
+    LoadingAction.tsx         # LoadingButton / LoadingLink / Spinner
+    Badges.tsx                # ServiceTag / StatusPill
+    ScrollToTop.tsx           # Reset scroll saat rute berubah
+    courier/CourierBottomNav.tsx
+    admin/AdminLayout.tsx     # Sidebar + header + drawer (desktop console)
+  pages/
+    LandingPage.tsx           # Pemilih alur + dialog login
+    courier/
+      TugasPage.tsx           # Daftar tugas pengiriman
+      VerifikasiPage.tsx      # Verifikasi lokasi & PIN
+      BuktiFotoPage.tsx       # Ambil bukti foto (POD)
+      SuksesPage.tsx          # Konfirmasi sukses
+    admin/
+      DashboardPage.tsx       # Dashboard pengiriman
+      AuditTrailPage.tsx      # Detail audit trail
+      AntrianPengecualianPage.tsx
+      PengecualianDetailPage.tsx
+      PengaturanRadiusPage.tsx
 ```
 
 ## 2. Pemetaan Halaman → PRD/FRD
 
-| # | Halaman | Berkas | FRD yang dijawab |
+| # | Halaman | Rute | FRD yang dijawab |
 |---|---|---|---|
-| — | Landing pemilih alur | `src/index.html` | PRD §11 (UI) |
-| K1 | Daftar Tugas Pengiriman | `courier/tugas.html` | FRD-03, FRD-04 |
-| K2 | Verifikasi Lokasi & PIN | `courier/verifikasi.html` | FRD-01, FRD-03, FRD-04 |
-| K3 | Ambil Bukti Foto (POD) | `courier/bukti-foto.html` | FRD-02 |
-| K4 | Konfirmasi Sukses | `courier/sukses.html` | FRD-01, FRD-02, FRD-03, FRD-05 |
-| A1 | Dashboard Pengiriman | `admin/dashboard.html` | FRD-01, FRD-04 |
-| A2 | Detail Audit Trail | `admin/audit-trail.html` | FRD-05 |
-| A3 | Antrian Pengecualian | `admin/antrian-pengecualian.html` | FRD-01 |
-| A3b | Modal Detail Pengecualian | `admin/pengecualian-detail.html` | FRD-01, FRD-05 |
-| A4 | Pengaturan Radius | `admin/pengaturan-radius.html` | FRD-01 |
+| — | Landing pemilih alur | `/` | PRD §11 (UI) |
+| K1 | Daftar Tugas Pengiriman | `/courier/tugas` | FRD-03, FRD-04 |
+| K2 | Verifikasi Lokasi & PIN | `/courier/verifikasi` | FRD-01, FRD-03, FRD-04 |
+| K3 | Ambil Bukti Foto (POD) | `/courier/bukti-foto` | FRD-02 |
+| K4 | Konfirmasi Sukses | `/courier/sukses` | FRD-01, FRD-02, FRD-03, FRD-05 |
+| A1 | Dashboard Pengiriman | `/admin/dashboard` | FRD-01, FRD-04 |
+| A2 | Detail Audit Trail | `/admin/audit-trail` | FRD-05 |
+| A3 | Antrian Pengecualian | `/admin/antrian-pengecualian` | FRD-01 |
+| A3b | Detail Pengecualian | `/admin/pengecualian-detail` | FRD-01, FRD-05 |
+| A4 | Pengaturan Radius | `/admin/pengaturan-radius` | FRD-01 |
+
+Rute admin bersarang di bawah `AdminLayout` (sidebar tetap); rute kurir memakai
+`CourierBottomNav`. Rute tak dikenal dialihkan ke `/`.
 
 ### Keterkaitan antar halaman
-- **Landing** → `courier/tugas.html` dan `admin/dashboard.html`.
+- **Landing** → `/courier/tugas` dan `/admin/dashboard`.
 - **Alur kurir:** `tugas → verifikasi → bukti-foto → sukses → tugas` (tab bar bawah & CTA).
 - **Alur admin:** sidebar tetap ke Dashboard / Antrian Pengecualian / Pengaturan Radius;
   Dashboard → Audit Trail lewat nomor resi & aksi "Tinjau"; Antrian → Detail Pengecualian;
@@ -65,21 +93,22 @@ src/
 
 ## 3. JSON-LD (schema.org)
 
-Setiap halaman menyematkan satu blok `application/ld+json` yang mengacu dokumentasi
-[schema.org](https://schema.org):
+Metadata dan JSON-LD didefinisikan per rute di `src/data/seo.ts` dan disuntikkan
+oleh `useSeo`. Setiap halaman menyematkan satu blok `application/ld+json` yang
+mengacu dokumentasi [schema.org](https://schema.org):
 
 | Halaman | Tipe schema.org |
 |---|---|
-| `index.html` | `Organization`, `WebSite`, `ItemList` |
-| `courier/tugas.html` | `ItemList` → `ParcelDelivery` |
-| `courier/verifikasi.html` | `ParcelDelivery`, `Place` (`GeoCoordinates`), `DeliveryEvent` |
-| `courier/bukti-foto.html` | `ImageObject` (+ `GeoCoordinates`, `ParcelDelivery`) |
-| `courier/sukses.html` | `ParcelDelivery`, `DeliveryEvent` |
-| `admin/dashboard.html` | `ItemList` → `ParcelDelivery` |
-| `admin/audit-trail.html` | `ParcelDelivery`, `DeliveryEvent`, `BreadcrumbList` |
-| `admin/antrian-pengecualian.html` | `ItemList` → `ParcelDelivery` |
-| `admin/pengecualian-detail.html` | `ParcelDelivery`, `DeliveryEvent` (`PotentialActionStatus`) |
-| `admin/pengaturan-radius.html` | `ItemList` → `Service` (`PropertyValue`) |
+| Landing | `Organization`, `WebSite`, `ItemList` |
+| Tugas | `ItemList` → `ParcelDelivery` |
+| Verifikasi | `ParcelDelivery`, `Place` (`GeoCoordinates`), `DeliveryEvent` |
+| Bukti foto | `ImageObject` (+ `GeoCoordinates`, `ParcelDelivery`) |
+| Sukses | `ParcelDelivery`, `DeliveryEvent` |
+| Dashboard | `ItemList` → `ParcelDelivery` |
+| Audit trail | `ParcelDelivery`, `DeliveryEvent`, `BreadcrumbList` |
+| Antrian pengecualian | `ItemList` → `ParcelDelivery` |
+| Detail pengecualian | `ParcelDelivery`, `DeliveryEvent` (`PotentialActionStatus`) |
+| Pengaturan radius | `ItemList` → `Service` (`PropertyValue`) |
 
 ## 4. Semantic HTML
 
@@ -88,44 +117,41 @@ Struktur memakai elemen semantik alih-alih `<div>`: `header`, `nav`, `main`,
 `fieldset`/`legend`, `table`/`thead`/`tbody`/`th[scope]`, `dl`/`dt`/`dd`,
 `ol`/`ul`/`li`, `time`, `mark`, `address`, `search`, `output`, `dialog`.
 Heading testable berjenjang (`h1` → `h2` → `h3`), skip-link, dan ARIA
-(`role="tablist"`, `aria-current`, `aria-modal`, `aria-live`).
+(`role="tablist"`, `aria-current`, `aria-modal`, `aria-live`). Aturan aksesibilitas
+Biome (`a11y`) dijaga hijau di seluruh komponen.
 
-Jumlah `<div>` per halaman setelah penyaringan semantik: **0–3** (hanya untuk
-pembungkus tata letak yang tidak punya padanan semantik, mis. kolom flex sidebar).
+## 5. Rute dan Komponen Interaktif
 
-## 5. Selector Antarmuka
+Logika per layar berada di komponen rutenya masing-masing; bukan lagi selector
+DOM stabil. Titik interaksi utama:
 
-Setiap elemen interaktif punya `id`/`class` stabil yang mengendalikan perilaku
-JavaScript di §10:
-
-| Elemen | Selector |
-|---|---|
-| Filter segmen (kurir) | `#segment-bar`, `.seg-btn[data-filter]`, `#task-container`, `.task-card[data-category]` |
-| Input PIN | `#pin-form`, `#pin-group`, `.pin-digit`, `#btn-submit-pin`, `#btn-resend-pin` |
-| Hubungan penerima | `#relation-tabs`, `.relation-tab[data-relation]` |
-| CTA verifikasi | `#btn-next-step`, `#geofence-status`, `#lock-reason` |
-| POD | `#pod-viewfinder`, `#pod-watermark`, `#btn-confirm-pod`, `#btn-retake-photo` |
-| Detail integritas | `#audit-details` |
-| Filter dashboard | `#filter-tabs`, `.filter-tab[data-status]`, `#search-input`, `#filter-service`, `#filter-region`, `#delivery-table-body`, `.delivery-row[data-flag][data-service]` |
-| Audit trail | `#audit-form`, `#audit-decision-approve`, `#audit-decision-reject`, `#audit-notes`, `#btn-save-case`, `#save-status`, `#btn-export-audit` |
-| Antrian pengecualian | `#exception-tabs`, `.filter-tab[data-service]`, `#exception-search`, `#exception-table-body`, `.exception-row[data-service]`, `#decision-toast` |
-| Detail pengecualian | `#modal-exception`, `#btn-approve-exception`, `#btn-reject-exception`, `#exception-note` |
-| Radius | `.stepper-btn[data-stepper][data-delta]`, `#radius-instant`, `#radius-sameday`, `#radius-reguler`, `#radius-kargo`, `#btn-save-radius`, `#btn-reset-radius` |
+| Layar | Komponen | Interaksi |
+|---|---|---|
+| Landing | `LandingPage` | Dialog login (nama + peran), loader, simpan sesi, redirect |
+| Tugas | `TugasPage` | Filter segmen, pindai resi manual (debounced), sapaan kurir |
+| Verifikasi | `VerifikasiPage` | PIN 6 digit auto-lanjut, batas percobaan, resend countdown, pilihan hubungan penerima |
+| Bukti foto | `BuktiFotoPage` | Watermark jam, kilatan shutter, hash audit |
+| Sukses | `SuksesPage` | Kode hash acak, stempel waktu, hitung tugas selesai |
+| Dashboard | `DashboardPage` | Filter gabungan (status/pencarian/layanan/wilayah) + empty-state |
+| Audit trail | `AuditTrailPage` | Validasi catatan keputusan, loader simpan, ekspor cetak |
+| Antrian pengecualian | `AntrianPengecualianPage` | Filter layanan + pencarian; keputusan menghapus baris & memunculkan toast |
+| Detail pengecualian | `PengecualianDetailPage` | Setujui/Tolak + catatan, loader, kembali ke antrian |
+| Radius | `PengaturanRadiusPage` | Stepper min–maks per segmen, tombol Terapkan hanya saat kotor |
 
 ## 6. Responsivitas
 
 - Mobile-first; halaman kurir dirender pada kolom sempit (`max-w-md`, ±448 px).
-- Konsol admin: sidebar tetap ≥ `lg`, dan berubah menjadi drawer dengan
-  `#sidebar-toggle` + `#sidebar-backdrop` di bawah `lg`.
+- Konsol admin: sidebar tetap ≥ `lg`, berubah menjadi drawer di bawah `lg`.
 - Diuji pada viewport 375 px (kurir), 768 px, dan 1280 px (admin).
 
 ## 7. Cara Menjalankan
 
-Purwarupa statis; cukup buka `src/index.html` di peramban, atau jalankan server:
-
 ```sh
-python3 -m http.server 8080 --directory src
-# lalu buka http://localhost:8080/
+bun install
+bun run dev        # server pengembangan
+bun run build      # tsc -b + build produksi
+bun run preview    # pratinjau hasil build
+bun run lint       # Biome (lint + format)
 ```
 
 ## 8. Commit Modular
@@ -143,9 +169,6 @@ python3 -m http.server 8080 --directory src
 | `refactor(prototype)` | Semantic HTML + JSON-LD di semua halaman |
 
 ### Commit interaksi UX (min. 5 interaksi berbeda)
-
-Setiap interaksi user experience diimplementasikan pada commit terpisah agar
-jejak DOM manipulation dan event handler mudah ditelusuri:
 
 | Hash | Commit | Interaksi |
 |---|---|---|
@@ -170,37 +193,19 @@ typst compile --font-path ../ui/fonts prototype-documentation.typ prototype-docu
 - [`proof-branch.png`](./proof-branch.png) — bukti branch.
 - `shots/` — tangkapan layar hasil build.
 
-## 10. Interaksi JavaScript
+## 10. Interaksi dan Status
 
-Seluruh perilaku interaktif berada di `src/assets/js/app.js` (vanilla JS, tanpa
-dependensi). Berkas ini memakai objek `PAGES` yang memetakan nilai
-`<body data-page="...">` ke fungsi `init` per halaman. Helper bersama: `$`/`$$`
-(selector), `storage` (`localStorage`), `withLoading()` (animasi loader + tombol
-nonaktif), `showToast()`, `activateTab()`, `greet()`, dan `clamp()`. Gaya toast
-disuntikkan oleh `ensureToast()` lewat `<style id="app-toast-style">` sehingga
-tidak bergantung pada urutan/cache `app.css`; aset bersama juga diberi query
-`?v=8` di semua halaman.
-
-Konsep yang diterapkan: variabel (`var`/objek), function (deklarasi + callback),
-operator (`===`, `&&`, `||`, `?:`, aritmetika), dan selection condition
-(`if`/`else`, guard clause, `switch` lewat objek `PAGES`).
-
-| Halaman | Interaksi |
-|---|---|
-| `index.html` | Klik **Masuk sebagai ...** membuka `<dialog>` login; submit menyimpan `anteraja.session` lalu loader, lantas redirect sesuai peran |
-| `courier/tugas` | Filter segmen memfilter `.task-card[data-category]` dan memperbarui jumlah tersisa; Pindai Resi Manual mencari serta menyorot kartu; sapaan nama kurir |
-| `courier/verifikasi` | PIN 6 digit auto-advance/backspace/paste; PIN demo `123456`; PIN salah menambah `#pin-attempts` (maks 3 lalu terkunci); `#btn-resend-pin` countdown 30 detik; pilihan hubungan penerima; loader ke `bukti-foto.html` |
-| `courier/bukti-foto` | Watermark jam berjalan; klik viewfinder atau ambil ulang memicu kilatan shutter; loader ke `sukses.html` |
-| `courier/sukses` | Kode hash audit dibuat acak, stempel waktu diperbarui, jumlah tugas selesai dihitung dari `localStorage` |
-| `admin/dashboard` | Filter status, pencarian, layanan, dan wilayah digabung (AND); jumlah baris serta empty-state dinamis; sapaan admin |
-| `admin/audit-trail` | Catatan wajib saat Tolak/Investigasi; tombol simpan menampilkan loader lalu status tersimpan; Ekspor Audit memicu dialog cetak PDF |
-| `admin/antrian-pengecualian` | Filter layanan dan pencarian; keputusan dari halaman detail menghapus baris serta menampilkan `#decision-toast` |
-| `admin/pengecualian-detail` | Tombol Setujui/Tolak menampilkan loader, menyimpan keputusan beserta catatan, lalu kembali ke antrian |
-| `admin/pengaturan-radius` | Stepper plus/minus dengan batas min-maks per segmen; tombol simpan aktif hanya saat ada perubahan; terapkan dan batalkan |
+Seluruh perilaku interaktif kini dikelola oleh React: `useState`/`useEffect`,
+`react-router` untuk navigasi, dan Context (`SessionContext`, `ToastContext`)
+untuk state lintas layar. Helper bersama: `lib/format.ts`, `lib/storage.ts`,
+`hooks/useSeo`, `hooks/useWelcomeToast`, `hooks/useDebouncedValue`. Komponen
+`LoadingAction` menyediakan tombol/tautan dengan animasi loader dan status
+nonaktif; `ToastContext` menampilkan notifikasi lewat `<output aria-live>`.
 
 ### Data contoh dan penyimpanan
 
-`localStorage` dipakai untuk mensimulasikan sesi/status tanpa backend:
+`localStorage` dipakai untuk mensimulasikan sesi/status tanpa backend
+(`src/lib/storage.ts`):
 
 | Kunci | Isi |
 |---|---|
@@ -208,14 +213,14 @@ operator (`===`, `&&`, `||`, `?:`, aritmetika), dan selection condition
 | `anteraja.decisions` | Keputusan pengecualian per nomor resi |
 | `anteraja.radii` | Radius geofence per segmen hasil Terapkan |
 | `anteraja.completed` | Daftar resi yang sudah dituntaskan |
+| `anteraja.relation` | Pilihan hubungan penerima pada verifikasi |
 
-PIN demo di halaman verifikasi adalah **123456** (tertera di `#pin-hint` dan
-diulang saat menekan "Kirim ulang PIN"). Bersihkan `localStorage` untuk mengulang
-alur dari awal.
+PIN demo di halaman verifikasi adalah **123456**. Bersihkan `localStorage` untuk
+mengulang alur dari awal.
 
 ### Uji cepat
 
 ```sh
-python3 -m http.server 8080 --directory src
-# buka http://localhost:8080/ lalu pilih peran dan masuk
+bun run dev
+# buka http://localhost:5173/ lalu pilih peran dan masuk
 ```
