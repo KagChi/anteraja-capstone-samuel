@@ -14,6 +14,69 @@ routes while keeping the JSON-LD, semantic markup, and accessibility contracts.
 See [`docs/prototype/README.md`](./docs/prototype/README.md) for the full map of
 screens, PRD/FRD coverage, and interactions.
 
+## React Refactor — Komponen Modular (branch `8-react`)
+
+Halaman **Dashboard Pengiriman** (`/admin/dashboard`) dipecah menjadi komponen
+fungsional modular dengan aliran data satu arah. Komponen anak bersifat
+presentasional: seluruh state dan mock dataset dimiliki oleh komponen induk dan
+diturunkan melalui props. Tidak ada fitur atau data di luar PRD/FRD yang
+ditambahkan — refaktor ini murni memecah UI yang sudah ada.
+
+### Tree of Components
+
+```text
+DashboardPage                       (induk — pemilik state + mock dataset)
+├── <header>
+│   ├── DashboardHeader             eyebrow, shift, title, description
+│   └── DashboardStats              total, reviewCount, verifiedCount
+├── ShipmentFilters                 controlled filter + pencarian
+└── ShipmentList                    shipments
+    ├── ShipmentItem                shipment  (.map + key unik)
+    └── ShipmentEmptyState          colSpan   (conditional, saat data kosong)
+```
+
+### Alur Props (parent → child)
+
+| Komponen | Props | Sumber |
+|---|---|---|
+| `DashboardHeader` | `eyebrow`, `shift`, `title`, `description` | literal di parent |
+| `DashboardStats` | `total`, `reviewCount`, `verifiedCount` | `reviewCount` dihitung dari `SHIPMENT_ROWS` |
+| `ShipmentFilters` | `status`, `service`, `region`, `search` + `onStatusChange`, `onServiceChange`, `onRegionChange`, `onSearchChange` | state parent + setter |
+| `ShipmentList` | `shipments: DeliveryRow[]` | hasil filter parent |
+| `ShipmentItem` | `shipment: DeliveryRow` | satu item dari `.map()` di `ShipmentList` |
+| `ShipmentEmptyState` | `colSpan` | literal di `ShipmentList` |
+
+Data mengalir satu arah: state di `DashboardPage` → props → komponen anak. Anak
+tidak pernah memutasi props; perubahan dilakukan lewat callback yang memanggil
+setter state di parent.
+
+### State (useState, dimiliki `DashboardPage`)
+
+| State | Tipe | Fungsi |
+|---|---|---|
+| `status` | `StatusFilter` (`"all" \| DeliveryFlag`) | tab status aktif |
+| `service` | `string` | filter layanan |
+| `region` | `string` | filter wilayah |
+| `search` | `string` | kata kunci (di-debounce via `useDebouncedValue`) |
+
+### Dynamic list & conditional rendering
+
+- `ShipmentList` merender item dengan `.map()` dan `key={shipment.id}`.
+- `ShipmentItem` memakai conditional rendering: label aksi `delivered` →
+  "Detail", selain itu "Tinjau"; baris `highlight` memakai ternary class.
+- `ShipmentList` menampilkan `ShipmentEmptyState` saat `shipments.length === 0`.
+
+### Commit modular
+
+| Commit | Isi |
+|---|---|
+| `refactor(dashboard)` | `DashboardHeader` + `DashboardStats` |
+| `refactor(dashboard)` | `ShipmentFilters` (controlled) |
+| `refactor(dashboard)` | `ShipmentItem` (conditional status) |
+| `refactor(dashboard)` | `ShipmentList` + `ShipmentEmptyState` |
+| `refactor(dashboard)` | komposisi `DashboardPage` |
+| `docs(readme)` | bagian ini |
+
 ## Stack
 
 - **Runtime/build:** Bun + Vite
