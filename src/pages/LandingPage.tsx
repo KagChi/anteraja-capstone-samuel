@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MaterialIcon } from "../components/MaterialIcon";
 import { Button } from "../components/ui/Button";
 import { useSession } from "../context/SessionContext";
@@ -216,36 +216,44 @@ export function LandingPage() {
               </p>
               <ol className="list-none space-y-1.5 p-0 text-[13px] m-0">
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/courier/tugas"
+                    to="/courier/tugas"
                   >
                     1. Daftar Tugas Pengiriman
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/courier/verifikasi"
+                    to="/courier/verifikasi"
                   >
                     2. Verifikasi Lokasi &amp; PIN
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/courier/bukti-foto"
+                    to="/courier/bukti-foto"
                   >
                     3. Ambil Bukti Foto
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/courier/sukses"
+                    to="/courier/sukses"
                   >
                     4. Konfirmasi Sukses
-                  </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    className="text-on-surface hover:text-brand-magenta"
+                    to="/shipments"
+                  >
+                    5. Lacak Resi (Publik)
+                  </Link>
                 </li>
               </ol>
             </nav>
@@ -258,44 +266,44 @@ export function LandingPage() {
               </p>
               <ol className="list-none space-y-1.5 p-0 text-[13px] m-0">
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/dashboard"
+                    to="/admin/dashboard"
                   >
                     1. Dashboard Pengiriman
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/audit-trail"
+                    to="/admin/audit-trail"
                   >
                     2. Detail Audit Trail
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/antrian-pengecualian"
+                    to="/admin/antrian-pengecualian"
                   >
                     3. Antrian Pengecualian
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/pengecualian-detail"
+                    to="/admin/pengecualian-detail"
                   >
                     3b. Detail Pengecualian
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/pengaturan-radius"
+                    to="/admin/pengaturan-radius"
                   >
                     4. Pengaturan Radius
-                  </a>
+                  </Link>
                 </li>
               </ol>
             </nav>

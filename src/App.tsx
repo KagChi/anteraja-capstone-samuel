@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { MainLayout } from "./components/layout/MainLayout";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { SessionProvider } from "./context/SessionContext";
 import { ShipmentProvider } from "./context/ShipmentContext";
@@ -14,6 +15,9 @@ import { SuksesPage } from "./pages/courier/SuksesPage";
 import { TugasPage } from "./pages/courier/TugasPage";
 import { VerifikasiPage } from "./pages/courier/VerifikasiPage";
 import { LandingPage } from "./pages/LandingPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { ShipmentDetailPage } from "./pages/shipments/ShipmentDetailPage";
+import { ShipmentListPage } from "./pages/shipments/ShipmentListPage";
 
 export default function App() {
   return (
@@ -25,10 +29,18 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
 
-              <Route path="/courier/tugas" element={<TugasPage />} />
-              <Route path="/courier/verifikasi" element={<VerifikasiPage />} />
-              <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
-              <Route path="/courier/sukses" element={<SuksesPage />} />
+              <Route element={<MainLayout />}>
+                <Route path="/courier/tugas" element={<TugasPage />} />
+                <Route
+                  path="/courier/verifikasi"
+                  element={<VerifikasiPage />}
+                />
+                <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
+                <Route path="/courier/sukses" element={<SuksesPage />} />
+                <Route path="/shipments" element={<ShipmentListPage />} />
+                <Route path="/shipments/:id" element={<ShipmentDetailPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
 
               <Route path="/admin" element={<AdminLayout />}>
                 <Route
@@ -50,8 +62,6 @@ export default function App() {
                   element={<PengaturanRadiusPage />}
                 />
               </Route>
-
-              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </ShipmentProvider>
