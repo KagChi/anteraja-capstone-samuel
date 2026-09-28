@@ -74,6 +74,8 @@ export interface DeliveryRow {
   region: "jaksel" | "jakpus";
   regionLabel: string;
   regencyId?: string;
+  recipient?: string;
+  address?: string;
   href: string;
   highlight?: boolean;
 }

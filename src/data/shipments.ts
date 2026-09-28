@@ -13,6 +13,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jaksel",
     regionLabel: "Jak-Sel",
     regencyId: "3171",
+    recipient: "Bpk. Bambang Wijaya",
+    address: "Jl. Senopati No. 42, Kebayoran Baru",
     href: "/admin/audit-trail",
     highlight: true,
   },
@@ -28,6 +30,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jaksel",
     regionLabel: "Jak-Sel",
     regencyId: "3171",
+    recipient: "Ibu Sarah Amelia",
+    address: "Pacific Place Tower 2 Lt. 14, SCBD",
     href: "/admin/audit-trail",
   },
   {
@@ -42,6 +46,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jaksel",
     regionLabel: "Jak-Sel",
     regencyId: "3171",
+    recipient: "Toko Buku Horizon",
+    address: "Jl. Gunawarman No. 18, Kebayoran Baru",
     href: "/admin/audit-trail",
   },
   {
@@ -56,6 +62,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jaksel",
     regionLabel: "Jak-Sel",
     regencyId: "3171",
+    recipient: "Bpk. Hendra Kusuma",
+    address: "Pos Satpam Cluster, Jl. Wijaya II",
     href: "/admin/pengecualian-detail",
   },
   {
@@ -70,6 +78,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jakpus",
     regionLabel: "Jak-Pus",
     regencyId: "3173",
+    recipient: "Ibu Ratna Sari",
+    address: "Jl. Cendana No. 7, Menteng",
     href: "/admin/audit-trail",
   },
   {
@@ -84,6 +94,8 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     region: "jaksel",
     regionLabel: "Jak-Sel",
     regencyId: "3171",
+    recipient: "PT Maju Jaya Abadi",
+    address: "Jl. Jend. Sudirman Kav. 52, SCBD",
     href: "/admin/audit-trail",
   },
 ];
