@@ -77,6 +77,27 @@ setter state di parent.
 | `refactor(dashboard)` | komposisi `DashboardPage` |
 | `docs(readme)` | bagian ini |
 
+### Sistem Tombol (`src/components/ui/Button.tsx`)
+
+Seluruh tombol dan CTA kini diturunkan dari satu komponen polimorfik `Button`.
+Elemen dirender sebagai `<button>`, `<a>`, atau `<Link>` lewat prop `as`
+(`button` | `a` | `link`), dengan varian visual:
+
+| Variant | Kegunaan |
+|---|---|
+| `primary` | Aksi utama (magenta) — login, simpan, setujui, terapkan |
+| `secondary` / `outline` / `ghost` | Aksi sekunder, tolak, batalkan |
+| `text` / `textNeutral` / `textInverse` | Tautan/aksi inline berikon |
+| `icon` / `iconInverse` | Tombol ikon persegi (tutup, toggle, stepper) |
+| `tab` | Tab/segmen (`role="tab"`, `aria-selected`) |
+| `nav` | Item navigasi bawah (`aria-current`) |
+
+Props lain: `size` (`sm` | `md` | `lg` | `xl`), `shape` (`default` | `pill`),
+`active`, dan `busy`/`busyText` untuk status memuat. `LoadingButton` dan
+`LoadingLink` (`LoadingAction.tsx`) membungkus `Button` sehingga gaya serta
+perilaku loader memakai satu sumber yang sama. Atribut `id`, `data-*`, dan
+`aria-*` tetap diteruskan apa adanya untuk menjaga kontrak pengujian.
+
 ## Stack
 
 - **Runtime/build:** Bun + Vite
