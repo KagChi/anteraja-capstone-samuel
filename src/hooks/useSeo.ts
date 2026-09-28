@@ -1,12 +1,19 @@
 import { useEffect } from "react";
 import { SEO } from "../data/seo";
+import type { SeoConfig } from "../types";
 
 const JSON_LD_ID = "seo-json-ld";
 
-export function useSeo(path: string): void {
+const FALLBACK: SeoConfig = {
+  title: "Anteraja Instant — Satria Rapid Field Dispatch",
+  description:
+    "Purwarupa antarmuka Anteraja Instant: aplikasi kurir Satria (mobile) dan konsol Admin/Hub untuk integritas pengiriman berbasis geolokasi.",
+};
+
+export function useSeo(path: string, fallbackPath?: string): void {
   useEffect(() => {
-    const config = SEO[path];
-    if (!config) return;
+    const config =
+      SEO[path] ?? (fallbackPath ? SEO[fallbackPath] : undefined) ?? FALLBACK;
 
     document.title = config.title;
 
@@ -28,5 +35,5 @@ export function useSeo(path: string): void {
       script.textContent = JSON.stringify(config.jsonLd);
       document.head.appendChild(script);
     }
-  }, [path]);
+  }, [path, fallbackPath]);
 }

@@ -52,6 +52,16 @@ export const SEO: Record<string, SeoConfig> = {
       ],
     },
   },
+  "/shipments": {
+    title: "Lacak Resi Pengiriman — Anteraja Instant",
+    description:
+      "Daftar dan pelacakan resi Anteraja Instant: cari nomor resi untuk melihat status, kurir, alamat tujuan, dan riwayat perjalanan.",
+  },
+  "/404": {
+    title: "Halaman tidak ditemukan — Anteraja Instant",
+    description:
+      "Halaman yang Anda tuju tidak tersedia. Kembali ke beranda atau lacak nomor resi Anteraja Instant dari halaman ini.",
+  },
   "/courier/tugas": {
     title: "Daftar Tugas Pengiriman — Satria | Anteraja Instant",
     description:
