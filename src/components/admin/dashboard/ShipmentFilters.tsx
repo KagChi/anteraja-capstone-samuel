@@ -1,5 +1,6 @@
 import type { DeliveryFlag } from "../../../types";
 import { MaterialIcon } from "../../MaterialIcon";
+import { Button } from "../../ui/Button";
 
 export type StatusFilter = "all" | DeliveryFlag;
 
@@ -45,17 +46,12 @@ export function ShipmentFilters({
         {TABS.map((tab) => {
           const isActive = status === tab.id;
           return (
-            <button
+            <Button
               key={tab.id}
-              className={`filter-tab flex items-center gap-1.5 rounded px-space-md py-1 text-label-md transition-all ${
-                isActive
-                  ? "bg-surface-container-lowest text-brand-magenta shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
+              variant="tab"
+              active={isActive}
+              className="gap-1.5 rounded px-space-md py-1 text-label-md"
               data-status={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
               onClick={() => onStatusChange(tab.id)}
             >
               <span>{tab.label}</span>
@@ -65,7 +61,7 @@ export function ShipmentFilters({
                   aria-hidden="true"
                 />
               ) : null}
-            </button>
+            </Button>
           );
         })}
       </div>

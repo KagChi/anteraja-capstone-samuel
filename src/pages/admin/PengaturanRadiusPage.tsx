@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LoadingButton } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
 import { RADIUS_SEGMENTS } from "../../data/shipments";
 import { useSeo } from "../../hooks/useSeo";
@@ -137,16 +138,15 @@ export function PengaturanRadiusPage() {
                   </section>
                   <section className="flex shrink-0 items-center gap-3 self-end md:self-center">
                     <p className="m-0 flex items-center rounded-xl border border-border-subtle bg-surface-container p-1">
-                      <button
-                        className="stepper-btn grid size-8 place-items-center rounded-lg text-on-surface transition-all hover:bg-surface-container-lowest hover:shadow-sm"
+                      <Button
+                        variant="icon"
                         aria-label={`Kurangi radius ${segment.label}`}
                         data-stepper={segment.id}
                         data-delta={-segment.step}
-                        type="button"
                         onClick={() => step(segment.id, -segment.step)}
                       >
                         <MaterialIcon name="remove" className="text-[18px]" />
-                      </button>
+                      </Button>
                       <label className="sr-only" htmlFor={segment.id}>
                         Radius {segment.label} (meter)
                       </label>
@@ -158,16 +158,15 @@ export function PengaturanRadiusPage() {
                         value={value}
                         readOnly
                       />
-                      <button
-                        className="stepper-btn grid size-8 place-items-center rounded-lg text-on-surface transition-all hover:bg-surface-container-lowest hover:shadow-sm"
+                      <Button
+                        variant="icon"
                         aria-label={`Tambah radius ${segment.label}`}
                         data-stepper={segment.id}
                         data-delta={segment.step}
-                        type="button"
                         onClick={() => step(segment.id, segment.step)}
                       >
                         <MaterialIcon name="add" className="text-[18px]" />
-                      </button>
+                      </Button>
                     </p>
                     <span className="w-14 shrink-0 text-xs font-semibold text-on-surface-variant">
                       meter
@@ -194,18 +193,17 @@ export function PengaturanRadiusPage() {
             </span>
           </p>
           <p className="m-0 flex w-full items-center justify-end gap-3 sm:w-auto">
-            <button
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+            <Button
+              variant="ghost"
+              size="md"
               id="btn-reset-radius"
-              type="button"
               onClick={reset}
             >
               Batalkan Perubahan
-            </button>
+            </Button>
             <LoadingButton
-              className={`inline-flex items-center gap-2 rounded-xl bg-brand-magenta px-5 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition-all hover:bg-primary ${
-                dirty ? "" : "pointer-events-none opacity-50"
-              }`}
+              variant="primary"
+              size="md"
               id="btn-save-radius"
               busyText="Menerapkan..."
               disabled={!dirty}

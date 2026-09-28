@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ServiceTag } from "../../components/Badges";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { EXCEPTION_ROWS } from "../../data/shipments";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useSeo } from "../../hooks/useSeo";
@@ -138,21 +139,16 @@ export function AntrianPengecualianPage() {
                 {TABS.map((tab) => {
                   const isActive = service === tab.id;
                   return (
-                    <button
+                    <Button
                       key={tab.id}
-                      className={`filter-tab rounded-md px-3 py-1 text-label-sm transition-all ${
-                        isActive
-                          ? "bg-surface-container-lowest font-bold text-brand-magenta shadow-sm"
-                          : "text-on-surface-variant hover:text-on-surface"
-                      }`}
+                      variant="tab"
+                      active={isActive}
+                      className="rounded-md px-3 py-1 text-label-sm"
                       data-service={tab.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
                       onClick={() => setService(tab.id)}
                     >
                       {tabLabel(tab.id)}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -263,16 +259,18 @@ export function AntrianPengecualianPage() {
                     {row.reason}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
-                    <Link
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-magenta hover:opacity-80"
+                    <Button
+                      as="link"
                       to="/admin/pengecualian-detail"
+                      variant="text"
+                      className="text-[12px]"
                     >
                       Tinjau{" "}
                       <MaterialIcon
                         name="arrow_forward"
                         className="text-[16px]"
                       />
-                    </Link>
+                    </Button>
                   </td>
                 </tr>
               ))}

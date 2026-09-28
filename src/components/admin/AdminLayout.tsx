@@ -4,6 +4,7 @@ import { useSession } from "../../context/SessionContext";
 import { ADMIN_NAV_GROUPS } from "../../data/nav";
 import { initialOf } from "../../lib/format";
 import { MaterialIcon } from "../MaterialIcon";
+import { Button } from "../ui/Button";
 
 interface Crumb {
   section: string;
@@ -169,17 +170,18 @@ export function AdminLayout() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border-subtle bg-surface-canvas/90 px-4 backdrop-blur-md lg:px-8">
-            <button
-              className="grid size-9 place-items-center rounded-lg text-on-surface hover:bg-surface-container lg:hidden"
+            <Button
+              variant="icon"
+              size="lg"
+              className="lg:hidden"
               id="sidebar-toggle"
-              type="button"
               aria-controls="admin-sidebar"
               aria-expanded={open}
               aria-label="Buka menu navigasi"
               onClick={() => setOpen(true)}
             >
               <MaterialIcon name="menu" />
-            </button>
+            </Button>
             <nav
               className="hidden items-center gap-1 text-[12px] text-on-surface-variant sm:flex"
               aria-label="Breadcrumb"
@@ -197,13 +199,16 @@ export function AdminLayout() {
               </span>
             </nav>
             <p className="m-0 ml-auto flex items-center gap-2">
-              <Link
-                className="hidden items-center gap-2 rounded-lg border border-border-subtle px-3 py-1.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container sm:inline-flex"
+              <Button
+                as="link"
                 to="/"
+                variant="outline"
+                size="sm"
+                className="hidden sm:inline-flex"
               >
                 <MaterialIcon name="swap_horiz" className="text-[16px]" /> Mode
                 Kurir
-              </Link>
+              </Button>
               <span
                 className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[12px] font-bold text-brand-magenta"
                 aria-hidden="true"

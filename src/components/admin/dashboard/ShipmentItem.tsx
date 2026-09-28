@@ -3,6 +3,7 @@ import { initialOf } from "../../../lib/format";
 import type { DeliveryRow } from "../../../types";
 import { ServiceTag, StatusPill } from "../../Badges";
 import { MaterialIcon } from "../../MaterialIcon";
+import { Button } from "../../ui/Button";
 
 interface ShipmentItemProps {
   shipment: DeliveryRow;
@@ -55,17 +56,15 @@ export function ShipmentItem({ shipment }: ShipmentItemProps) {
         {shipment.regionLabel}
       </td>
       <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
-        <Link
-          className={`inline-flex items-center gap-1 text-[12px] font-semibold ${
-            shipment.flag === "delivered"
-              ? "text-on-surface-variant hover:text-on-surface"
-              : "text-brand-magenta hover:opacity-80"
-          }`}
+        <Button
+          as="link"
           to={shipment.href}
+          variant={shipment.flag === "delivered" ? "textNeutral" : "text"}
+          className="text-[12px]"
         >
           {shipment.flag === "delivered" ? "Detail" : "Tinjau"}{" "}
           <MaterialIcon name="arrow_forward" className="text-[16px]" />
-        </Link>
+        </Button>
       </td>
     </tr>
   );

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { LoadingButton } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision as saveDecision } from "../../lib/storage";
@@ -70,18 +70,22 @@ export function AuditTrailPage() {
           className="mb-6 flex items-center justify-between gap-3 pb-4"
           aria-label="Aksi audit"
         >
-          <Link
-            className="group inline-flex items-center gap-2 text-[13px] font-medium text-on-surface-variant transition-colors hover:text-on-surface"
+          <Button
+            as="link"
             to="/admin/dashboard"
+            variant="textNeutral"
+            className="group text-[13px]"
           >
             <MaterialIcon
               name="arrow_back"
               className="text-[18px] transition-transform group-hover:-translate-x-0.5"
             />{" "}
             Kembali ke Daftar Pengiriman
-          </Link>
+          </Button>
           <LoadingButton
-            className="btn-export inline-flex items-center gap-2 rounded-xl bg-surface-container px-4 py-2 text-[13px] font-semibold text-on-surface shadow-sm transition-all hover:bg-surface-container-high"
+            variant="secondary"
+            size="sm"
+            className="px-4"
             id="btn-export-audit"
             busyText="Menyiapkan PDF..."
             onAction={() => {
@@ -401,7 +405,9 @@ export function AuditTrailPage() {
                     Tersimpan
                   </output>
                   <LoadingButton
-                    className="whitespace-nowrap rounded-xl bg-brand-magenta px-5 py-2.5 text-sm font-bold text-on-primary shadow-sm transition-all hover:bg-primary active:scale-95"
+                    variant="primary"
+                    size="md"
+                    className="whitespace-nowrap"
                     id="btn-save-case"
                     type="submit"
                     busyText="Menyimpan..."

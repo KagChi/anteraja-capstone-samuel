@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision } from "../../lib/storage";
 
@@ -53,14 +53,16 @@ export function PengecualianDetailPage() {
                 Detail Pengecualian Geofence
               </h1>
             </section>
-            <Link
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container"
+            <Button
+              as="link"
               to="/admin/antrian-pengecualian"
+              variant="icon"
+              className="shrink-0"
               id="btn-close-modal"
               aria-label="Tutup dialog"
             >
               <MaterialIcon name="close" className="text-[20px]" />
-            </Link>
+            </Button>
           </header>
 
           <section className="space-y-5 p-5">
@@ -191,7 +193,8 @@ export function PengecualianDetailPage() {
 
           <footer className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-subtle bg-surface-container-lowest p-5">
             <LoadingLink
-              className="rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+              variant="outline"
+              size="md"
               id="btn-reject-exception"
               to="/admin/antrian-pengecualian?decision=reject"
               delay={850}
@@ -201,7 +204,8 @@ export function PengecualianDetailPage() {
               Tolak
             </LoadingLink>
             <LoadingLink
-              className="btn-primary inline-flex items-center gap-2 rounded-xl bg-brand-magenta px-5 py-2.5 text-sm font-bold text-on-primary shadow-sm transition-all hover:bg-primary"
+              variant="primary"
+              size="md"
               id="btn-approve-exception"
               to="/admin/antrian-pengecualian?decision=approve"
               delay={850}
