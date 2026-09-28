@@ -247,14 +247,6 @@ export function LandingPage() {
                     4. Konfirmasi Sukses
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    className="text-on-surface hover:text-brand-magenta"
-                    to="/shipments"
-                  >
-                    5. Lacak Resi (Publik)
-                  </Link>
-                </li>
               </ol>
             </nav>
             <nav

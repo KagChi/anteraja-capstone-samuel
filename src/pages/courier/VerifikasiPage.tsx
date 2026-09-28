@@ -188,21 +188,29 @@ export function VerifikasiPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1
-            id="judul-verifikasi"
-            className="text-[22px] font-bold tracking-tight text-on-surface"
+    <div className="flex min-h-screen flex-col bg-surface-container-low font-sans text-on-surface antialiased">
+      <header className="fixed inset-x-0 top-0 z-40 bg-surface-container-low/90 pt-safe backdrop-blur-md">
+        <div className="mx-auto flex h-12 max-w-md items-center justify-between px-3">
+          <Button
+            as="link"
+            to="/courier/tugas"
+            variant="icon"
+            size="lg"
+            shape="pill"
+            className="-ml-1"
+            aria-label="Kembali ke daftar tugas"
           >
+            <MaterialIcon name="arrow_back_ios_new" className="text-[24px]" />
+          </Button>
+          <h1 className="text-[17px] font-semibold tracking-tight text-on-surface">
             Verifikasi Pengiriman
           </h1>
-          <span className="text-[12px] font-semibold text-on-surface-variant">
-            Langkah 2/3
+          <span className="w-9 text-right text-[12px] font-semibold text-on-surface-variant">
+            2/3
           </span>
         </div>
         <p
-          className="relative m-0 h-[3px] w-full overflow-hidden bg-black/5"
+          className="relative m-0 h-[2px] w-full overflow-hidden bg-black/5"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -213,7 +221,7 @@ export function VerifikasiPage() {
         </p>
       </header>
 
-      <div className="flex flex-col">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] pb-[calc(8rem+env(safe-area-inset-bottom,16px))]">
         <section
           className="flex flex-col items-center pt-5 pb-6 text-center"
           aria-labelledby="judul-geofence"
@@ -485,35 +493,38 @@ export function VerifikasiPage() {
             </div>
           </fieldset>
         </form>
-      </div>
+      </main>
 
-      <section className="pt-1">
-        <Button
-          as="link"
-          to="/courier/bukti-foto"
-          variant="primary"
-          size="xl"
-          id="btn-next-step"
-          className="w-full shadow-lg shadow-brand-magenta/25"
-          busy={nextBusy}
-          busyText="Memverifikasi..."
-          disabled={!ready}
-          onClick={(event) => {
-            event.preventDefault();
-            goNext();
-          }}
-        >
-          Lanjut Ambil Bukti Foto{" "}
-          <MaterialIcon name="arrow_forward" className="text-[19px]" />
-        </Button>
-        <p
-          className="mt-2 text-center text-[11px] text-on-surface-variant/70"
-          id="lock-reason"
-          hidden={!locked}
-        >
-          Tombol terkunci: posisi di luar radius. Ajukan pengecualian ke Admin.
-        </p>
-      </section>
+      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-surface-container-low/95 pb-safe backdrop-blur-xl">
+        <section className="mx-auto max-w-md px-4 py-3">
+          <Button
+            as="a"
+            href="/courier/bukti-foto"
+            variant="primary"
+            size="xl"
+            id="btn-next-step"
+            className="w-full shadow-lg shadow-brand-magenta/25"
+            busy={nextBusy}
+            busyText="Memverifikasi..."
+            disabled={!ready}
+            onClick={(event) => {
+              event.preventDefault();
+              goNext();
+            }}
+          >
+            Lanjut Ambil Bukti Foto{" "}
+            <MaterialIcon name="arrow_forward" className="text-[19px]" />
+          </Button>
+          <p
+            className="mt-2 text-center text-[11px] text-on-surface-variant/70"
+            id="lock-reason"
+            hidden={!locked}
+          >
+            Tombol terkunci: posisi di luar radius. Ajukan pengecualian ke
+            Admin.
+          </p>
+        </section>
+      </footer>
     </div>
   );
 }

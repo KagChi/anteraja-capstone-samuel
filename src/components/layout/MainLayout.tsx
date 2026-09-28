@@ -1,8 +1,4 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { useSession } from "../../context/SessionContext";
-import { useShipmentContext } from "../../context/ShipmentContext";
-import { Avatar } from "../Avatar";
-import { CourierBottomNav } from "../courier/CourierBottomNav";
 import { MaterialIcon } from "../MaterialIcon";
 
 interface RouteMeta {
@@ -11,34 +7,26 @@ interface RouteMeta {
 }
 
 function resolveMeta(pathname: string): RouteMeta {
-  if (pathname === "/courier/tugas") return { title: "Pengiriman" };
-  if (pathname === "/courier/verifikasi")
-    return { title: "Verifikasi", back: "/courier/tugas" };
-  if (pathname === "/courier/bukti-foto") return { title: "Bukti Foto" };
-  if (pathname === "/courier/sukses")
-    return { title: "Pengiriman Berhasil", back: "/courier/tugas" };
-  if (pathname === "/shipments") return { title: "Lacak Resi" };
+  if (pathname === "/shipments") return { title: "Lacak Resi", back: "/" };
   if (pathname.startsWith("/shipments/"))
     return { title: "Detail Resi", back: "/shipments" };
   return { title: "Tidak Ditemukan", back: "/" };
 }
 
 const HEADER_NAV = [
-  { label: "Tugas", to: "/courier/tugas", end: true },
+  { label: "Beranda", to: "/", end: true },
   { label: "Resi", to: "/shipments", end: false },
 ];
 
 export function MainLayout() {
   const { pathname } = useLocation();
-  const { session } = useSession();
-  const { courierAvatar } = useShipmentContext();
 
-  if (pathname === "/courier/bukti-foto") {
+  // The courier screens keep their own chrome, so the shell passes through.
+  if (pathname.startsWith("/courier/")) {
     return <Outlet />;
   }
 
   const { title, back } = resolveMeta(pathname);
-  const name = session?.name ?? "Satria";
 
   return (
     <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
@@ -78,7 +66,7 @@ export function MainLayout() {
           </span>
 
           <nav
-            className="ml-2 hidden items-center gap-1 sm:flex"
+            className="ml-auto flex items-center gap-1"
             aria-label="Navigasi utama"
           >
             {HEADER_NAV.map((item) => (
@@ -98,33 +86,22 @@ export function MainLayout() {
               </NavLink>
             ))}
           </nav>
-
-          <span className="ml-auto flex items-center gap-2">
-            <span className="hidden text-right leading-tight sm:block">
-              <span className="block text-[12px] font-semibold text-on-surface">
-                {name}
-              </span>
-              <span className="block text-[10px] text-on-surface-variant">
-                #4821 &bull; Jak-Sel
-              </span>
-            </span>
-            <Avatar
-              name={name}
-              resource={courierAvatar}
-              className="ring-black/10"
-            />
-          </span>
         </div>
       </header>
 
       <main
-        className="mx-auto w-full max-w-md flex-1 px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:max-w-xl lg:max-w-3xl"
+        className="mx-auto w-full max-w-md flex-1 px-4 pb-10 pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:max-w-xl lg:max-w-3xl"
         id="konten-utama"
       >
         <Outlet />
       </main>
 
-      <CourierBottomNav />
+      <footer className="border-t border-border-subtle px-4 py-6">
+        <p className="mx-auto max-w-md text-[11px] text-on-surface-variant/70 md:max-w-xl lg:max-w-3xl">
+          Anteraja Instant &bull; Satria Rapid Field Dispatch &bull; Data contoh
+          untuk keperluan purwarupa.
+        </p>
+      </footer>
     </div>
   );
 }

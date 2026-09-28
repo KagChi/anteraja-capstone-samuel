@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { Avatar } from "../../components/Avatar";
+import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { TASKS } from "../../data/tasks";
 import { useSeo } from "../../hooks/useSeo";
@@ -61,12 +64,14 @@ function Badge({ badge }: { badge: TaskBadge }) {
 export function TugasPage() {
   useSeo("/courier/tugas");
   const { session } = useSession();
+  const { courierAvatar } = useShipmentContext();
   const toast = useToast();
-  const navigate = useNavigate();
   const name = session?.name ?? "Satria";
   useWelcomeToast(name);
 
   const [filter, setFilter] = useState<Filter>("all");
+  const [flash, setFlash] = useState<string | null>(null);
+  const cardRefs = useRef(new Map<string, HTMLElement>());
 
   const visibleTasks = TASKS.filter(
     (task) => filter === "all" || task.category === filter,
@@ -85,119 +90,162 @@ export function TugasPage() {
       toast(`Resi tidak ditemukan: ${code.trim()}`, "error");
       return;
     }
+    setFilter("all");
+    setFlash(found.tracking);
+    window.setTimeout(() => {
+      cardRefs.current
+        .get(found.tracking)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+    window.setTimeout(() => setFlash(null), 900);
     toast(`Resi ditemukan: ${found.tracking}`);
-    navigate(`/shipments/${found.tracking}`);
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="px-1" aria-labelledby="judul-tugas">
-        <h1
-          id="judul-tugas"
-          className="text-[26px] font-bold tracking-tight text-on-surface"
-        >
-          Pengiriman
-        </h1>
-        <p className="text-[13px] text-on-surface-variant">
-          <span>{visibleTasks.length}</span> tersisa &bull; <span>{done}</span>{" "}
-          selesai hari ini
+    <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
+      <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] bg-surface/85 pt-safe backdrop-blur-xl">
+        <p className="mx-auto flex h-14 max-w-md items-center justify-between px-5 m-0">
+          <Link
+            className="flex items-center gap-2.5"
+            to="/"
+            aria-label="Kembali ke beranda Satria"
+          >
+            <img
+              className="h-6 w-auto"
+              src="/logo-anteraja.png"
+              alt="Anteraja"
+            />
+          </Link>
+          <span className="flex items-center gap-3">
+            <span className="block text-right leading-tight">
+              <span className="block text-[13px] font-semibold text-on-surface">
+                {name}
+              </span>
+              <span className="block text-[11px] font-medium text-on-surface-variant">
+                #4821 &bull; Jak-Sel
+              </span>
+            </span>
+            <Avatar
+              name={name}
+              resource={courierAvatar}
+              className="ring-black/10"
+            />
+          </span>
         </p>
-      </section>
+      </header>
 
-      <div
-        className="flex items-center rounded-[10px] bg-surface-container-high p-0.5 shadow-inner"
-        id="segment-bar"
-        role="tablist"
-        aria-label="Filter layanan"
-      >
-        {FILTERS.map((item) => {
-          const isActive = filter === item.id;
-          return (
-            <Button
-              key={item.id}
-              variant="tab"
-              active={isActive}
-              className="flex-1 rounded-[8px] px-3 py-1.5 text-[13px]"
-              data-filter={item.id}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-            </Button>
-          );
-        })}
-      </div>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 pt-4 pb-28">
+        <section className="px-1" aria-labelledby="judul-tugas">
+          <h1
+            id="judul-tugas"
+            className="text-[26px] font-bold tracking-tight text-on-surface"
+          >
+            Pengiriman
+          </h1>
+          <p className="text-[13px] text-on-surface-variant">
+            <span>{visibleTasks.length}</span> tersisa &bull;{" "}
+            <span>{done}</span> selesai hari ini
+          </p>
+        </section>
 
-      <ul
-        className="m-0 flex list-none flex-col gap-3 p-0"
-        id="task-container"
-        aria-label="Daftar stop aktif"
-      >
-        {visibleTasks.map((task) => (
-          <li key={task.tracking}>
-            <article
-              className={`task-card relative rounded-2xl border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
-                task.category === "instant"
-                  ? "border-l-brand-magenta"
-                  : "border-l-energetic-yellow"
-              }`}
-              data-category={task.category}
-              data-tracking={task.tracking}
-            >
-              <header className="mb-2 flex items-center justify-between gap-2">
-                <p className="m-0 flex items-center gap-2">
-                  {task.badges.map((badge) => (
-                    <Badge key={badge.label} badge={badge} />
-                  ))}
+        <div
+          className="flex items-center rounded-[10px] bg-surface-container-high p-0.5 shadow-inner"
+          id="segment-bar"
+          role="tablist"
+          aria-label="Filter layanan"
+        >
+          {FILTERS.map((item) => {
+            const isActive = filter === item.id;
+            return (
+              <Button
+                key={item.id}
+                variant="tab"
+                active={isActive}
+                className="flex-1 rounded-[8px] px-3 py-1.5 text-[13px]"
+                data-filter={item.id}
+                onClick={() => setFilter(item.id)}
+              >
+                {item.label}
+              </Button>
+            );
+          })}
+        </div>
+
+        <ul
+          className="m-0 flex list-none flex-col gap-3 p-0"
+          id="task-container"
+          aria-label="Daftar stop aktif"
+        >
+          {visibleTasks.map((task) => (
+            <li key={task.tracking}>
+              <article
+                ref={(element) => {
+                  if (element) cardRefs.current.set(task.tracking, element);
+                  else cardRefs.current.delete(task.tracking);
+                }}
+                className={`task-card relative rounded-2xl border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
+                  task.category === "instant"
+                    ? "border-l-brand-magenta"
+                    : "border-l-energetic-yellow"
+                } ${flash === task.tracking ? "animate-flash" : ""}`}
+                data-category={task.category}
+                data-tracking={task.tracking}
+              >
+                <header className="mb-2 flex items-center justify-between gap-2">
+                  <p className="m-0 flex items-center gap-2">
+                    {task.badges.map((badge) => (
+                      <Badge key={badge.label} badge={badge} />
+                    ))}
+                  </p>
+                  <p className="m-0 whitespace-nowrap text-[12px] text-on-surface-variant/70">
+                    {task.distance} &bull; {task.eta}
+                  </p>
+                </header>
+                <h2 className="truncate text-[16px] font-semibold leading-snug text-on-surface">
+                  <Link className="hover:underline" to="/courier/verifikasi">
+                    {task.recipient}
+                  </Link>
+                </h2>
+                <p className="mt-0.5 truncate text-[13px] leading-relaxed text-on-surface-variant">
+                  {task.address}
                 </p>
-                <p className="m-0 whitespace-nowrap text-[12px] text-on-surface-variant/70">
-                  {task.distance} &bull; {task.eta}
-                </p>
-              </header>
-              <h2 className="truncate text-[16px] font-semibold leading-snug text-on-surface">
-                <Link className="hover:underline" to="/courier/verifikasi">
-                  {task.recipient}
-                </Link>
-              </h2>
-              <p className="mt-0.5 truncate text-[13px] leading-relaxed text-on-surface-variant">
-                {task.address}
-              </p>
-              <footer className="mt-3.5 flex items-center justify-between border-t border-black/[0.05] pt-3">
-                <Link
-                  className="tabular-nums text-[12px] tracking-tight text-on-surface-variant/70 hover:text-brand-magenta"
-                  to={`/shipments/${task.tracking}`}
-                >
-                  {task.tracking}
-                </Link>
-                {task.cta ? (
-                  <Button
-                    as="link"
-                    to="/courier/verifikasi"
-                    variant="text"
-                    className="text-[13px]"
-                  >
-                    {task.cta}{" "}
-                    <MaterialIcon
-                      name="arrow_forward"
-                      className="text-[16px]"
-                    />
-                  </Button>
-                ) : (
-                  <span className="text-[12px] text-on-surface-variant/70">
-                    {task.footerNote}
+                <footer className="mt-3.5 flex items-center justify-between border-t border-black/[0.05] pt-3">
+                  <span className="tabular-nums text-[12px] tracking-tight text-on-surface-variant/70">
+                    {task.tracking}
                   </span>
-                )}
-              </footer>
-            </article>
-          </li>
-        ))}
-      </ul>
+                  {task.cta ? (
+                    <Button
+                      as="link"
+                      to="/courier/verifikasi"
+                      variant="text"
+                      className="text-[13px]"
+                    >
+                      {task.cta}{" "}
+                      <MaterialIcon
+                        name="arrow_forward"
+                        className="text-[16px]"
+                      />
+                    </Button>
+                  ) : (
+                    <span className="text-[12px] text-on-surface-variant/70">
+                      {task.footerNote}
+                    </span>
+                  )}
+                </footer>
+              </article>
+            </li>
+          ))}
+        </ul>
 
-      <p className="m-0 px-1 pt-2 text-center">
-        <Button variant="ghost" size="sm" id="btn-scan-resi" onClick={scan}>
-          <MaterialIcon name="qr_code_scanner" className="text-[18px]" /> Pindai
-          Resi Manual
-        </Button>
-      </p>
+        <p className="m-0 px-1 pt-2 text-center">
+          <Button variant="ghost" size="sm" id="btn-scan-resi" onClick={scan}>
+            <MaterialIcon name="qr_code_scanner" className="text-[18px]" />{" "}
+            Pindai Resi Manual
+          </Button>
+        </p>
+      </main>
+
+      <CourierBottomNav activeLabel="Tugas" />
     </div>
   );
 }
