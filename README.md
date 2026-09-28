@@ -108,6 +108,93 @@ titik tujuan dan posisi kurir. `scrollWheelZoom` dimatikan agar gulir halaman
 tidak tersangkut, dan wadah peta diberi stacking context (`relative z-0`) supaya
 panel Leaflet tidak menutupi header/drawer admin.
 
+## Asynchronous Data Fetching — Custom Hooks & Context API (branch `8-react`)
+
+Tidak ada halaman atau rute baru pada tahap ini. Seluruh pemanggilan Public API
+dilekatkan ke **fitur yang sudah ada** (avatar profil, foto bukti/POD, filter
+wilayah Dashboard, dan detail kode pos tujuan) agar state asynchronous serta
+pemisahan logika dapat dilihat langsung pada UI yang sudah berjalan.
+
+### Public API yang dikonsumsi
+
+| API | Fungsi | Dipakai di |
+|---|---|---|
+| DiceBear `api.dicebear.com/9.x/initials/svg?seed=` | Foto profil | Header Tugas & Sukses, sidebar/header AdminLayout, avatar kurir AuditTrail & Pengecualian |
+| Lorem Picsum `picsum.photos/seed/{resi}/640/960` | Foto bukti / POD | Viewfinder BuktiFoto, thumbnail POD AuditTrail & Pengecualian |
+| emsifa `api-wilayah-indonesia` | Opsi wilayah (kabupaten/kota) | `<select>` filter Wilayah di Dashboard |
+| kodepos.vercel.app | Pencarian kode pos otomatis | Detail tujuan Verifikasi & AuditTrail |
+
+Semua endpoint bersifat publik, tanpa API key, dan mengirim header
+`Access-Control-Allow-Origin: *`.
+
+### Struktur Custom Hooks (`src/hooks/`)
+
+| Hook | Kontrak | Perilaku efek samping |
+|---|---|---|
+| `useFetch<T>(url)` | `AsyncResource<T>` | `AbortController` dibatalkan saat `url` berubah/unmount, deps `[url, nonce]`, error `try/catch` |
+| `usePreloadedImage(url)` | `AsyncResource<string>` | Pra-muat via `new Image()`, flag `active` di-cleanup agar tidak setState setelah unmount |
+| `useAvatar(seed)` | `AsyncResource<string>` | Membungkus `usePreloadedImage` dengan URL DiceBear |
+| `useProofPhoto(seed)` | `AsyncResource<string>` | Membungkus `usePreloadedImage` dengan URL Picsum |
+| `useLocationData(provinceId)` | `{ provinces, regencies }` | Provinsi saat mount; kabupaten mengikuti `provinceId` (deps `[provinceId]`) |
+| `usePostalSearch(query)` | `AsyncResource<PostalResult[]>` | Debounce 350 ms, hanya fetch bila query ≥ 3 karakter |
+
+`AsyncResource<T>` adalah wujud status asynchronous yang konsisten:
+
+```ts
+interface AsyncResource<T> {
+  data: T | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  reload: () => void;
+}
+```
+
+### Arsitektur Context API (`src/context/ShipmentContext.tsx`)
+
+```text
+App
+└── SessionProvider
+    └── ToastProvider
+        └── ShipmentProvider          createContext + useShipmentContext
+            ├── useAvatar(session.name)            → courierAvatar
+            ├── useProofPhoto(ACTIVE_TRACKING)     → proofPhoto
+            ├── useLocationData("31")              → provinces, regencies
+            └── usePostalSearch("Kebayoran Baru")  → postal, searchPostal
+```
+
+`ShipmentProvider` bertindak sebagai **central store**: seluruh hasil fetching
+dikelompokkan di satu tempat, lalu dikonsumsi lewat `useShipmentContext()` tanpa
+prop drilling.
+
+| Konsumen | State context yang dipakai |
+|---|---|
+| `TugasPage`, `SuksesPage`, `AdminLayout` | `courierAvatar` |
+| `BuktiFotoPage` | `proofPhoto` |
+| `DashboardPage` + `ShipmentFilters` | `regencies` |
+| `VerifikasiPage`, `AuditTrailPage` | `postal` (+ `reload`) |
+| `AuditTrailPage`, `PengecualianDetailPage` | `useAvatar` / `useProofPhoto` langsung (hook reusable) |
+
+### Penanganan status asynchronous
+
+- **Loading:** `Spinner` pada select wilayah, kode pos tujuan, dan pratinjau foto.
+- **Error:** pesan singkat + tombol "Coba lagi" yang memanggil `reload()`.
+- **Fallback:** avatar kembali ke inisial, foto kembali ke ikon kamera bila gagal.
+- **Anti infinite loop:** dependency array eksplisit (`[url, nonce]`,
+  `[provinceId]`, `[query]`) dan nilai non-null hanya diteruskan sebagai URL
+  sehingga request tidak terpicu berulang.
+
+### Commit modular
+
+| Commit | Isi |
+|---|---|
+| `feat(api)` | fetch client `fetchJson` + tipe `AsyncResource` |
+| `feat(hooks)` | `useFetch` + `useAvatar` + `useProofPhoto` |
+| `feat(hooks)` | `useLocationData` + `usePostalSearch` |
+| `feat(context)` | `ShipmentProvider` + `useShipmentContext` |
+| `feat(ui)` | avatar, POD, wilayah, dan kode pos pada layar yang sudah ada |
+| `docs(readme)` | bagian ini |
+
 ## Stack
 
 - **Runtime/build:** Bun + Vite
