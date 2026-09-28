@@ -51,6 +51,9 @@ src/
     ScrollToTop.tsx           # Reset scroll saat rute berubah
     courier/CourierBottomNav.tsx
     admin/AdminLayout.tsx     # Sidebar + header + drawer (desktop console)
+    admin/audit/AuditTrailMap.tsx  # Peta geofence Leaflet (OSM + pin kustom)
+    ui/Button.tsx             # Tombol polimorfik (button/anchor/Link)
+    ui/Spinner.tsx            # Indikator memuat
   pages/
     LandingPage.tsx           # Pemilih alur + dialog login
     courier/
@@ -133,7 +136,7 @@ DOM stabil. Titik interaksi utama:
 | Bukti foto | `BuktiFotoPage` | Watermark jam, kilatan shutter, hash audit |
 | Sukses | `SuksesPage` | Kode hash acak, stempel waktu, hitung tugas selesai |
 | Dashboard | `DashboardPage` | Filter gabungan (status/pencarian/layanan/wilayah) + empty-state |
-| Audit trail | `AuditTrailPage` | Validasi catatan keputusan, loader simpan, ekspor cetak |
+| Audit trail | `AuditTrailPage` | Validasi catatan keputusan, loader simpan, ekspor cetak, peta geofence Leaflet |
 | Antrian pengecualian | `AntrianPengecualianPage` | Filter layanan + pencarian; keputusan menghapus baris & memunculkan toast |
 | Detail pengecualian | `PengecualianDetailPage` | Setujui/Tolak + catatan, loader, kembali ke antrian |
 | Radius | `PengaturanRadiusPage` | Stepper min–maks per segmen, tombol Terapkan hanya saat kotor |

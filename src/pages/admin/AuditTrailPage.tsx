@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AuditTrailMap } from "../../components/admin/audit/AuditTrailMap";
 import { LoadingButton } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
@@ -7,6 +8,13 @@ import { useSeo } from "../../hooks/useSeo";
 import { setDecision as saveDecision } from "../../lib/storage";
 
 const TRACKING = "ANT-INST-8829104";
+
+const GEOFENCE = {
+  target: [-6.2401, 106.8093] as [number, number],
+  courier: [-6.24005, 106.80938] as [number, number],
+  radiusMeters: 30,
+  deviationMeters: 12,
+};
 
 const MILESTONES = [
   {
@@ -181,31 +189,15 @@ export function AuditTrailPage() {
             </header>
             <section className="grid grid-cols-1 items-center gap-5 md:grid-cols-3">
               <figure
-                className="relative m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
+                className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
                 aria-label="Visual peta titik tujuan dan posisi kurir"
               >
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="relative block size-40">
-                    <span className="absolute inset-0 rounded-full border-2 border-dashed border-brand-magenta/40 bg-brand-magenta/10" />
-                    <span className="absolute inset-6 rounded-full border border-brand-magenta/30 bg-brand-magenta/10" />
-                  </span>
-                </span>
-                <span className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                  <span className="grid size-7 place-items-center rounded-full border-2 border-white bg-primary text-white shadow-lg">
-                    <MaterialIcon name="flag" className="text-[16px]" />
-                  </span>
-                  <span className="mt-0.5 whitespace-nowrap rounded-md bg-black/75 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    Titik Tujuan
-                  </span>
-                </span>
-                <span className="absolute left-[70%] top-[38%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                  <span className="grid size-7 place-items-center rounded-full border-2 border-white bg-alert-amber text-on-secondary-fixed shadow-lg">
-                    <MaterialIcon name="two_wheeler" className="text-[16px]" />
-                  </span>
-                  <span className="mt-0.5 whitespace-nowrap rounded-md bg-black/75 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    Kurir +12 m
-                  </span>
-                </span>
+                <AuditTrailMap
+                  target={GEOFENCE.target}
+                  courier={GEOFENCE.courier}
+                  radiusMeters={GEOFENCE.radiusMeters}
+                  deviationMeters={GEOFENCE.deviationMeters}
+                />
                 <figcaption className="sr-only">
                   Kurir berada 12 meter dari titik tujuan, di dalam toleransi
                   radius 30 meter.

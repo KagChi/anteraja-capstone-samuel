@@ -98,10 +98,21 @@ Props lain: `size` (`sm` | `md` | `lg` | `xl`), `shape` (`default` | `pill`),
 perilaku loader memakai satu sumber yang sama. Atribut `id`, `data-*`, dan
 `aria-*` tetap diteruskan apa adanya untuk menjaga kontrak pengujian.
 
+### Peta Geofence Audit (`src/components/admin/audit/AuditTrailMap.tsx`)
+
+Visual statis pada **Detail Audit Trail** (`/admin/audit-trail`) diganti dengan
+peta interaktif **Leaflet** (`react-leaflet`). Komponen menerima `target`,
+`courier`, `radiusMeters`, dan `deviationMeters` sebagai props; peta menampilkan
+tile OpenStreetMap, lingkaran geofence 30 m, serta pin kustom `divIcon` untuk
+titik tujuan dan posisi kurir. `scrollWheelZoom` dimatikan agar gulir halaman
+tidak tersangkut, dan wadah peta diberi stacking context (`relative z-0`) supaya
+panel Leaflet tidak menutupi header/drawer admin.
+
 ## Stack
 
 - **Runtime/build:** Bun + Vite
 - **UI:** React 19 + React Router
+- **Peta:** Leaflet via react-leaflet (tile OpenStreetMap)
 - **Styling:** Tailwind CSS v4 (`@tailwindcss/vite`, `@tailwindcss/forms`) — design tokens in `src/index.css`
 - **Language:** TypeScript (strict)
 - **Lint/format:** Biome
