@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
 import { useSeo } from "../../hooks/useSeo";
 import { formatStamp, initialOf, randomDigits } from "../../lib/format";
@@ -183,13 +184,17 @@ export function SuksesPage() {
         </section>
 
         <footer className="w-full pt-4">
-          <Link
-            className="btn-primary flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-magenta text-[15px] font-semibold text-white shadow-md shadow-brand-magenta/25 transition-all hover:bg-brand-magenta/90 active:scale-[0.98]"
+          <Button
+            as="link"
             to="/courier/tugas"
+            variant="primary"
+            size="lg"
+            shape="pill"
+            className="w-full shadow-md shadow-brand-magenta/25"
           >
             <span>Lanjut ke Tugas Berikutnya</span>
             <MaterialIcon name="arrow_forward" className="text-[19px]" />
-          </Link>
+          </Button>
         </footer>
       </main>
 

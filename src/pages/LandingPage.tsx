@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Spinner } from "../components/LoadingAction";
 import { MaterialIcon } from "../components/MaterialIcon";
+import { Button } from "../components/ui/Button";
 import { useSession } from "../context/SessionContext";
 import { useSeo } from "../hooks/useSeo";
 import type { Role } from "../types";
@@ -352,15 +352,16 @@ export function LandingPage() {
                 </p>
               </section>
             </section>
-            <button
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container"
+            <Button
+              variant="icon"
+              className="shrink-0"
               type="button"
               data-close-modal
               aria-label="Tutup dialog"
               onClick={close}
             >
               <MaterialIcon name="close" className="text-[20px]" />
-            </button>
+            </Button>
           </header>
           <section className="space-y-4 p-5">
             <p className="m-0">
@@ -389,24 +390,17 @@ export function LandingPage() {
             </p>
           </section>
           <footer className="flex items-center justify-end gap-3 border-t border-border-subtle bg-surface-container-low/40 p-5">
-            <button
-              className="inline-flex h-11 min-w-[7rem] items-center justify-center gap-2 rounded-xl bg-brand-magenta px-5 text-sm font-bold text-on-primary shadow-sm transition-all hover:bg-primary"
+            <Button
+              variant="primary"
               id="btn-login"
               type="submit"
+              className="min-w-[7rem]"
+              busy={busy}
+              busyText="Menghubungkan..."
               disabled={busy}
-              aria-busy={busy || undefined}
             >
-              {busy ? (
-                <>
-                  <Spinner />
-                  <span>Menghubungkan...</span>
-                </>
-              ) : (
-                <>
-                  <MaterialIcon name="login" className="text-[18px]" /> Masuk
-                </>
-              )}
-            </button>
+              <MaterialIcon name="login" className="text-[18px]" /> Masuk
+            </Button>
           </footer>
         </form>
       </dialog>

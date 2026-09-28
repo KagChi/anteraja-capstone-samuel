@@ -1,8 +1,8 @@
 import type { ClipboardEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Spinner } from "../../components/LoadingAction";
+import { useNavigate } from "react-router-dom";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
 import { clamp } from "../../lib/format";
@@ -184,20 +184,21 @@ export function VerifikasiPage() {
     setRelation(id);
   }
 
-  const nextDisabled = !ready || nextBusy;
-  const nextClass = nextDisabled ? "pointer-events-none opacity-50" : "";
-
   return (
     <div className="flex min-h-screen flex-col bg-surface-container-low font-sans text-on-surface antialiased">
       <header className="fixed inset-x-0 top-0 z-40 bg-surface-container-low/90 pt-safe backdrop-blur-md">
         <div className="mx-auto flex h-12 max-w-md items-center justify-between px-3">
-          <Link
-            className="-ml-1 grid size-9 place-items-center rounded-full text-on-surface transition-colors hover:bg-black/5"
+          <Button
+            as="link"
             to="/courier/tugas"
+            variant="icon"
+            size="lg"
+            shape="pill"
+            className="-ml-1"
             aria-label="Kembali ke daftar tugas"
           >
             <MaterialIcon name="arrow_back_ios_new" className="text-[24px]" />
-          </Link>
+          </Button>
           <h1 className="text-[17px] font-semibold tracking-tight text-on-surface">
             Verifikasi Pengiriman
           </h1>
@@ -396,17 +397,17 @@ export function VerifikasiPage() {
                 </strong>{" "}
                 &bull; berlaku 15 menit sejak dikirim.
               </p>
-              <button
-                className="text-[12px] font-semibold text-brand-magenta hover:opacity-80 disabled:opacity-60"
+              <Button
+                variant="text"
+                className="text-[12px]"
                 id="btn-resend-pin"
-                type="button"
                 disabled={resendSeconds > 0}
                 onClick={resendPin}
               >
                 {resendSeconds > 0
                   ? `Kirim ulang (${resendSeconds}s)`
                   : "Kirim ulang PIN"}
-              </button>
+              </Button>
             </footer>
           </fieldset>
 
@@ -443,21 +444,16 @@ export function VerifikasiPage() {
               {RELATIONS.map((item) => {
                 const isActive = relation === item.id;
                 return (
-                  <button
+                  <Button
                     key={item.id}
-                    className={`relation-tab flex-1 rounded-lg py-1.5 text-[12px] transition-all ${
-                      isActive
-                        ? "bg-surface-container-lowest font-semibold text-on-surface shadow-sm"
-                        : "font-medium text-on-surface-variant"
-                    }`}
+                    variant="tab"
+                    active={isActive}
+                    className="flex-1 rounded-lg py-1.5 text-[12px]"
                     data-relation={item.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
                     onClick={() => chooseRelation(item.id)}
                   >
                     {item.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -467,28 +463,24 @@ export function VerifikasiPage() {
 
       <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-surface-container-low/95 pb-safe backdrop-blur-xl">
         <section className="mx-auto max-w-md px-4 py-3">
-          <a
-            className={`btn-primary flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand-magenta text-[15px] font-bold text-on-primary shadow-lg shadow-brand-magenta/25 transition-all hover:bg-brand-magenta/90 active:scale-[0.99] ${nextClass}`}
-            id="btn-next-step"
+          <Button
+            as="a"
             href="/courier/bukti-foto"
-            aria-disabled={!ready}
+            variant="primary"
+            size="xl"
+            id="btn-next-step"
+            className="w-full shadow-lg shadow-brand-magenta/25"
+            busy={nextBusy}
+            busyText="Memverifikasi..."
+            disabled={!ready}
             onClick={(event) => {
               event.preventDefault();
               goNext();
             }}
           >
-            {nextBusy ? (
-              <>
-                <Spinner />
-                <span>Memverifikasi...</span>
-              </>
-            ) : (
-              <>
-                Lanjut Ambil Bukti Foto{" "}
-                <MaterialIcon name="arrow_forward" className="text-[19px]" />
-              </>
-            )}
-          </a>
+            Lanjut Ambil Bukti Foto{" "}
+            <MaterialIcon name="arrow_forward" className="text-[19px]" />
+          </Button>
           <p
             className="mt-2 text-center text-[11px] text-on-surface-variant/70"
             id="lock-reason"

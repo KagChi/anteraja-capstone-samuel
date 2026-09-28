@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
 import { useToast } from "../../context/ToastContext";
 import { TASKS } from "../../data/tasks";
@@ -155,21 +156,16 @@ export function TugasPage() {
           {FILTERS.map((item) => {
             const isActive = filter === item.id;
             return (
-              <button
+              <Button
                 key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={`seg-btn flex-1 rounded-[8px] px-3 py-1.5 text-[13px] transition-all ${
-                  isActive
-                    ? "bg-surface-container-lowest font-semibold text-on-surface shadow-sm"
-                    : "font-medium text-on-surface-variant hover:text-on-surface"
-                }`}
+                variant="tab"
+                active={isActive}
+                className="flex-1 rounded-[8px] px-3 py-1.5 text-[13px]"
                 data-filter={item.id}
                 onClick={() => setFilter(item.id)}
               >
                 {item.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -217,16 +213,18 @@ export function TugasPage() {
                     {task.tracking}
                   </span>
                   {task.cta ? (
-                    <Link
-                      className="btn-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand-magenta hover:opacity-80"
+                    <Button
+                      as="link"
                       to="/courier/verifikasi"
+                      variant="text"
+                      className="text-[13px]"
                     >
                       {task.cta}{" "}
                       <MaterialIcon
                         name="arrow_forward"
                         className="text-[16px]"
                       />
-                    </Link>
+                    </Button>
                   ) : (
                     <span className="text-[12px] text-on-surface-variant/70">
                       {task.footerNote}
@@ -239,15 +237,10 @@ export function TugasPage() {
         </ul>
 
         <p className="m-0 px-1 pt-2 text-center">
-          <button
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-on-surface-variant transition-colors hover:bg-black/5 hover:text-on-surface"
-            id="btn-scan-resi"
-            type="button"
-            onClick={scan}
-          >
+          <Button variant="ghost" size="sm" id="btn-scan-resi" onClick={scan}>
             <MaterialIcon name="qr_code_scanner" className="text-[18px]" />{" "}
             Pindai Resi Manual
-          </button>
+          </Button>
         </p>
       </main>
 

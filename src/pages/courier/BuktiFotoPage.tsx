@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
 import { formatClock } from "../../lib/format";
@@ -27,13 +27,17 @@ export function BuktiFotoPage() {
     <div className="flex h-screen flex-col overflow-hidden bg-black font-sans text-white antialiased">
       <header className="z-30 w-full shrink-0 px-4 pt-safe">
         <div className="mx-auto flex h-12 max-w-md items-center justify-between">
-          <Link
-            className="grid size-9 place-items-center rounded-full bg-white/10 text-white/90 backdrop-blur-md transition-all hover:bg-white/20"
+          <Button
+            as="link"
             to="/courier/verifikasi"
+            variant="iconInverse"
+            size="lg"
+            shape="pill"
+            className="backdrop-blur-md"
             aria-label="Kembali ke verifikasi"
           >
             <MaterialIcon name="arrow_back_ios_new" className="text-[20px]" />
-          </Link>
+          </Button>
           <h1 className="text-[16px] font-semibold tracking-tight text-white">
             Bukti Foto
           </h1>
@@ -92,7 +96,9 @@ export function BuktiFotoPage() {
           </header>
           <p className="m-0 flex flex-col items-center gap-3 pt-2">
             <LoadingLink
-              className="btn-primary flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-magenta text-[15px] font-bold text-white transition-all hover:bg-brand-magenta/90 active:scale-[0.98]"
+              variant="primary"
+              size="lg"
+              className="w-full"
               id="btn-confirm-pod"
               to="/courier/sukses"
               delay={1000}
@@ -101,10 +107,10 @@ export function BuktiFotoPage() {
               <MaterialIcon name="check_circle" className="text-[20px]" />{" "}
               Konfirmasi &amp; Selesaikan
             </LoadingLink>
-            <button
-              className="inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-white/70 transition-colors hover:text-white"
+            <Button
+              variant="textInverse"
+              className="py-1 text-[13px]"
               id="btn-retake-photo"
-              type="button"
               onClick={() => {
                 triggerFlash();
                 toast("Foto diambil ulang. Arahkan kamera kembali.");
@@ -112,7 +118,7 @@ export function BuktiFotoPage() {
             >
               <MaterialIcon name="replay" className="text-[18px]" /> Ambil Ulang
               Foto
-            </button>
+            </Button>
           </p>
         </section>
       </main>

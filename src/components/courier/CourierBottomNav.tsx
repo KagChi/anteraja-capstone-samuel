@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { useToast } from "../../context/ToastContext";
 import { COURIER_NAV_ITEMS } from "../../data/nav";
 import { MaterialIcon } from "../MaterialIcon";
+import { Button } from "../ui/Button";
 
 interface CourierBottomNavProps {
   variant?: "default" | "sukses";
@@ -23,29 +23,21 @@ export function CourierBottomNav({
       ? "mx-auto flex h-16 max-w-md items-center justify-around px-2 m-0"
       : "mx-auto flex h-14 max-w-md items-center justify-around px-2 m-0";
 
+  const itemClass =
+    variant === "sukses" ? "gap-1 min-h-[48px] min-w-[64px]" : "flex-1 py-1";
+
   return (
     <nav className={navClass} aria-label="Navigasi utama kurir">
       <p className={innerClass}>
         {COURIER_NAV_ITEMS.map((item) => {
           const isActive = item.label === activeLabel;
-          const itemClass =
-            variant === "sukses"
-              ? `flex min-h-[48px] min-w-[64px] flex-col items-center justify-center gap-1 ${
-                  isActive
-                    ? "font-semibold text-brand-magenta"
-                    : "text-on-surface-variant transition-colors hover:text-brand-magenta"
-                }`
-              : `flex flex-1 flex-col items-center justify-center py-1 ${
-                  isActive
-                    ? "text-brand-magenta"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`;
 
           if (item.stub) {
             return (
-              <button
+              <Button
                 key={item.label}
-                type="button"
+                variant="nav"
+                active={isActive}
                 className={itemClass}
                 onClick={() => {
                   toast("Fitur ini belum tersedia pada purwarupa.", "error");
@@ -61,16 +53,18 @@ export function CourierBottomNav({
                 >
                   {item.label}
                 </span>
-              </button>
+              </Button>
             );
           }
 
           return (
-            <Link
+            <Button
               key={item.label}
-              className={itemClass}
+              as="link"
               to={item.to}
-              aria-current={isActive ? "page" : undefined}
+              variant="nav"
+              active={isActive}
+              className={itemClass}
             >
               <MaterialIcon
                 name={item.icon}
@@ -86,7 +80,7 @@ export function CourierBottomNav({
               >
                 {item.label}
               </span>
-            </Link>
+            </Button>
           );
         })}
       </p>
