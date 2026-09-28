@@ -171,120 +171,122 @@ export function AntrianPengecualianPage() {
               </search>
             </section>
           </header>
-          <table className="w-full border-collapse text-left">
-            <caption className="sr-only">
-              Pengajuan pengecualian geofence yang menunggu keputusan admin
-            </caption>
-            <thead>
-              <tr className="border-b border-border-subtle bg-surface-container-low/40 text-on-surface-variant/80">
-                <th
-                  className="whitespace-nowrap px-5 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Kurir
-                </th>
-                <th
-                  className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Nomor Resi
-                </th>
-                <th
-                  className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Layanan
-                </th>
-                <th
-                  className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Deviasi
-                </th>
-                <th
-                  className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Alasan Kurir
-                </th>
-                <th
-                  className="whitespace-nowrap px-5 py-3.5 text-right text-label-sm font-bold uppercase tracking-wider"
-                  scope="col"
-                >
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              className="divide-y divide-border-subtle/70"
-              id="exception-table-body"
-            >
-              {visibleRows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="exception-row transition-colors hover:bg-surface-container-low/40"
-                  data-service={row.service}
-                >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[44rem] border-collapse text-left">
+              <caption className="sr-only">
+                Pengajuan pengecualian geofence yang menunggu keputusan admin
+              </caption>
+              <thead>
+                <tr className="border-b border-border-subtle bg-surface-container-low/40 text-on-surface-variant/80">
                   <th
-                    className="whitespace-nowrap px-5 py-3 align-middle font-normal"
-                    scope="row"
+                    className="whitespace-nowrap px-5 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
                   >
-                    <p className="m-0 text-title-md font-semibold text-on-surface">
-                      {row.courierName}{" "}
-                      <span className="text-[12px] font-normal text-on-surface-variant/70">
-                        ({row.courierCode})
-                      </span>
-                    </p>
+                    Kurir
                   </th>
-                  <td className="whitespace-nowrap px-4 py-3 align-middle">
-                    <Link
-                      className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
-                      to="/admin/audit-trail"
+                  <th
+                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
+                  >
+                    Nomor Resi
+                  </th>
+                  <th
+                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
+                  >
+                    Layanan
+                  </th>
+                  <th
+                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
+                  >
+                    Deviasi
+                  </th>
+                  <th
+                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
+                  >
+                    Alasan Kurir
+                  </th>
+                  <th
+                    className="whitespace-nowrap px-5 py-3.5 text-right text-label-sm font-bold uppercase tracking-wider"
+                    scope="col"
+                  >
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                className="divide-y divide-border-subtle/70"
+                id="exception-table-body"
+              >
+                {visibleRows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="exception-row transition-colors hover:bg-surface-container-low/40"
+                    data-service={row.service}
+                  >
+                    <th
+                      className="whitespace-nowrap px-5 py-3 align-middle font-normal"
+                      scope="row"
                     >
-                      {row.tracking}
-                    </Link>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 align-middle">
-                    <ServiceTag service={row.service} />
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 align-middle">
-                    <span className="text-[12px] font-semibold text-amber-700">
-                      +{row.deviation} m{" "}
-                      <span className="font-normal text-on-surface-variant">
-                        / maks {row.maxTolerance} m
+                      <p className="m-0 text-title-md font-semibold text-on-surface">
+                        {row.courierName}{" "}
+                        <span className="text-[12px] font-normal text-on-surface-variant/70">
+                          ({row.courierCode})
+                        </span>
+                      </p>
+                    </th>
+                    <td className="whitespace-nowrap px-4 py-3 align-middle">
+                      <Link
+                        className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
+                        to="/admin/audit-trail"
+                      >
+                        {row.tracking}
+                      </Link>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 align-middle">
+                      <ServiceTag service={row.service} />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 align-middle">
+                      <span className="text-[12px] font-semibold text-amber-700">
+                        +{row.deviation} m{" "}
+                        <span className="font-normal text-on-surface-variant">
+                          / maks {row.maxTolerance} m
+                        </span>
                       </span>
-                    </span>
-                  </td>
-                  <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
-                    {row.reason}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
-                    <Button
-                      as="link"
-                      to="/admin/pengecualian-detail"
-                      variant="text"
-                      className="text-[12px]"
-                    >
-                      Tinjau{" "}
-                      <MaterialIcon
-                        name="arrow_forward"
-                        className="text-[16px]"
-                      />
-                    </Button>
+                    </td>
+                    <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
+                      {row.reason}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
+                      <Button
+                        as="link"
+                        to="/admin/pengecualian-detail"
+                        variant="text"
+                        className="text-[12px]"
+                      >
+                        Tinjau{" "}
+                        <MaterialIcon
+                          name="arrow_forward"
+                          className="text-[16px]"
+                        />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                <tr id="exception-empty" hidden={visibleRows.length !== 0}>
+                  <td
+                    className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+                    colSpan={6}
+                  >
+                    Tidak ada pengajuan pengecualian yang cocok dengan filter
+                    atau pencarian.
                   </td>
                 </tr>
-              ))}
-              <tr id="exception-empty" hidden={visibleRows.length !== 0}>
-                <td
-                  className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
-                  colSpan={6}
-                >
-                  Tidak ada pengajuan pengecualian yang cocok dengan filter atau
-                  pencarian.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </section>
       </main>
 
