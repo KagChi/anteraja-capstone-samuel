@@ -1,21 +1,12 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Button, type ButtonProps } from "./ui/Button";
 
-export function Spinner({ className }: { className?: string }) {
-  return (
-    <span
-      className={`inline-block size-[1em] animate-spinner rounded-full border-2 border-current border-t-transparent ${className ?? ""}`}
-      aria-hidden="true"
-    />
-  );
-}
+export { Spinner } from "./ui/Spinner";
 
 interface LoadingButtonProps
-  extends Omit<
-    ButtonHTMLAttributes<HTMLButtonElement>,
-    "onClick" | "children"
-  > {
+  extends Omit<ButtonProps, "onClick" | "children" | "busy"> {
   busyText?: string;
   delay?: number;
   onAction: () => void;
@@ -29,25 +20,18 @@ export function LoadingButton({
   onAction,
   keepBusy = false,
   children,
-  className,
-  disabled,
-  type = "button",
   ...rest
 }: LoadingButtonProps) {
   const [busy, setBusy] = useState(false);
-  const isDisabled = Boolean(disabled) || busy;
 
   return (
-    <button
+    <Button
       {...rest}
-      type={type}
-      className={`${className ?? ""} ${busy ? "pointer-events-none" : ""}`}
-      disabled={isDisabled}
-      aria-busy={busy || undefined}
-      aria-disabled={isDisabled ? "true" : undefined}
+      busy={busy}
+      busyText={busyText}
       onClick={(event) => {
         event.preventDefault();
-        if (isDisabled) return;
+        if (busy || rest.disabled) return;
         setBusy(true);
         window.setTimeout(() => {
           onAction();
@@ -55,34 +39,22 @@ export function LoadingButton({
         }, delay);
       }}
     >
-      {busy ? (
-        <>
-          <Spinner />
-          <span>{busyText}</span>
-        </>
-      ) : (
-        children
-      )}
-    </button>
+      {children}
+    </Button>
   );
 }
 
-interface LoadingLinkProps {
+interface LoadingLinkProps
+  extends Omit<ButtonProps, "onClick" | "children" | "busy" | "as" | "href"> {
   to: string;
-  className?: string;
-  disabled?: boolean;
   delay?: number;
   busyText?: string;
   onAction?: () => void;
   children: ReactNode;
-  id?: string;
-  "aria-label"?: string;
 }
 
 export function LoadingLink({
   to,
-  className,
-  disabled = false,
   delay = 900,
   busyText = "Memproses...",
   onAction,
@@ -91,18 +63,17 @@ export function LoadingLink({
 }: LoadingLinkProps) {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
-  const isDisabled = disabled || busy;
 
   return (
-    <Link
+    <Button
       {...rest}
+      as="link"
       to={to}
-      className={`${className ?? ""} ${isDisabled ? "pointer-events-none opacity-50" : ""}`}
-      aria-busy={busy || undefined}
-      aria-disabled={isDisabled ? "true" : undefined}
+      busy={busy}
+      busyText={busyText}
       onClick={(event) => {
         event.preventDefault();
-        if (isDisabled) return;
+        if (busy || rest.disabled) return;
         setBusy(true);
         window.setTimeout(() => {
           onAction?.();
@@ -110,14 +81,7 @@ export function LoadingLink({
         }, delay);
       }}
     >
-      {busy ? (
-        <>
-          <Spinner />
-          <span>{busyText}</span>
-        </>
-      ) : (
-        children
-      )}
-    </Link>
+      {children}
+    </Button>
   );
 }
