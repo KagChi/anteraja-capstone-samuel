@@ -29,14 +29,12 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
 
+              <Route path="/courier/tugas" element={<TugasPage />} />
+              <Route path="/courier/verifikasi" element={<VerifikasiPage />} />
+              <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
+              <Route path="/courier/sukses" element={<SuksesPage />} />
+
               <Route element={<MainLayout />}>
-                <Route path="/courier/tugas" element={<TugasPage />} />
-                <Route
-                  path="/courier/verifikasi"
-                  element={<VerifikasiPage />}
-                />
-                <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
-                <Route path="/courier/sukses" element={<SuksesPage />} />
                 <Route path="/shipments" element={<ShipmentListPage />} />
                 <Route path="/shipments/:id" element={<ShipmentDetailPage />} />
                 <Route path="*" element={<NotFoundPage />} />

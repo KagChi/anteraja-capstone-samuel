@@ -206,10 +206,10 @@ memakai `<Link>`/`<NavLink>` dan `useNavigate`.
 | Path | Halaman | Layout | Catatan |
 |---|---|---|---|
 | `/` | `LandingPage` | — | pemilih peran + dialog login |
-| `/courier/tugas` | `TugasPage` | `MainLayout` | daftar tugas kurir |
-| `/courier/verifikasi` | `VerifikasiPage` | `MainLayout` | geofence + PIN |
-| `/courier/bukti-foto` | `BuktiFotoPage` | `MainLayout` (fullscreen) | chrome disembunyikan untuk kamera |
-| `/courier/sukses` | `SuksesPage` | `MainLayout` | konfirmasi sukses |
+| `/courier/tugas` | `TugasPage` | — (chrome sendiri) | daftar tugas kurir |
+| `/courier/verifikasi` | `VerifikasiPage` | — (chrome sendiri) | geofence + PIN |
+| `/courier/bukti-foto` | `BuktiFotoPage` | — (fullscreen) | kamera |
+| `/courier/sukses` | `SuksesPage` | — (chrome sendiri) | konfirmasi sukses |
 | `/shipments` | `ShipmentListPage` | `MainLayout` | daftar + pelacakan resi |
 | `/shipments/:id` | `ShipmentDetailPage` | `MainLayout` | **dynamic route** (`useParams`) |
 | `*` | `NotFoundPage` | `MainLayout` | fallback 404 |
@@ -220,15 +220,19 @@ memakai `<Link>`/`<NavLink>` dan `useNavigate`.
   <ScrollToTop />
   <Routes>
     <Route path="/" element={<LandingPage />} />
-    <Route element={<MainLayout />}>            ← persistent Header + Footer + <Outlet/>
-      <Route path="/courier/tugas"  element={<TugasPage />} />
-      <Route path="/courier/verifikasi" element={<VerifikasiPage />} />
-      <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
-      <Route path="/courier/sukses" element={<SuksesPage />} />
+
+    {/* Layar kurir mempertahankan chrome aslinya (Header + bottom nav per halaman) */}
+    <Route path="/courier/tugas"     element={<TugasPage />} />
+    <Route path="/courier/verifikasi" element={<VerifikasiPage />} />
+    <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
+    <Route path="/courier/sukses"    element={<SuksesPage />} />
+
+    <Route element={<MainLayout />}>            ← Header + Footer + <Outlet/>
       <Route path="/shipments"      element={<ShipmentListPage />} />
       <Route path="/shipments/:id"  element={<ShipmentDetailPage />} />
       <Route path="*"               element={<NotFoundPage />} />
     </Route>
+
     <Route path="/admin" element={<AdminLayout />}> … </Route>
   </Routes>
 </BrowserRouter>
@@ -237,11 +241,15 @@ memakai `<Link>`/`<NavLink>` dan `useNavigate`.
 ### Persistent Layout (`src/components/layout/MainLayout.tsx`)
 
 `MainLayout` adalah *layout route* tanpa `path` yang merender Header (brand,
-judul halaman, tombol kembali, avatar) dan Footer (bottom nav via `NavLink`)
-**sekali**, lalu menampilkan halaman aktif lewat `<Outlet/>`. Karena Header dan
-Footer tidak berada di dalam komponen halaman, keduanya tidak ikut ter-*remount*
-saat navigasi. Rute `/courier/bukti-foto` adalah pengecualian: `MainLayout`
-melewatkan chrome agar tampilan kamera tetap fullscreen.
+judul halaman, tombol kembali) dan Footer **sekali**, lalu menampilkan halaman
+aktif lewat `<Outlet/>`. Karena Header dan Footer tidak berada di dalam komponen
+halaman, keduanya tidak ikut ter-*remount* saat berpindah antara `/shipments`,
+`/shipments/:id`, dan halaman 404. Navigasi utama di Header memakai `NavLink`
+(active state otomatis).
+
+Layar kurir (`/courier/*`) **tidak** memakai `MainLayout`: halaman-halaman lama
+tetap mempertahankan header, bottom nav, dan footer-nya masing-masing persis
+seperti sebelumnya, sehingga tampilan yang sudah tervalidasi tidak berubah.
 
 ### Dynamic Route Parameters
 
@@ -266,7 +274,7 @@ kembali ke `/shipments`; URL yang tidak dikenali sama sekali diarahkan ke
 `useNavigate` dipakai setelah aksi pengguna:
 
 - `ShipmentListPage` / `NotFoundPage` — submit form "Lacak" → `navigate("/shipments/" + id)`.
-- `TugasPage` — "Pindai Resi Manual" → membuka detail resi secara otomatis.
+- `LandingPage` — login peran → `navigate` ke beranda peran (perilaku lama).
 
 ### Commit modular
 
@@ -275,8 +283,8 @@ kembali ke `/shipments`; URL yang tidak dikenali sama sekali diarahkan ke
 | `feat(context)` | centralize shipments + `getShipmentById` |
 | `feat(shipments)` | halaman daftar resi mobile (`Link`) |
 | `feat(shipments)` | halaman detail dinamis (`useParams`) + state tidak ditemukan |
-| `refactor(layout)` | `MainLayout` + `CourierBottomNav` berbasis `NavLink` |
-| `refactor(courier)` | seluruh layar kurir memakai shell persisten |
+| `refactor(layout)` | `MainLayout` + navigasi `NavLink` |
+| `fix(ui)` | restore tampilan kurir; `MainLayout` dibatasi ke rute publik |
 | `docs(readme)` | bagian ini |
 
 ## Stack

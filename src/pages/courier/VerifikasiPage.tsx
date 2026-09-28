@@ -498,8 +498,8 @@ export function VerifikasiPage() {
       <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-surface-container-low/95 pb-safe backdrop-blur-xl">
         <section className="mx-auto max-w-md px-4 py-3">
           <Button
-            as="a"
-            href="/courier/bukti-foto"
+            as="link"
+            to="/courier/bukti-foto"
             variant="primary"
             size="xl"
             id="btn-next-step"

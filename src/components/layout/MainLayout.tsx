@@ -20,12 +20,6 @@ const HEADER_NAV = [
 
 export function MainLayout() {
   const { pathname } = useLocation();
-
-  // The courier screens keep their own chrome, so the shell passes through.
-  if (pathname.startsWith("/courier/")) {
-    return <Outlet />;
-  }
-
   const { title, back } = resolveMeta(pathname);
 
   return (
