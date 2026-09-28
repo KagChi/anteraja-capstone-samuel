@@ -1,14 +1,15 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Avatar } from "../../components/Avatar";
 import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { TASKS } from "../../data/tasks";
 import { useSeo } from "../../hooks/useSeo";
 import { useWelcomeToast } from "../../hooks/useWelcomeToast";
-import { initialOf } from "../../lib/format";
 import { getCompleted } from "../../lib/storage";
 import type { TaskBadge, TaskCategory } from "../../types";
 
@@ -63,6 +64,7 @@ function Badge({ badge }: { badge: TaskBadge }) {
 export function TugasPage() {
   useSeo("/courier/tugas");
   const { session } = useSession();
+  const { courierAvatar } = useShipmentContext();
   const toast = useToast();
   const name = session?.name ?? "Satria";
   useWelcomeToast(name);
@@ -123,12 +125,11 @@ export function TugasPage() {
                 #4821 &bull; Jak-Sel
               </span>
             </span>
-            <span
-              className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[13px] font-bold text-brand-magenta ring-1 ring-black/10"
-              aria-hidden="true"
-            >
-              {initialOf(name, "S")}
-            </span>
+            <Avatar
+              name={name}
+              resource={courierAvatar}
+              className="ring-black/10"
+            />
           </span>
         </p>
       </header>

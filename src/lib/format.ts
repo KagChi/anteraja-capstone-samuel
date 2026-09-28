@@ -40,3 +40,10 @@ export function randomDigits(length: number): string {
 export function initialOf(name: string, fallback = "D"): string {
   return (name.trim().charAt(0) || fallback).toUpperCase();
 }
+
+export function titleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+}

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
 import { formatClock } from "../../lib/format";
@@ -9,6 +11,7 @@ import { formatClock } from "../../lib/format";
 export function BuktiFotoPage() {
   useSeo("/courier/bukti-foto");
   const toast = useToast();
+  const { proofPhoto } = useShipmentContext();
   const [clock, setClock] = useState(() => formatClock());
   const [flash, setFlash] = useState(false);
 
@@ -56,10 +59,33 @@ export function BuktiFotoPage() {
             if (event.key === "Enter" || event.key === " ") triggerFlash();
           }}
         >
-          <MaterialIcon
-            name="photo_camera"
-            className="text-[64px] text-white/15"
-          />
+          {proofPhoto.data && !proofPhoto.isLoading && !proofPhoto.isError ? (
+            <img
+              src={proofPhoto.data}
+              alt="Pratinjau bukti foto serah terima"
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : (
+            <MaterialIcon
+              name="photo_camera"
+              className="text-[64px] text-white/15"
+            />
+          )}
+          {proofPhoto.isLoading ? (
+            <span className="absolute inset-0 grid place-items-center bg-black/40">
+              <span className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[12px] font-medium text-white/85">
+                <Spinner /> Memuat foto bukti...
+              </span>
+            </span>
+          ) : null}
+          {proofPhoto.isError ? (
+            <span className="absolute inset-x-4 bottom-16 flex items-center justify-center gap-2 rounded-xl bg-black/60 px-3 py-2 text-[12px] font-medium text-white/85">
+              Gagal memuat foto bukti.
+              <Button variant="textInverse" onClick={proofPhoto.reload}>
+                Coba lagi
+              </Button>
+            </span>
+          ) : null}
           <mark className="absolute left-3 top-3 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/80 backdrop-blur-md">
             Kamera dalam aplikasi
           </mark>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useSession } from "../../context/SessionContext";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { ADMIN_NAV_GROUPS } from "../../data/nav";
-import { initialOf } from "../../lib/format";
+import { Avatar } from "../Avatar";
 import { MaterialIcon } from "../MaterialIcon";
 import { Button } from "../ui/Button";
 
@@ -46,6 +47,7 @@ const CRUMBS: Record<string, Crumb> = {
 export function AdminLayout() {
   const { pathname } = useLocation();
   const { session } = useSession();
+  const { courierAvatar } = useShipmentContext();
   const [open, setOpen] = useState(false);
 
   const name = session?.name ?? "Hub Admin Ops";
@@ -150,12 +152,11 @@ export function AdminLayout() {
               </p>
             </section>
             <p className="m-0 flex items-center gap-2.5 px-1 pt-3">
-              <span
-                className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[12px] font-bold text-brand-magenta"
-                aria-hidden="true"
-              >
-                {initialOf(name, "D")}
-              </span>
+              <Avatar
+                name={name}
+                resource={courierAvatar}
+                className="text-[12px]"
+              />
               <span className="block leading-tight">
                 <span className="block text-[12px] font-semibold text-on-surface">
                   {name}
@@ -209,12 +210,11 @@ export function AdminLayout() {
                 <MaterialIcon name="swap_horiz" className="text-[16px]" /> Mode
                 Kurir
               </Button>
-              <span
-                className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[12px] font-bold text-brand-magenta"
-                aria-hidden="true"
-              >
-                {initialOf(name, "D")}
-              </span>
+              <Avatar
+                name={name}
+                resource={courierAvatar}
+                className="text-[12px]"
+              />
             </p>
           </header>
 

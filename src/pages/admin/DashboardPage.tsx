@@ -7,6 +7,7 @@ import {
 } from "../../components/admin/dashboard/ShipmentFilters";
 import { ShipmentList } from "../../components/admin/dashboard/ShipmentList";
 import { useSession } from "../../context/SessionContext";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { SHIPMENT_ROWS } from "../../data/shipments";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useSeo } from "../../hooks/useSeo";
@@ -15,12 +16,13 @@ import { useWelcomeToast } from "../../hooks/useWelcomeToast";
 export function DashboardPage() {
   useSeo("/admin/dashboard");
   const { session } = useSession();
+  const { regencies } = useShipmentContext();
   const name = session?.name ?? "Hub Admin Ops";
   useWelcomeToast(name);
 
   const [status, setStatus] = useState<StatusFilter>("review");
   const [service, setService] = useState("");
-  const [region, setRegion] = useState("jaksel");
+  const [region, setRegion] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 150);
 
@@ -28,7 +30,7 @@ export function DashboardPage() {
   const rows = SHIPMENT_ROWS.filter((row) => {
     const okStatus = status === "all" || row.flag === status;
     const okService = !service || row.service === service;
-    const okRegion = !region || row.region === region;
+    const okRegion = !region || row.regencyId === region;
     const okSearch =
       !query ||
       `${row.courierName} ${row.courierCode} ${row.tracking} ${row.statusLabel}`
@@ -66,6 +68,8 @@ export function DashboardPage() {
           service={service}
           region={region}
           search={search}
+          regions={regencies.data ?? []}
+          regionsLoading={regencies.isLoading}
           onStatusChange={setStatus}
           onServiceChange={setService}
           onRegionChange={setRegion}

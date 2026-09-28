@@ -12,6 +12,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "amber",
     region: "jaksel",
     regionLabel: "Jak-Sel",
+    regencyId: "3171",
     href: "/admin/audit-trail",
     highlight: true,
   },
@@ -26,6 +27,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "emerald",
     region: "jaksel",
     regionLabel: "Jak-Sel",
+    regencyId: "3171",
     href: "/admin/audit-trail",
   },
   {
@@ -39,6 +41,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "emerald",
     region: "jaksel",
     regionLabel: "Jak-Sel",
+    regencyId: "3171",
     href: "/admin/audit-trail",
   },
   {
@@ -52,6 +55,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "orange",
     region: "jaksel",
     regionLabel: "Jak-Sel",
+    regencyId: "3171",
     href: "/admin/pengecualian-detail",
   },
   {
@@ -65,6 +69,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "amber",
     region: "jakpus",
     regionLabel: "Jak-Pus",
+    regencyId: "3173",
     href: "/admin/audit-trail",
   },
   {
@@ -78,6 +83,7 @@ export const SHIPMENT_ROWS: DeliveryRow[] = [
     statusTone: "emerald",
     region: "jaksel",
     regionLabel: "Jak-Sel",
+    regencyId: "3171",
     href: "/admin/audit-trail",
   },
 ];

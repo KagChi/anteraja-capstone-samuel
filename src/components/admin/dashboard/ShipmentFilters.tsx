@@ -1,4 +1,5 @@
-import type { DeliveryFlag } from "../../../types";
+import { titleCase } from "../../../lib/format";
+import type { DeliveryFlag, Regency } from "../../../types";
 import { MaterialIcon } from "../../MaterialIcon";
 import { Button } from "../../ui/Button";
 
@@ -16,6 +17,8 @@ interface ShipmentFiltersProps {
   service: string;
   region: string;
   search: string;
+  regions: Regency[];
+  regionsLoading: boolean;
   onStatusChange: (status: StatusFilter) => void;
   onServiceChange: (service: string) => void;
   onRegionChange: (region: string) => void;
@@ -27,6 +30,8 @@ export function ShipmentFilters({
   service,
   region,
   search,
+  regions,
+  regionsLoading,
   onStatusChange,
   onServiceChange,
   onRegionChange,
@@ -107,14 +112,20 @@ export function ShipmentFilters({
             className="text-[16px] text-outline"
           />
           <select
-            className="cursor-pointer bg-transparent pr-1 text-label-md text-on-surface focus:outline-none"
+            className="cursor-pointer bg-transparent pr-1 text-label-md text-on-surface focus:outline-none disabled:cursor-wait disabled:opacity-60"
             id="filter-region"
             value={region}
+            disabled={regionsLoading}
             onChange={(event) => onRegionChange(event.target.value)}
           >
-            <option value="">Wilayah: Semua</option>
-            <option value="jaksel">Jak-Sel</option>
-            <option value="jakpus">Jak-Pus</option>
+            <option value="">
+              {regionsLoading ? "Memuat wilayah..." : "Wilayah: Semua"}
+            </option>
+            {regions.map((regency) => (
+              <option key={regency.id} value={regency.id}>
+                {titleCase(regency.name)}
+              </option>
+            ))}
           </select>
         </p>
       </search>

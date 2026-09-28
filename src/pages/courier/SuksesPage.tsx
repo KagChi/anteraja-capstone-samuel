@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Avatar } from "../../components/Avatar";
 import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useSeo } from "../../hooks/useSeo";
-import { formatStamp, initialOf, randomDigits } from "../../lib/format";
+import { formatStamp, randomDigits } from "../../lib/format";
 import { markCompleted } from "../../lib/storage";
 
 const TRACKING = "ANT-INST-882910394";
@@ -13,6 +15,7 @@ const TRACKING = "ANT-INST-882910394";
 export function SuksesPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
+  const { courierAvatar } = useShipmentContext();
   const name = session?.name ?? "Satria";
 
   const [done, setDone] = useState(8);
@@ -48,12 +51,7 @@ export function SuksesPage() {
                 #4821 &bull; Jak-Sel
               </span>
             </span>
-            <span
-              className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[13px] font-bold text-brand-magenta ring-1 ring-border-subtle"
-              aria-hidden="true"
-            >
-              {initialOf(name, "S")}
-            </span>
+            <Avatar name={name} resource={courierAvatar} />
           </span>
         </p>
       </header>

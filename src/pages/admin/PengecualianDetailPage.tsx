@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { Avatar } from "../../components/Avatar";
 import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
+import { useAvatar } from "../../hooks/useAvatar";
+import { useProofPhoto } from "../../hooks/useProofPhoto";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision } from "../../lib/storage";
 
@@ -10,6 +14,8 @@ const TRACKING = "ANT-INST-99201";
 export function PengecualianDetailPage() {
   useSeo("/admin/pengecualian-detail");
   const [note, setNote] = useState("");
+  const courierAvatar = useAvatar("Budi Pratama");
+  const proofPhoto = useProofPhoto(TRACKING);
 
   return (
     <>
@@ -67,12 +73,11 @@ export function PengecualianDetailPage() {
 
           <section className="space-y-5 p-5">
             <p className="m-0 flex items-center gap-3">
-              <span
-                className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-magenta/10 text-[14px] font-bold text-brand-magenta"
-                aria-hidden="true"
-              >
-                B
-              </span>
+              <Avatar
+                name="Budi Pratama"
+                resource={courierAvatar}
+                className="size-10 text-[14px]"
+              />
               <span className="block leading-tight">
                 <span className="block text-sm font-semibold text-on-surface">
                   Budi Pratama{" "}
@@ -156,10 +161,22 @@ export function PengecualianDetailPage() {
                 Foto Bukti Lokasi (POD)
               </h2>
               <figure className="relative m-0 grid h-36 w-full place-items-center overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
-                <MaterialIcon
-                  name="photo_camera"
-                  className="text-[32px] text-white/25"
-                />
+                {proofPhoto.data &&
+                !proofPhoto.isLoading &&
+                !proofPhoto.isError ? (
+                  <img
+                    src={proofPhoto.data}
+                    alt="Foto bukti lokasi (POD)"
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                ) : proofPhoto.isLoading ? (
+                  <Spinner className="text-white/60" />
+                ) : (
+                  <MaterialIcon
+                    name="photo_camera"
+                    className="text-[32px] text-white/25"
+                  />
+                )}
                 <figcaption className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2">
                   <span className="tabular-nums rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
                     -6.2418, 106.8086

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
 import { clamp } from "../../lib/format";
@@ -25,6 +27,7 @@ export function VerifikasiPage() {
   useSeo("/courier/verifikasi");
   const toast = useToast();
   const navigate = useNavigate();
+  const { postal } = useShipmentContext();
 
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const resetToken = useRef(0);
@@ -319,6 +322,37 @@ export function VerifikasiPage() {
               <strong className="text-on-surface">12 m</strong>
             </li>
           </ul>
+          <p className="m-0 mt-3 flex flex-wrap items-center gap-1.5 border-t border-border-subtle pt-3 text-[12px] text-on-surface-variant">
+            <MaterialIcon
+              name="markunread_mailbox"
+              className="text-[16px] text-brand-magenta"
+            />{" "}
+            Kode Pos Tujuan:{" "}
+            {postal.isLoading ? (
+              <span className="inline-flex items-center gap-1.5 font-medium text-on-surface-variant/70">
+                <Spinner /> Mencari...
+              </span>
+            ) : postal.isError ? (
+              <span className="inline-flex items-center gap-1.5 font-medium text-error">
+                Gagal memuat.
+                <Button
+                  variant="text"
+                  className="text-[12px]"
+                  onClick={postal.reload}
+                >
+                  Coba lagi
+                </Button>
+              </span>
+            ) : postal.data?.[0] ? (
+              <strong className="tabular-nums font-semibold text-on-surface">
+                {postal.data[0].code} &bull; {postal.data[0].district}
+              </strong>
+            ) : (
+              <span className="font-medium text-on-surface-variant/70">
+                Tidak ditemukan
+              </span>
+            )}
+          </p>
         </aside>
 
         <form

@@ -1,9 +1,14 @@
 import { useState } from "react";
+import { Avatar } from "../../components/Avatar";
 import { AuditTrailMap } from "../../components/admin/audit/AuditTrailMap";
 import { LoadingButton } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
+import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
+import { useAvatar } from "../../hooks/useAvatar";
+import { useProofPhoto } from "../../hooks/useProofPhoto";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision as saveDecision } from "../../lib/storage";
 
@@ -46,6 +51,9 @@ const MILESTONES = [
 export function AuditTrailPage() {
   useSeo("/admin/audit-trail");
   const toast = useToast();
+  const { postal } = useShipmentContext();
+  const courierAvatar = useAvatar("Ahmad Satria");
+  const proofPhoto = useProofPhoto(TRACKING);
 
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   const [notes, setNotes] = useState("");
@@ -136,12 +144,11 @@ export function AuditTrailPage() {
           </header>
           <section className="flex flex-col justify-between gap-4 pt-5 sm:flex-row sm:items-center">
             <p className="m-0 flex items-center gap-3.5">
-              <span
-                className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-magenta/10 text-[15px] font-bold text-brand-magenta"
-                aria-hidden="true"
-              >
-                A
-              </span>
+              <Avatar
+                name="Ahmad Satria"
+                resource={courierAvatar}
+                className="size-11 text-[15px]"
+              />
               <span className="flex flex-col">
                 <span className="flex items-center gap-2">
                   <span className="text-base font-bold text-on-surface">
@@ -156,9 +163,36 @@ export function AuditTrailPage() {
                 </span>
               </span>
             </p>
-            <address className="m-0 flex items-center gap-2 rounded-xl border border-border-subtle bg-surface-container-low px-3.5 py-2 text-xs font-medium not-italic text-on-surface-variant">
+            <address className="m-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-subtle bg-surface-container-low px-3.5 py-2 text-xs font-medium not-italic text-on-surface-variant">
               <MaterialIcon name="route" className="text-[16px]" /> Hub Jak-Sel
               &rarr; Jl. Senopati No. 42
+              <span className="ml-1 flex items-center gap-1.5 border-l border-border-subtle pl-2">
+                <MaterialIcon
+                  name="markunread_mailbox"
+                  className="text-[15px] text-brand-magenta"
+                />
+                {postal.isLoading ? (
+                  <span className="inline-flex items-center gap-1 text-on-surface-variant/70">
+                    <Spinner /> Mencari kode pos...
+                  </span>
+                ) : postal.isError ? (
+                  <Button
+                    variant="text"
+                    className="text-[11px]"
+                    onClick={postal.reload}
+                  >
+                    Kode pos gagal dimuat &bull; Coba lagi
+                  </Button>
+                ) : postal.data?.[0] ? (
+                  <span className="tabular-nums font-semibold text-on-surface">
+                    Kode pos {postal.data[0].code}
+                  </span>
+                ) : (
+                  <span className="text-on-surface-variant/70">
+                    Kode pos tidak ditemukan
+                  </span>
+                )}
+              </span>
             </address>
           </section>
         </article>
@@ -243,10 +277,22 @@ export function AuditTrailPage() {
             </header>
             <section className="flex flex-col items-start gap-5 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4 sm:flex-row sm:items-center">
               <figure className="relative m-0 grid h-28 w-40 shrink-0 place-items-center overflow-hidden rounded-lg border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
-                <MaterialIcon
-                  name="photo_camera"
-                  className="text-[28px] text-white/25"
-                />
+                {proofPhoto.data &&
+                !proofPhoto.isLoading &&
+                !proofPhoto.isError ? (
+                  <img
+                    src={proofPhoto.data}
+                    alt="Foto bukti serah terima"
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                ) : proofPhoto.isLoading ? (
+                  <Spinner className="text-white/60" />
+                ) : (
+                  <MaterialIcon
+                    name="photo_camera"
+                    className="text-[28px] text-white/25"
+                  />
+                )}
                 <figcaption className="tabular-nums absolute bottom-1.5 right-1.5 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
                   14:31 WIB
                 </figcaption>
