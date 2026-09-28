@@ -46,6 +46,7 @@ export interface CourierNavItem {
 export const COURIER_NAV_ITEMS: CourierNavItem[] = [
   { label: "Tugas", icon: "local_shipping", to: "/courier/tugas" },
   { label: "Verifikasi", icon: "verified", to: "/courier/verifikasi" },
+  { label: "Resi", icon: "package_2", to: "/shipments" },
   { label: "Riwayat", icon: "history", to: "#", stub: true },
   { label: "Profil", icon: "person", to: "#", stub: true },
 ];
