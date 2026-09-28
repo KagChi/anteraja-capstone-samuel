@@ -6,6 +6,37 @@ export interface Session {
   at: number;
 }
 
+export interface AsyncResource<T> {
+  data: T | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  reload: () => void;
+}
+
+export interface Province {
+  id: string;
+  name: string;
+}
+
+export interface Regency {
+  id: string;
+  province_id: string;
+  name: string;
+}
+
+export interface PostalResult {
+  code: number;
+  village: string;
+  district: string;
+  regency: string;
+  province: string;
+  latitude: number;
+  longitude: number;
+  elevation: number;
+  timezone: string;
+}
+
 export type ServiceSegment = "instant" | "sameday" | "regular";
 
 export type TaskCategory = "instant" | "sameday";
@@ -42,6 +73,7 @@ export interface DeliveryRow {
   statusTone: StatusTone;
   region: "jaksel" | "jakpus";
   regionLabel: string;
+  regencyId?: string;
   href: string;
   highlight?: boolean;
 }
