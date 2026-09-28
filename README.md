@@ -195,6 +195,90 @@ prop drilling.
 | `feat(ui)` | avatar, POD, wilayah, dan kode pos pada layar yang sudah ada |
 | `docs(readme)` | bagian ini |
 
+## SPA Routing — React Router (branch `8-react`)
+
+Seluruh navigasi berjalan di sisi klien (`react-router-dom`) tanpa *full page
+reload*. `BrowserRouter` dipasang sekali di `App.tsx`; perpindahan antar layar
+memakai `<Link>`/`<NavLink>` dan `useNavigate`.
+
+### Route Map
+
+| Path | Halaman | Layout | Catatan |
+|---|---|---|---|
+| `/` | `LandingPage` | — | pemilih peran + dialog login |
+| `/courier/tugas` | `TugasPage` | `MainLayout` | daftar tugas kurir |
+| `/courier/verifikasi` | `VerifikasiPage` | `MainLayout` | geofence + PIN |
+| `/courier/bukti-foto` | `BuktiFotoPage` | `MainLayout` (fullscreen) | chrome disembunyikan untuk kamera |
+| `/courier/sukses` | `SuksesPage` | `MainLayout` | konfirmasi sukses |
+| `/shipments` | `ShipmentListPage` | `MainLayout` | daftar + pelacakan resi |
+| `/shipments/:id` | `ShipmentDetailPage` | `MainLayout` | **dynamic route** (`useParams`) |
+| `*` | `NotFoundPage` | `MainLayout` | fallback 404 |
+| `/admin/*` | dashboard, audit, antrian, pengecualian, radius | `AdminLayout` | konsol desktop (sidebar) |
+
+```text
+<BrowserRouter>
+  <ScrollToTop />
+  <Routes>
+    <Route path="/" element={<LandingPage />} />
+    <Route element={<MainLayout />}>            ← persistent Header + Footer + <Outlet/>
+      <Route path="/courier/tugas"  element={<TugasPage />} />
+      <Route path="/courier/verifikasi" element={<VerifikasiPage />} />
+      <Route path="/courier/bukti-foto" element={<BuktiFotoPage />} />
+      <Route path="/courier/sukses" element={<SuksesPage />} />
+      <Route path="/shipments"      element={<ShipmentListPage />} />
+      <Route path="/shipments/:id"  element={<ShipmentDetailPage />} />
+      <Route path="*"               element={<NotFoundPage />} />
+    </Route>
+    <Route path="/admin" element={<AdminLayout />}> … </Route>
+  </Routes>
+</BrowserRouter>
+```
+
+### Persistent Layout (`src/components/layout/MainLayout.tsx`)
+
+`MainLayout` adalah *layout route* tanpa `path` yang merender Header (brand,
+judul halaman, tombol kembali, avatar) dan Footer (bottom nav via `NavLink`)
+**sekali**, lalu menampilkan halaman aktif lewat `<Outlet/>`. Karena Header dan
+Footer tidak berada di dalam komponen halaman, keduanya tidak ikut ter-*remount*
+saat navigasi. Rute `/courier/bukti-foto` adalah pengecualian: `MainLayout`
+melewatkan chrome agar tampilan kamera tetap fullscreen.
+
+### Dynamic Route Parameters
+
+`ShipmentDetailPage` mengekstrak `:id` dengan `useParams`, lalu mencarinya di
+`ShipmentContext` (`getShipmentById`) — bukan lagi prop drilling:
+
+```tsx
+const { id = "" } = useParams<{ id: string }>();
+const { getShipmentById } = useShipmentContext();
+const shipment = getShipmentById(id);
+
+if (!shipment) return <NotifikasiResiTidakDitemukan />;  // tidak crash
+```
+
+Bila nomor resi tidak terdaftar (mis. mengetik `/shipments/XXX` langsung di
+address bar), halaman menampilkan state **"Resi tidak ditemukan"** beserta tautan
+kembali ke `/shipments`; URL yang tidak dikenali sama sekali diarahkan ke
+`NotFoundPage` (404).
+
+### Navigasi Programmatic
+
+`useNavigate` dipakai setelah aksi pengguna:
+
+- `ShipmentListPage` / `NotFoundPage` — submit form "Lacak" → `navigate("/shipments/" + id)`.
+- `TugasPage` — "Pindai Resi Manual" → membuka detail resi secara otomatis.
+
+### Commit modular
+
+| Commit | Isi |
+|---|---|
+| `feat(context)` | centralize shipments + `getShipmentById` |
+| `feat(shipments)` | halaman daftar resi mobile (`Link`) |
+| `feat(shipments)` | halaman detail dinamis (`useParams`) + state tidak ditemukan |
+| `refactor(layout)` | `MainLayout` + `CourierBottomNav` berbasis `NavLink` |
+| `refactor(courier)` | seluruh layar kurir memakai shell persisten |
+| `docs(readme)` | bagian ini |
+
 ## Stack
 
 - **Runtime/build:** Bun + Vite
