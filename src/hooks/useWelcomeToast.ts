@@ -9,8 +9,8 @@ export function useWelcomeToast(name: string): void {
 
   useEffect(() => {
     if (!session || shown.current) return;
-    shown.current = true;
     const timer = window.setTimeout(() => {
+      shown.current = true;
       show(`Halo, ${name}! Selamat bekerja.`);
     }, 350);
     return () => window.clearTimeout(timer);
