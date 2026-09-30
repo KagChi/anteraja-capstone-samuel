@@ -1,8 +1,7 @@
-import { Link, router } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
 import { useRef, useState } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { Button } from "../Components/ui/Button";
-import { useSession } from "../Contexts/SessionContext";
 import { useSeo } from "../Hooks/useSeo";
 import type { Role } from "../types";
 
@@ -16,24 +15,23 @@ const LABELS: Record<Role, string> = {
   admin: "Konsol Admin / Hub",
 };
 
-const DEFAULTS: Record<Role, string> = {
-  courier: "Satria",
-  admin: "Hub Admin Ops",
+const CREDENTIALS: Record<Role, { email: string; password: string }> = {
+  courier: { email: "budi.pratama@anteraja.example.com", password: "password" },
+  admin: { email: "windy.kusuma@anteraja.example.com", password: "password" },
 };
 
 export function LandingPage() {
   useSeo("/");
-  const { login } = useSession();
+  const form = useForm({ email: "", password: "" });
 
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [role, setRole] = useState<Role>("courier");
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
 
   function open(selected: Role) {
     setRole(selected);
-    setName("");
+    form.setData(CREDENTIALS[selected]);
+    form.clearErrors();
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (typeof dialog.showModal === "function") {
@@ -48,15 +46,11 @@ export function LandingPage() {
     dialogRef.current?.close();
   }
 
-  function submit() {
-    if (busy) return;
-    const typed = name.trim();
-    const resolved = typed || DEFAULTS[role];
-    login(role, resolved);
-    setBusy(true);
-    window.setTimeout(() => {
-      router.visit(TARGETS[role]);
-    }, 900);
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    form.post("/login", {
+      onFinish: () => form.reset("password"),
+    });
   }
 
   return (
@@ -326,10 +320,7 @@ export function LandingPage() {
           id="login-form"
           autoComplete="off"
           noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            submit();
-          }}
+          onSubmit={submit}
         >
           <header className="flex items-start justify-between gap-4 border-b border-border-subtle p-5">
             <section className="flex items-center gap-3">
@@ -366,26 +357,50 @@ export function LandingPage() {
             <p className="m-0">
               <label
                 className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
-                htmlFor="login-name"
+                htmlFor="login-email"
               >
-                Nama / Username
+                Email
               </label>
               <input
                 ref={inputRef}
                 className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
-                id="login-name"
-                name="username"
-                type="text"
+                id="login-email"
+                name="email"
+                type="email"
                 autoComplete="username"
-                placeholder={DEFAULTS[role]}
                 required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
+                value={form.data.email}
+                onChange={(event) => form.setData("email", event.target.value)}
               />
             </p>
+            <p className="m-0">
+              <label
+                className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
+                htmlFor="login-password"
+              >
+                Kata Sandi
+              </label>
+              <input
+                className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={form.data.password}
+                onChange={(event) =>
+                  form.setData("password", event.target.value)
+                }
+              />
+            </p>
+            {form.errors.email ? (
+              <p className="m-0 text-[12px] text-alert-amber">
+                {form.errors.email}
+              </p>
+            ) : null}
             <p className="text-[12px] leading-relaxed text-on-surface-variant m-0">
-              Identitas ini dipakai untuk menampilkan sapaan di halaman tujuan.
-              Tidak ada data yang dikirim ke server.
+              Kredensial dikirim ke server untuk membuat sesi. Lihat akun demo
+              di halaman masuk.
             </p>
           </section>
           <footer className="flex items-center justify-end gap-3 border-t border-border-subtle bg-surface-container-low/40 p-5">
@@ -394,9 +409,9 @@ export function LandingPage() {
               id="btn-login"
               type="submit"
               className="min-w-[7rem]"
-              busy={busy}
+              busy={form.processing}
               busyText="Menghubungkan..."
-              disabled={busy}
+              disabled={form.processing}
             >
               <MaterialIcon name="login" className="text-[18px]" /> Masuk
             </Button>

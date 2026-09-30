@@ -1,5 +1,12 @@
 export type Role = "courier" | "admin";
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+}
+
 export interface Session {
   role: Role;
   name: string;

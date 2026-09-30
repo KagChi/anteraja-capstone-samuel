@@ -52,7 +52,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { url } = usePage();
   const pathname = url.split("?")[0];
-  const { session } = useSession();
+  const { session, logout } = useSession();
   const { courierAvatar } = useShipmentContext();
   const [open, setOpen] = useState(false);
 
@@ -218,6 +218,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <MaterialIcon name="swap_horiz" className="text-[16px]" /> Mode
                 Kurir
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                className="hidden sm:inline-flex"
+                onClick={logout}
+              >
+                <MaterialIcon name="logout" className="text-[16px]" /> Keluar
               </Button>
               <Avatar
                 name={name}

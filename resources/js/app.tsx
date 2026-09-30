@@ -3,7 +3,6 @@ import { createInertiaApp, router } from "@inertiajs/react";
 import type { ComponentType } from "react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { SessionProvider } from "./Contexts/SessionContext";
 import { ShipmentProvider } from "./Contexts/ShipmentContext";
 import { ToastProvider } from "./Contexts/ToastContext";
 
@@ -29,13 +28,11 @@ createInertiaApp({
   setup({ el, App, props }) {
     createRoot(el).render(
       <StrictMode>
-        <SessionProvider>
-          <ToastProvider>
-            <ShipmentProvider>
-              <App {...props} />
-            </ShipmentProvider>
-          </ToastProvider>
-        </SessionProvider>
+        <ToastProvider>
+          <ShipmentProvider>
+            <App {...props} />
+          </ShipmentProvider>
+        </ToastProvider>
       </StrictMode>,
     );
   },

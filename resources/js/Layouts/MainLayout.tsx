@@ -1,6 +1,7 @@
 import { Link, usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
+import { useSession } from "../Contexts/SessionContext";
 
 interface RouteMeta {
   title: string;
@@ -25,6 +26,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { url } = usePage();
+  const { session, logout } = useSession();
   const pathname = url.split("?")[0];
   const { title, back } = resolveMeta(pathname);
 
@@ -89,6 +91,17 @@ export function MainLayout({ children }: MainLayoutProps) {
               );
             })}
           </nav>
+
+          {session ? (
+            <button
+              type="button"
+              onClick={logout}
+              className="ml-1 grid size-8 place-items-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
+              aria-label="Keluar"
+            >
+              <MaterialIcon name="logout" className="text-[18px]" />
+            </button>
+          ) : null}
         </div>
       </header>
 
