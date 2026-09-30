@@ -13,7 +13,9 @@
       "!**/node_modules",
       "!composer.json",
       "!composer.lock",
-      "!bun.lock"
+      "!bun.lock",
+      "!**/test-results",
+      "!**/playwright-report"
     ]
   },
   "formatter": {

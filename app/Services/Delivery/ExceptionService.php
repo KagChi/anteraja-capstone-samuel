@@ -45,7 +45,7 @@ class ExceptionService
 
         $exception->update(['event_id' => $event->id]);
 
-        return $exception;
+        return $exception->refresh();
     }
 
     public function decide(DeliveryException $exception, Admin $admin, string $decision, ?string $note = null): DeliveryException

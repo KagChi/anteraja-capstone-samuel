@@ -1,4 +1,6 @@
-import { router, usePage } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
+import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 import type { AuthUser, Session } from "../types";
 
 interface SessionContextValue {
@@ -7,17 +9,30 @@ interface SessionContextValue {
   logout: () => void;
 }
 
+const AuthUserContext = createContext<AuthUser | null>(null);
+
 /**
- * Reads the authenticated actor shared by `HandleInertiaRequests`.
+ * Holds the authenticated actor shared by `HandleInertiaRequests`.
  *
- * `usePage()` is only available inside the Inertia `App`, so this is a plain
- * hook rather than a React context provider.
+ * The user comes from the initial page props so the provider can sit above
+ * the Inertia `App` (which owns `usePage`).
  */
+export function AuthProvider({
+  initialUser,
+  children,
+}: {
+  initialUser: AuthUser | null;
+  children: ReactNode;
+}) {
+  return (
+    <AuthUserContext.Provider value={initialUser}>
+      {children}
+    </AuthUserContext.Provider>
+  );
+}
+
 export function useSession(): SessionContextValue {
-  const page = usePage();
-  const auth = (page.props as { auth?: { user: AuthUser | null } | undefined })
-    .auth;
-  const user = auth?.user ?? null;
+  const user = useContext(AuthUserContext);
 
   const session: Session | null = user
     ? { role: user.role, name: user.name, at: 0 }

@@ -7,6 +7,8 @@
     "build": "vite build",
     "typecheck": "tsc -b",
     "lint": "biome check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
   },
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/vite": "^4.0.0",
     "@types/leaflet": "^1.9.22",
@@ -29,6 +32,7 @@
     "laravel-vite-plugin": "^2.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^6.0.3",
-    "vite": "^7.0.7"
+    "vite": "^7.0.7",
+    "vitest": "^5.0.2"
   }
 }

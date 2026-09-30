@@ -43,3 +43,6 @@ Thumbs.db
 # Homestead
 Homestead.json
 Homestead.yaml
+/test-results
+/playwright-report
+/playwright/.cache
