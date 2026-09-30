@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ApiExceptionRenderer;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -23,5 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $envelope = new ApiExceptionRenderer;
+        $envelope->register($exceptions);
     })->create();

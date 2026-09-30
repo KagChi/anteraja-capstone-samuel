@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Support\Geo\Point;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Shipment extends Model
 {
@@ -92,5 +94,25 @@ class Shipment extends Model
     public function scopeForCourier($query, string $courierId)
     {
         return $query->where('courier_id', $courierId);
+    }
+
+    public function scopeWithPresentation($query)
+    {
+        return $query->with([
+            'courier', 'recipient', 'serviceArea', 'activeGeofence',
+            'pinChallenge', 'deliveryEvents', 'deliveryProofs',
+            'deliveryExceptions', 'anomalyFlags',
+        ]);
+    }
+
+    public function scopeWithDestinationCoordinates($query)
+    {
+        [$lat, $lng] = Point::latLngExpression('destination');
+
+        return $query->addSelect(
+            'shipments.*',
+            DB::raw($lat.' as destination_lat'),
+            DB::raw($lng.' as destination_lng'),
+        );
     }
 }
