@@ -2,116 +2,64 @@
 
 declare(strict_types=1);
 
-require __DIR__.'/../src/lib/response.php';
-require __DIR__.'/../src/data/shipments.php';
-require __DIR__.'/../src/data/shipment-details.php';
-require __DIR__.'/../src/data/tasks.php';
-require __DIR__.'/../src/data/exceptions.php';
-require __DIR__.'/../src/data/radius.php';
-require __DIR__.'/../src/data/dashboard.php';
-require __DIR__.'/../src/shipping-calculator.php';
+/**
+ * Front controller API — titik komposisi (composition root).
+ *
+ * Semua dependensi class disusun di sini, lalu Router memetakan path ke
+ * method controller. Skema JSON respons dipertahankan sama seperti sebelumnya.
+ */
 
-cors();
+require __DIR__.'/../src/bootstrap.php';
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$path = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
-$path = rtrim($path, '/');
-if ($path === '') {
-    $path = '/';
-}
+use Anteraja\Controllers\DashboardController;
+use Anteraja\Controllers\ExceptionController;
+use Anteraja\Controllers\HealthController;
+use Anteraja\Controllers\QuoteController;
+use Anteraja\Controllers\RadiusController;
+use Anteraja\Controllers\ShipmentController;
+use Anteraja\Controllers\TaskController;
+use Anteraja\Http\Request;
+use Anteraja\Http\Response;
+use Anteraja\Http\Router;
+use Anteraja\Repositories\DashboardRepository;
+use Anteraja\Repositories\ExceptionRepository;
+use Anteraja\Repositories\RadiusRepository;
+use Anteraja\Repositories\ShipmentRepository;
+use Anteraja\Repositories\TaskRepository;
+use Anteraja\Services\ShippingCalculator;
 
-if ($method !== 'GET') {
-    json(['error' => 'Metode tidak diizinkan'], 405);
-}
+Response::cors();
 
-// GET /api/health
-if ($path === '/api/health' || $path === '/') {
-    json([
-        'status' => 'ok',
-        'service' => 'anteraja-dummy-api',
-        'time' => date(DATE_ATOM),
-    ]);
-}
+// --- Composition root --------------------------------------------------------
+$shipments = new ShipmentRepository();
 
-// GET /api/shipments
-if ($path === '/api/shipments') {
-    $rows = shipments_all();
-    json([
-        'data' => $rows,
-        'meta' => ['total' => count($rows)],
-    ]);
-}
+$healthController = new HealthController();
+$shipmentController = new ShipmentController($shipments);
+$taskController = new TaskController(new TaskRepository());
+$exceptionController = new ExceptionController(new ExceptionRepository());
+$radiusController = new RadiusController(new RadiusRepository());
+$dashboardController = new DashboardController(new DashboardRepository($shipments));
+$quoteController = new QuoteController(new ShippingCalculator());
 
-// GET /api/shipments/{id}
-if (preg_match('#^/api/shipments/([^/]+)$#', $path, $matches) === 1) {
-    $row = shipments_find(rawurldecode($matches[1]));
-    if ($row === null) {
-        json(['error' => 'Resi tidak ditemukan'], 404);
-    }
-    json([
-        'data' => $row,
-        'detail' => shipment_detail((string) $row['tracking']),
-    ]);
-}
+// --- Rute --------------------------------------------------------------------
+$router = new Router();
 
-// GET /api/shipping/quote?weight=&distance=
-if ($path === '/api/shipping/quote') {
-    $weight = isset($_GET['weight']) && is_numeric($_GET['weight'])
-        ? (float) $_GET['weight']
-        : null;
-    $distance = isset($_GET['distance']) && is_numeric($_GET['distance'])
-        ? (float) $_GET['distance']
-        : null;
+$router->get('/api/health', [$healthController, 'index']);
+$router->get('/', [$healthController, 'index']);
 
-    if ($weight === null || $distance === null) {
-        json(['error' => 'Parameter weight dan distance wajib berupa angka'], 422);
-    }
+$router->get('/api/shipments', [$shipmentController, 'index']);
+$router->get('/api/shipments/{id}', [$shipmentController, 'show']);
 
-    try {
-        json(['data' => quoteShipment($weight, $distance)]);
-    } catch (InvalidArgumentException $exception) {
-        json(['error' => $exception->getMessage()], 422);
-    }
-}
+$router->get('/api/shipping/quote', [$quoteController, 'index']);
 
-// GET /api/dashboard
-if ($path === '/api/dashboard') {
-    json(['data' => dashboard_summary()]);
-}
+$router->get('/api/dashboard', [$dashboardController, 'index']);
 
-// GET /api/tasks
-if ($path === '/api/tasks') {
-    $tasks = tasks_all();
-    json(['data' => $tasks, 'meta' => ['total' => count($tasks)]]);
-}
+$router->get('/api/tasks', [$taskController, 'index']);
+$router->get('/api/tasks/{tracking}', [$taskController, 'show']);
 
-// GET /api/tasks/{tracking}
-if (preg_match('#^/api/tasks/([^/]+)$#', $path, $matches) === 1) {
-    $task = tasks_find(rawurldecode($matches[1]));
-    if ($task === null) {
-        json(['error' => 'Tugas tidak ditemukan'], 404);
-    }
-    json(['data' => $task]);
-}
+$router->get('/api/exceptions', [$exceptionController, 'index']);
+$router->get('/api/exceptions/{id}', [$exceptionController, 'show']);
 
-// GET /api/exceptions
-if ($path === '/api/exceptions') {
-    $rows = exceptions_all();
-    json(['data' => $rows, 'meta' => ['total' => count($rows)]]);
-}
+$router->get('/api/radius-segments', [$radiusController, 'index']);
 
-// GET /api/exceptions/{id}
-if (preg_match('#^/api/exceptions/([^/]+)$#', $path, $matches) === 1) {
-    $row = exceptions_find(rawurldecode($matches[1]));
-    if ($row === null) {
-        json(['error' => 'Pengecualian tidak ditemukan'], 404);
-    }
-    json(['data' => $row]);
-}
-
-// GET /api/radius-segments
-if ($path === '/api/radius-segments') {
-    json(['data' => radius_segments(), 'meta' => radius_meta()]);
-}
-
-json(['error' => 'Endpoint tidak ditemukan', 'path' => $path], 404);
+$router->dispatch(Request::fromGlobals());
