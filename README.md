@@ -4,14 +4,14 @@ Capstone prototype for **Anteraja Instant**: a courier (Satria) PWA and an
 Admin/Hub console that verify delivery integrity with geofencing, recipient
 PIN, time-stamped proof-of-delivery (POD) and an auditable exception queue.
 
-The app is a Laravel 12 + Inertia.js v2 + React 19 + TypeScript monolith
+The app is a Laravel 13 + Inertia.js v2 + React 19 + TypeScript monolith
 backed by PostgreSQL/PostGIS.
 
 ## Stack
 
 | Layer      | Choice                                              |
 | ---------- | --------------------------------------------------- |
-| Backend    | Laravel 12 (PHP 8.3+), Eloquent, raw PostGIS SQL    |
+| Backend    | Laravel 13 (PHP 8.3+), Eloquent, raw PostGIS SQL    |
 | Frontend   | Inertia.js v2, React 19, TypeScript, Tailwind v4    |
 | Database   | PostgreSQL 16 + PostGIS 3.4 (Supabase-compatible)   |
 | Tooling    | Vite 7, Biome, Vitest, Playwright, PHPUnit, Pint    |
