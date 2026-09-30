@@ -50,8 +50,10 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { url } = usePage();
+  const { url, props } = usePage();
   const pathname = url.split("?")[0];
+  const pendingExceptions =
+    (props as { pendingExceptions?: number }).pendingExceptions ?? 0;
   const { session, logout } = useSession();
   const { courierAvatar } = useShipmentContext();
   const [open, setOpen] = useState(false);
@@ -119,6 +121,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <ul className="m-0 list-none space-y-1 p-0">
                   {group.items.map((item) => {
                     const isActive = item.to === crumb.activeNav;
+                    const badge =
+                      item.to === "/admin/antrian-pengecualian"
+                        ? pendingExceptions
+                        : 0;
                     return (
                       <li key={item.to}>
                         <Link
@@ -135,9 +141,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                             className="text-[20px]"
                           />
                           {item.label}
-                          {item.badge ? (
+                          {badge > 0 ? (
                             <span className="ml-auto rounded-full bg-alert-amber/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
-                              {item.badge}
+                              {badge}
                             </span>
                           ) : null}
                         </Link>

@@ -2,7 +2,6 @@ export interface AdminNavItem {
   label: string;
   icon: string;
   to: string;
-  badge?: string;
 }
 
 export interface AdminNavGroup {
@@ -19,7 +18,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Antrian Pengecualian",
         icon: "approval",
         to: "/admin/antrian-pengecualian",
-        badge: "4",
       },
     ],
   },

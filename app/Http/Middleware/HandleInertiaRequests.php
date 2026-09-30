@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\DeliveryException;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -51,6 +52,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'pendingExceptions' => fn () => $user?->isAdmin()
+                ? DeliveryException::query()->where('status', 'pending')->count()
+                : 0,
         ];
     }
 }
