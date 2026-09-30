@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **MCP** | Supabase (PostGIS) · Google Maps · Chrome DevTools |
+| **MCP** | PostgreSQL + PostGIS (Supabase) · Leaflet/OSM · Chrome DevTools |
 | **Tingkat** | ★★★ |
 | **Skill** | `feature-geofencing-lock` |
 
@@ -28,8 +28,8 @@ Tombol "Selesai" pada aplikasi kurir hanya aktif bila posisi GPS kurir berada di
 
 | MCP | Dipakai agent untuk | Output |
 |---|---|---|
-| Supabase (PostGIS) | Membuat kolom `geography`, index GiST, fungsi evaluasi radius, dan uji query jarak. | Migrasi + hasil query jarak |
-| Google Maps | Mengubah alamat tujuan menjadi koordinat yang dipakai sebagai pusat geofence. | Titik tujuan ter-geocode |
+| PostgreSQL + PostGIS (Supabase) | Membuat kolom `geography`, index GiST, fungsi evaluasi radius, dan uji query jarak. | Migrasi + hasil query jarak |
+| Nominatim | Mengubah alamat tujuan menjadi koordinat yang dipakai sebagai pusat geofence. | Titik tujuan ter-geocode |
 | Chrome DevTools | Menjalankan aplikasi dengan posisi GPS di dalam dan di luar radius. | Rekaman dua skenario |
 
 ## 4. Functional Requirements
@@ -67,9 +67,9 @@ Tabel `geofences`, `delivery_events`, dan `shipments` mengikuti kamus data di PR
 
 ## 8. Verifikasi via MCP
 
-- [ ] **Supabase (PostGIS):** hasil query `ST_Distance` untuk beberapa koordinat uji terhadap radius.
-- [ ] **Supabase (PostGIS):** isi `delivery_events` setelah percobaan lulus dan gagal.
-- [ ] **Google Maps:** titik tujuan hasil geocoding yang dipakai sebagai pusat geofence.
+- [ ] **PostgreSQL + PostGIS:** hasil query `ST_Distance` untuk beberapa koordinat uji terhadap radius.
+- [ ] **PostgreSQL + PostGIS:** isi `delivery_events` setelah percobaan lulus dan gagal.
+- [ ] **Nominatim:** titik tujuan hasil geocoding yang dipakai sebagai pusat geofence.
 - [ ] **Chrome DevTools:** rekaman skenario dalam radius dan di luar radius.
 - [ ] Bukti tiap keputusan di `decisions.md`.
 
@@ -77,4 +77,4 @@ Tabel `geofences`, `delivery_events`, dan `shipments` mengikuti kamus data di PR
 Pelacakan GPS berkelanjutan, peta real-time untuk pembeli, deteksi spoofing GPS tingkat lanjut.
 
 ## 10. Catatan untuk Agent
-- File: `app/courier/`, `app/api/v1/courier/shipments/`, `components/geofence/`, `lib/geo/distance.ts`, `lib/geo/geofence.ts`.
+- File: `app/Http/Controllers/Courier/`, `routes/api.php`, `resources/js/Components/geofence/`, `app/Support/Geo/Distance.php`, `app/Support/Geo/Geofence.php`.

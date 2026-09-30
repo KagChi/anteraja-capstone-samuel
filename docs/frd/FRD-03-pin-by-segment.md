@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **MCP** | Supabase · Resend · Chrome DevTools |
+| **MCP** | PostgreSQL (Supabase) · Laravel Mail · Chrome DevTools |
 | **Tingkat** | ★★★ |
 | **Skill** | `feature-pin-by-segment` |
 
@@ -28,8 +28,8 @@ Pengiriman pada segmen **Instant** dan **Same-day** mewajibkan PIN yang dikirim 
 
 | MCP | Dipakai agent untuk | Output |
 |---|---|---|
-| Supabase | Membuat tabel `pin_challenges`, policy akses, dan uji hash PIN. | Migrasi + baris uji |
-| Resend | Mengirim email PIN uji ke penerima. | Email PIN |
+| PostgreSQL (Supabase) | Membuat tabel `pin_challenges`, query scope, dan uji hash PIN. | Migrasi + baris uji |
+| Laravel Mail | Mengirim email PIN uji ke penerima. | Email PIN |
 | Chrome DevTools | Menjalankan alur kirim PIN → masukkan → verifikasi/gagal. | Rekaman alur PIN |
 
 ## 4. Functional Requirements
@@ -68,8 +68,8 @@ Tabel `pin_challenges` mengikuti kamus data di PRD. Rancangan mekanisme pengirim
 
 ## 8. Verifikasi via MCP
 
-- [ ] **Supabase:** baris `pin_challenges` untuk skenario sukses, gagal, kedaluwarsa, dan `locked`; pastikan tidak ada PIN mentah tersimpan.
-- [ ] **Resend:** email PIN uji yang terkirim ke penerima.
+- [ ] **PostgreSQL:** baris `pin_challenges` untuk skenario sukses, gagal, kedaluwarsa, dan `locked`; pastikan tidak ada PIN mentah tersimpan.
+- [ ] **Laravel Mail:** email PIN uji yang terkirim ke penerima.
 - [ ] **Chrome DevTools:** rekaman alur tiba → kirim PIN → masukkan → verifikasi, termasuk kasus gagal.
 - [ ] Bukti tiap keputusan di `decisions.md`.
 
@@ -77,4 +77,4 @@ Tabel `pin_challenges` mengikuti kamus data di PRD. Rancangan mekanisme pengirim
 PIN lewat SMS/WhatsApp produksi, PIN berbasis biometrik, PIN yang dipilih sendiri penerima.
 
 ## 10. Catatan untuk Agent
-- File: `app/courier/pin/`, `app/api/v1/courier/shipments/`, `app/api/v1/admin/pins/`, `components/pin/`, `lib/integrations/resend/`, `lib/pin.ts`.
+- File: `app/Http/Controllers/Courier/`, `routes/api.php`, `app/Http/Controllers/Admin/`, `resources/js/Components/pin/`, `app/Services/PinService.php`.

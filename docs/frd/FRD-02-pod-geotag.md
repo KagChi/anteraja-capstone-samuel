@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **MCP** | Supabase (PostGIS, Storage) · Google Maps · Chrome DevTools |
+| **MCP** | PostgreSQL + PostGIS (Supabase), Storage · Nominatim · Chrome DevTools |
 | **Tingkat** | ★★ |
 | **Skill** | `feature-pod-geotag` |
 
@@ -28,9 +28,9 @@ Foto bukti pengiriman (Proof of Delivery) diambil lewat kamera dalam aplikasi da
 
 | MCP | Dipakai agent untuk | Output |
 |---|---|---|
-| Supabase (Storage) | Membuat bucket privat, policy akses, dan mengunggah foto uji. | Objek foto + URL bertanda tangan |
-| Supabase (PostGIS) | Menyimpan titik POD dan menghitung jarak ke tujuan. | Baris `delivery_proofs` + jarak |
-| Google Maps | Menghasilkan alamat dari koordinat POD (reverse geocoding) untuk watermark. | Alamat pada watermark |
+| Storage (Laravel filesystem) | Membuat disk privat, policy akses, dan mengunggah foto uji. | Objek foto + URL bertanda tangan |
+| PostgreSQL + PostGIS (Supabase) | Menyimpan titik POD dan menghitung jarak ke tujuan. | Baris `delivery_proofs` + jarak |
+| Nominatim | Menghasilkan alamat dari koordinat POD (reverse geocoding) untuk watermark. | Alamat pada watermark |
 | Chrome DevTools | Menjalankan pengambilan foto dan memeriksa hasil watermark. | Rekaman + tangkapan foto |
 
 ## 4. Functional Requirements
@@ -68,9 +68,9 @@ Tabel `delivery_proofs` mengikuti kamus data di PRD. Rancangan kolom tambahan un
 
 ## 8. Verifikasi via MCP
 
-- [ ] **Supabase (Storage):** objek foto uji dan URL bertanda tangan yang bekerja lalu kedaluwarsa.
-- [ ] **Supabase (PostGIS):** baris `delivery_proofs` dengan koordinat dan jarak.
-- [ ] **Google Maps:** hasil reverse geocoding yang tampil di watermark.
+- [ ] **Storage (Laravel filesystem):** objek foto uji dan URL bertanda tangan yang bekerja lalu kedaluwarsa.
+- [ ] **PostgreSQL + PostGIS:** baris `delivery_proofs` dengan koordinat dan jarak.
+- [ ] **Nominatim:** hasil reverse geocoding yang tampil di watermark.
 - [ ] **Chrome DevTools:** tangkapan foto beserta watermark dan percobaan galeri yang diblokir.
 - [ ] Bukti tiap keputusan di `decisions.md`.
 
@@ -78,4 +78,4 @@ Tabel `delivery_proofs` mengikuti kamus data di PRD. Rancangan kolom tambahan un
 Pengenalan wajah penerima, tanda tangan digital, verifikasi keaslian foto tingkat forensik.
 
 ## 10. Catatan untuk Agent
-- File: `app/courier/pod/`, `app/api/v1/courier/shipments/`, `components/pod/`, `lib/integrations/storage/`, `lib/geo/reverse.ts`.
+- File: `app/Http/Controllers/Courier/`, `routes/api.php`, `resources/js/Components/pod/`, `app/Integrations/Storage/`, `app/Support/Geo/Reverse.php`.

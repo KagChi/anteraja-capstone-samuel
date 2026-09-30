@@ -8,7 +8,7 @@ Modul verifikasi pengiriman *last-mile* untuk layanan **Anteraja Instant** dan *
 
 Fokus MVP adalah integritas pengiriman, bukan pemetaan rute penuh. Posisi GPS kurir dibaca **saat aksi kunci terjadi** (misalnya menekan "Selesai"), bukan sebagai pelacakan *live* berkelanjutan.
 
-**Sudah ada di repo:** halaman HTML statis Anteraja (di branch `feat/quiz`, bukan bagian modul ini), struktur `src/` dan `docs/`.
+**Sudah ada di repo:** aplikasi Laravel 12 + Inertia.js + React 19 (branch `9-laravel`), unggahan HTML statis Anteraja (di branch `feat/quiz`, bukan bagian modul ini), skema basis data (branch `6-db`), dan struktur `docs/`.
 
 ## 2. Prinsip Produk
 
@@ -19,35 +19,44 @@ Fokus MVP adalah integritas pengiriman, bukan pemetaan rute penuh. Posisi GPS ku
 
 ## 3. Stack
 
-- Next.js (App Router) + TypeScript strict. Versi mengikuti `package.json`.
-- Tailwind CSS + shadcn/ui.
-- Supabase: Postgres + **PostGIS**, Auth, Storage, Edge Functions.
-- Google Maps Platform: Geocoding, Distance Matrix, Maps JavaScript SDK.
-- Zod untuk validasi input.
-- Vitest (unit) dan Playwright (e2e).
+- Laravel 12 (PHP 8.2+) + Inertia.js v2 + React 19 + TypeScript strict. Versi mengikuti `composer.json` dan `package.json`.
+- Tailwind CSS v4 + komponen UI repo di `resources/js/Components/`.
+- PostgreSQL + **PostGIS** (hosted Supabase), diakses lewat Eloquent. Auth sesi Laravel, Storage filesystem + signed URL, dan Queue/Job untuk proses asinkron.
+- Peta: Leaflet + OpenStreetMap (`react-leaflet`); reverse geocoding via Nominatim.
+- Validasi: Form Request/Validator Laravel (Zod opsional di klien).
+- Pest (unit/feature PHP), Vitest (unit), dan Playwright (e2e).
 
 ## 4. Struktur Folder
 
 ```
-app/                    # halaman
-app/api/v1/<resource>/  # route handler API
-components/<fitur>/     # komponen per fitur
-lib/                    # helper bersama
-lib/geo/                # helper geospasial (haversine, geofence, geohash)
-lib/integrations/<name>/# klien layanan pihak ketiga
-supabase/migrations/    # migrasi SQL
-supabase/functions/     # edge functions
+app/Http/Controllers/   # controller Inertia (web) + API
+app/Http/Middleware/    # guard peran (kurir/admin)
+app/Http/Requests/      # Form Request (validasi)
+app/Models/             # model Eloquent
+app/Services/           # logika domain (geofence, PIN, POD, matchmaking, audit)
+app/Support/Geo/        # helper geospasial (haversine, geofence, geohash)
+app/Support/Date.php    # zona waktu aplikasi (Asia/Jakarta)
+app/Integrations/<name>/# klien layanan pihak ketiga
+app/Jobs/               # pekerjaan antrean (mis. kirim PIN)
+resources/js/Pages/<fitur>/      # halaman Inertia (React)
+resources/js/Components/<fitur>/ # komponen per fitur
+resources/js/Layouts/            # layout persisten
+resources/css/app.css            # Tailwind + design token
+routes/web.php          # rute halaman (Inertia)
+routes/api.php          # rute /api/v1
+database/migrations/    # migrasi skema
+database/seeders/       # data contoh
 docs/                   # dokumen (PRD, FRD, data contoh)
 ```
 
-Fitur baru tidak mengubah file milik fitur lain. Helper baru dibuat sebagai file baru di `lib/`.
+Fitur baru tidak mengubah file milik fitur lain. Helper baru dibuat sebagai file baru di `app/Support/`.
 
 ## 5. Identitas Pengguna
 
 - Aktor modul ini adalah **Kurir (SATRIA)** dan **Admin/CS**, bukan pengguna publik.
-- Kurir aktif diambil **hanya** lewat `getCurrentCourier()` di `lib/auth.ts`. Return: `{ id, name, serviceAreaId, phone } | null`.
-- Admin/CS diambil lewat `getCurrentAdmin()` di `lib/auth.ts`. Return: `{ id, name, role } | null`.
-- Endpoint kurir dan endpoint admin dipisah dan masing-masing memverifikasi perannya.
+- Kurir aktif diambil **hanya** lewat `getCurrentCourier()` di `App\Support\Auth`. Return: `{ id, name, serviceAreaId, phone } | null`.
+- Admin/CS diambil lewat `getCurrentAdmin()` di `App\Support\Auth`. Return: `{ id, name, role } | null`.
+- Endpoint kurir dan endpoint admin dipisah dan masing-masing memverifikasi perannya lewat middleware.
 
 ## 6. Kamus Data (inti)
 
@@ -93,7 +102,7 @@ Fitur baru tidak mengubah file milik fitur lain. Helper baru dibuat sebagai file
 | id | uuid | PK |
 | shipment_id | uuid | FK shipments |
 | courier_id | uuid | FK couriers |
-| photo_path | text | path di Supabase Storage |
+| photo_path | text | path di Storage (filesystem Laravel) |
 | point | geography(Point,4326) | koordinat saat foto |
 | distance_to_destination_m | integer | |
 | captured_at | timestamptz | timestamp server |
@@ -129,40 +138,40 @@ Jenis layanan menentukan kebijakan PIN dan radius geofence. Lihat `docs/frd/` un
 ## 7. Koordinat & Waktu
 
 - Koordinat disimpan sebagai `geography(Point,4326)` (WGS84), bukan dua kolom float terpisah.
-- Jarak dihitung dengan `ST_Distance` di Postgres atau helper `haversineMeters()` di `lib/geo/distance.ts` untuk perhitungan di aplikasi.
+- Jarak dihitung dengan `ST_Distance` di Postgres atau helper `haversineMeters()` di `app/Support/Geo/Distance.php` untuk perhitungan di aplikasi.
 - Semua jarak dalam **meter** (integer).
-- Zona waktu aplikasi: **Asia/Jakarta**. Waktu disimpan `timestamptz` (UTC). Helper di `lib/date.ts`.
+- Zona waktu aplikasi: **Asia/Jakarta**. Waktu disimpan `timestamptz` (UTC). Helper di `app/Support/Date.php`.
 - Posisi klien **selalu** divalidasi ulang di server sebelum dipakai untuk keputusan verifikasi.
 
 ## 8. Kontrak API
 
-- Prefix `/api/v1/`.
+- Prefix `/api/v1/`, didefinisikan di `routes/api.php` (terpisah dari rute halaman Inertia di `routes/web.php`).
 - Sukses: `{ "success": true, "data": ..., "error": null }`
 - Gagal: `{ "success": false, "data": null, "error": { "code": "KODE", "message": "pesan untuk user" } }`
 - Endpoint kurir di `/api/v1/courier/...`, endpoint admin di `/api/v1/admin/...`.
 
 ## 9. Database
 
-- Satu perubahan skema = satu file migrasi di `supabase/migrations/`.
+- Database di-host Supabase (PostgreSQL + PostGIS). Satu perubahan skema = satu file migrasi di `database/migrations/` (Eloquent).
 - Tabel baru: `id uuid`, `created_at`, `updated_at` bila relevan.
-- Data milik kurir dilindungi RLS: kurir hanya membaca pengiriman yang ditugaskan kepadanya.
+- Data milik kurir dibatasi lewat Policy Laravel + query scope: kurir hanya membaca pengiriman yang ditugaskan kepadanya.
 - Query spasial memakai index GiST pada kolom `geography`.
 
 ## 10. Integrasi Pihak Ketiga
 
-- Klien integrasi di `lib/integrations/<name>/`, tidak dipanggil langsung dari komponen.
-- Google Maps Platform dipakai untuk geocoding alamat penerima dan verifikasi titik tujuan.
+- Klien integrasi di `app/Integrations/<name>/`, tidak dipanggil langsung dari komponen.
+- Leaflet + OpenStreetMap dipakai untuk menampilkan peta; geocoding alamat penerima dan verifikasi titik tujuan memakai Nominatim.
 - Secret hanya di environment variable server. Jangan pernah membaca, menampilkan, atau mengubah `.env*`.
 
 ## 11. UI
 
 - Bahasa Indonesia.
-- Komponen dasar dari shadcn/ui.
+- Komponen dasar dari set UI repo di `resources/js/Components/`.
 - Aplikasi kurir dirancang untuk layar kecil dan dipakai satu tangan; alur kritis maksimal tiga ketukan.
 
 ## 12. Keamanan Kerja Agent
 
 - Tidak membaca, menampilkan, atau mengubah `.env*`.
-- Tidak menjalankan `supabase db reset`, `DROP`, `TRUNCATE`, atau hapus data massal tanpa izin eksplisit.
+- Tidak menjalankan `php artisan migrate:fresh`, `DROP`, `TRUNCATE`, atau hapus data massal tanpa izin eksplisit.
 - Tidak menjalankan operasi di mode live/production layanan pihak ketiga.
 - Tidak melonggarkan aturan geofence, PIN, atau validasi server demi kelulusan uji.

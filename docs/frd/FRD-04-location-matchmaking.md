@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **MCP** | Supabase (PostGIS) · Google Maps · Chrome DevTools |
+| **MCP** | PostgreSQL + PostGIS (Supabase) · Leaflet/OSM · Chrome DevTools |
 | **Tingkat** | ★★ |
 | **Skill** | `feature-location-matchmaking` |
 
@@ -28,8 +28,8 @@ Sistem mencocokkan titik lokasi kurir dengan titik lokasi pembeli untuk menentuk
 
 | MCP | Dipakai agent untuk | Output |
 |---|---|---|
-| Supabase (PostGIS) | Menghitung jarak antar titik dan mencari titik tujuan terdekat. | Hasil query jarak |
-| Google Maps | Menampilkan peta titik kurir, titik tujuan, dan titik usulan. | Tangkapan peta + rute |
+| PostgreSQL + PostGIS (Supabase) | Menghitung jarak antar titik dan mencari titik tujuan terdekat. | Hasil query jarak |
+| Leaflet/OSM | Menampilkan peta titik kurir, titik tujuan, dan titik usulan. | Tangkapan peta + rute |
 | Chrome DevTools | Menjalankan alur usul → setuju → catat titik temu dari dua sesi. | Rekaman dua sesi |
 
 ## 4. Functional Requirements
@@ -67,9 +67,9 @@ Memakai `delivery_events` (tipe event titik temu) dan `shipments`. Rancangan tab
 
 ## 8. Verifikasi via MCP
 
-- [ ] **Supabase (PostGIS):** hasil query jarak kurir→tujuan dan tujuan→pembeli.
-- [ ] **Supabase (PostGIS):** baris `delivery_events` untuk usulan, persetujuan, dan titik temu final.
-- [ ] **Google Maps:** tangkapan peta dengan tiga titik dan rute.
+- [ ] **PostgreSQL + PostGIS:** hasil query jarak kurir→tujuan dan tujuan→pembeli.
+- [ ] **PostgreSQL + PostGIS:** baris `delivery_events` untuk usulan, persetujuan, dan titik temu final.
+- [ ] **Leaflet/OSM:** tangkapan peta dengan tiga titik dan rute.
 - [ ] **Chrome DevTools:** rekaman sesi kurir dan sesi pembeli dari usul sampai catat titik temu.
 - [ ] Bukti tiap keputusan di `decisions.md`.
 
@@ -77,4 +77,4 @@ Memakai `delivery_events` (tipe event titik temu) dan `shipments`. Rancangan tab
 Chat dalam aplikasi, penjadwalan titik temu, optimasi rute multi-titik.
 
 ## 10. Catatan untuk Agent
-- File: `app/courier/meeting-points/`, `app/api/v1/courier/meeting-points/`, `components/matchmaking/`, `lib/geo/matchmaking.ts`.
+- File: `app/Http/Controllers/Courier/`, `routes/api.php`, `resources/js/Components/matchmaking/`, `app/Support/Geo/Matchmaking.php`.

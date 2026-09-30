@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **MCP** | Supabase (PostGIS) · Sentry · Chrome DevTools |
+| **MCP** | PostgreSQL + PostGIS (Supabase) · Sentry · Chrome DevTools |
 | **Tingkat** | ★★ |
 | **Skill** | `feature-claim-audit-trail` |
 
@@ -28,7 +28,7 @@ Admin/CS dapat membuka satu pengiriman dan melihat seluruh jejak audit dalam sat
 
 | MCP | Dipakai agent untuk | Output |
 |---|---|---|
-| Supabase (PostGIS) | Menyusun query gabungan event, POD, PIN, dan geofence per pengiriman. | Hasil query audit lengkap |
+| PostgreSQL + PostGIS (Supabase) | Menyusun query gabungan event, POD, PIN, dan geofence per pengiriman. | Hasil query audit lengkap |
 | Sentry | Menangkap error pada alur investigasi dan korelasi dengan pengiriman. | Event error + tautan |
 | Chrome DevTools | Menjalankan alur buka pengiriman → baca bukti → tutup kasus. | Rekaman alur investigasi |
 
@@ -68,8 +68,8 @@ Memakai `delivery_events`, `delivery_proofs`, `pin_challenges`, dan `shipments`.
 
 ## 8. Verifikasi via MCP
 
-- [ ] **Supabase (PostGIS):** hasil query audit lengkap untuk satu pengiriman dari dataset contoh.
-- [ ] **Supabase (PostGIS):** hasil perhitungan skor anomali pada baris yang ditandai.
+- [ ] **PostgreSQL + PostGIS:** hasil query audit lengkap untuk satu pengiriman dari dataset contoh.
+- [ ] **PostgreSQL + PostGIS:** hasil perhitungan skor anomali pada baris yang ditandai.
 - [ ] **Sentry:** event error uji dari alur investigasi beserta konteks pengiriman.
 - [ ] **Chrome DevTools:** rekaman buka pengiriman → baca bukti → tutup kasus.
 - [ ] Bukti tiap keputusan di `decisions.md`.
@@ -78,4 +78,4 @@ Memakai `delivery_events`, `delivery_proofs`, `pin_challenges`, dan `shipments`.
 CRM tiket klaim penuh, SLA otomatis, dashboard analitik lintas wilayah.
 
 ## 10. Catatan untuk Agent
-- File: `app/admin/shipments/`, `app/api/v1/admin/shipments/`, `components/audit/`, `lib/anomaly.ts`, `lib/integrations/sentry/`.
+- File: `app/Http/Controllers/Admin/`, `routes/api.php`, `resources/js/Components/audit/`, `app/Services/AnomalyService.php`, `app/Integrations/Sentry/`.
