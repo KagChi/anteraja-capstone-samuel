@@ -1,59 +1,130 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Anteraja Instant — Delivery Integrity Prototype
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Capstone prototype for **Anteraja Instant**: a courier (Satria) PWA and an
+Admin/Hub console that verify delivery integrity with geofencing, recipient
+PIN, time-stamped proof-of-delivery (POD) and an auditable exception queue.
 
-## About Laravel
+The app is a Laravel 12 + Inertia.js v2 + React 19 + TypeScript monolith
+backed by PostgreSQL/PostGIS.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Layer      | Choice                                              |
+| ---------- | --------------------------------------------------- |
+| Backend    | Laravel 12 (PHP 8.3+), Eloquent, raw PostGIS SQL    |
+| Frontend   | Inertia.js v2, React 19, TypeScript, Tailwind v4    |
+| Database   | PostgreSQL 16 + PostGIS 3.4 (Supabase-compatible)   |
+| Tooling    | Vite 7, Biome, Vitest, Playwright, PHPUnit, Pint    |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Domain
 
-## Learning Laravel
+- **Geofence** — server-side `ST_Distance` against the destination point.
+- **PIN** — hashed recipient challenge with attempt limits and lock-out.
+- **POD** — watermarked proof photo with server-side distance and clock check.
+- **Anomaly scoring** — weighted flags surface shipments needing review.
+- **Exception queue** — couriers can request an out-of-radius exception that
+  an admin approves or rejects; decisions are written to the audit trail.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Requirements live in `docs/` (PRD and FRDs); the canonical schema and seed
+data live in `docs/db/`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Requirements
 
-## Laravel Sponsors
+- PHP 8.3+ with `pdo_pgsql` and `bcmath`
+- Composer
+- Bun (or Node 20+)
+- Docker (for the PostGIS container)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Getting started
 
-### Premium Partners
+```bash
+composer install
+bun install
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Start PostGIS (matches the `.env.example` defaults):
 
-## Contributing
+```bash
+docker run --name anteraja-pg -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=anteraja -p 55432:5432 -d postgis/postgis:16-3.4
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Migrate and seed the demo dataset, then run the app:
 
-## Code of Conduct
+```bash
+php artisan migrate --seed
+bun run dev        # Vite
+php artisan serve  # http://127.0.0.1:8000
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Demo accounts
 
-## Security Vulnerabilities
+| Role   | Email                              | Password |
+| ------ | ---------------------------------- | -------- |
+| Courier| budi.pratama@anteraja.example.com  | password |
+| Admin  | windy.kusuma@anteraja.example.com  | password |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The courier owns the active shipments `AJ2509000011` and `AJ2509000012`.
+
+## API
+
+All JSON endpoints live under `/api/v1` and use the PRD envelope:
+
+```json
+{ "success": true, "data": {}, "error": null, "meta": {} }
+```
+
+Key routes:
+
+- `GET  /api/v1/courier/tasks`, `GET /api/v1/courier/tasks/{tracking}`
+- `POST /api/v1/courier/tasks/{tracking}/pin` and `.../pin/verify`
+- `POST /api/v1/courier/tasks/{tracking}/proof`
+- `POST /api/v1/courier/tasks/{tracking}/exception`
+- `POST /api/v1/courier/tasks/{tracking}/complete`
+- `GET  /api/v1/shipments`, `GET /api/v1/shipments/{id}`
+- `GET  /api/v1/shipping/quote?weight=&distance=`
+- `GET  /api/v1/admin/dashboard`
+- `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`
+- `GET  /api/v1/admin/radius-segments`, `PUT /api/v1/admin/radius-segments`
+
+## Testing
+
+PHP feature tests run against a PostGIS database (`anteraja_test`), configured
+in `phpunit.xml`.
+
+```bash
+php artisan test   # PHPUnit: API + domain
+bun run test       # Vitest: UI helpers and fetch layer
+bun run test:e2e   # Playwright (needs the app served on :8123)
+bun run lint       # Biome
+bun run typecheck  # tsc
+vendor/bin/pint    # PHP formatting
+```
+
+CI runs Pint, PHPUnit, Biome, `tsc` and Vitest on every push
+(`.github/workflows/ci.yml`).
+
+## Project layout
+
+```
+app/
+  Http/Controllers/Api/V1/   JSON controllers (courier, admin, shared)
+  Http/Requests/Api/V1/      form requests
+  Models/                    Eloquent models (UUID keys)
+  Services/                  geofence, PIN, POD, delivery, radius, audit
+  Support/                   presenters, geo helpers, actor helpers
+database/
+  migrations/                schema, PostGIS functions and views
+  seeders/                   demo dataset and login accounts
+resources/js/
+  Pages/                     Inertia pages (courier, admin, shipments)
+  Components/, Layouts/      UI building blocks
+  Contexts/                  auth, shipment and toast providers
+tests/                       PHPUnit, Vitest and Playwright suites
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Released for academic/capstone use.

@@ -33,19 +33,19 @@ export const SEO: Record<string, SeoConfig> = {
               "@type": "ListItem",
               position: 1,
               name: "Aplikasi Kurir",
-              url: "courier/tugas.html",
+              url: "/courier/tugas",
             },
             {
               "@type": "ListItem",
               position: 2,
               name: "Konsol Admin/Hub",
-              url: "admin/dashboard.html",
+              url: "/admin/dashboard",
             },
             {
               "@type": "ListItem",
               position: 3,
               name: "Detail Audit Trail",
-              url: "admin/audit-trail.html",
+              url: "/admin/audit-trail",
             },
           ],
         },
@@ -80,7 +80,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 1,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-882910394",
+            trackingNumber: "AJ2509000011",
             deliveryStatus: "OutForDelivery",
             provider: { "@type": "Organization", name: "Anteraja" },
             deliveryAddress: {
@@ -138,7 +138,7 @@ export const SEO: Record<string, SeoConfig> = {
       "@graph": [
         {
           "@type": "ParcelDelivery",
-          trackingNumber: "ANT-INST-882910394",
+          trackingNumber: "AJ2509000011",
           deliveryStatus: "AttemptingDelivery",
           provider: { "@type": "Organization", name: "Anteraja" },
           deliveryAddress: {
@@ -153,7 +153,7 @@ export const SEO: Record<string, SeoConfig> = {
         },
         {
           "@type": "Place",
-          name: "Titik tujuan ANT-INST-882910394",
+          name: "Titik tujuan AJ2509000011",
           geo: {
             "@type": "GeoCoordinates",
             latitude: -6.2401,
@@ -180,7 +180,7 @@ export const SEO: Record<string, SeoConfig> = {
           actionStatus: "https://schema.org/PotentialActionStatus",
           object: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-882910394",
+            trackingNumber: "AJ2509000011",
           },
         },
       ],
@@ -193,7 +193,7 @@ export const SEO: Record<string, SeoConfig> = {
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "ImageObject",
-      name: "Foto bukti serah terima ANT-INST-882910394",
+      name: "Foto bukti serah terima AJ2509000011",
       description:
         "Proof of Delivery ber-watermark: koordinat, alamat, nama penerima, dan stempel waktu server untuk pengiriman Anteraja Instant.",
       dateCreated: "2024-09-22T15:14:00+07:00",
@@ -214,7 +214,7 @@ export const SEO: Record<string, SeoConfig> = {
       },
       about: {
         "@type": "ParcelDelivery",
-        trackingNumber: "ANT-INST-882910394",
+        trackingNumber: "AJ2509000011",
         deliveryStatus: "Completed",
         provider: { "@type": "Organization", name: "Anteraja" },
         recipient: { "@type": "Person", name: "Bambang Wijaya" },
@@ -230,7 +230,7 @@ export const SEO: Record<string, SeoConfig> = {
       "@graph": [
         {
           "@type": "ParcelDelivery",
-          trackingNumber: "ANT-INST-882910394",
+          trackingNumber: "AJ2509000011",
           deliveryStatus: "Completed",
           deliveryTime: "2024-09-22T15:14:28+07:00",
           provider: { "@type": "Organization", name: "Anteraja" },
@@ -245,7 +245,7 @@ export const SEO: Record<string, SeoConfig> = {
         },
         {
           "@type": "DeliveryEvent",
-          name: "Pengiriman tuntas ANT-INST-882910394",
+          name: "Pengiriman tuntas AJ2509000011",
           startDate: "2024-09-22T14:32:00+07:00",
           endDate: "2024-09-22T14:32:00+07:00",
           actionStatus: "https://schema.org/CompletedActionStatus",
@@ -284,7 +284,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 1,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-882910412",
+            trackingNumber: "AJ2509000012",
             deliveryStatus: "AttemptingDelivery",
             provider: { "@type": "Organization", name: "Anteraja" },
           },
@@ -294,7 +294,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 2,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-8829104",
+            trackingNumber: "AJ2509000004",
             deliveryStatus: "Completed",
             provider: { "@type": "Organization", name: "Anteraja" },
           },
@@ -314,7 +314,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 4,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-99201",
+            trackingNumber: "AJ2509000005",
             deliveryStatus: "AttemptingDelivery",
             provider: { "@type": "Organization", name: "Anteraja" },
           },
@@ -343,7 +343,7 @@ export const SEO: Record<string, SeoConfig> = {
     },
   },
   "/admin/audit-trail": {
-    title: "Detail Audit Trail — ANT-INST-8829104 | Admin Hub Anteraja",
+    title: "Detail Audit Trail — AJ2509000004 | Admin Hub Anteraja",
     description:
       "Jejak audit lengkap satu pengiriman Anteraja Instant: validasi geofence, POD ber-watermark, riwayat PIN, kronologi event, dan putusan admin.",
     jsonLd: {
@@ -351,7 +351,7 @@ export const SEO: Record<string, SeoConfig> = {
       "@graph": [
         {
           "@type": "ParcelDelivery",
-          trackingNumber: "ANT-INST-8829104",
+          trackingNumber: "AJ2509000004",
           deliveryStatus: "Completed",
           provider: {
             "@type": "Organization",
@@ -379,7 +379,7 @@ export const SEO: Record<string, SeoConfig> = {
             "http://purl.org/goodrelations/v1#DeliveryModeOwnFleet",
           partOfOrder: {
             "@type": "Order",
-            orderNumber: "ANT-INST-8829104",
+            orderNumber: "AJ2509000004",
             customer: { "@type": "Person", name: "Bambang Wijaya" },
           },
         },
@@ -390,7 +390,7 @@ export const SEO: Record<string, SeoConfig> = {
           actionStatus: "https://schema.org/CompletedActionStatus",
           object: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-8829104",
+            trackingNumber: "AJ2509000004",
           },
           additionalProperty: [
             { "@type": "PropertyValue", name: "geofence_radius_m", value: 30 },
@@ -414,7 +414,7 @@ export const SEO: Record<string, SeoConfig> = {
             {
               "@type": "ListItem",
               position: 2,
-              name: "Detail Audit Trail ANT-INST-8829104",
+              name: "Detail Audit Trail AJ2509000004",
             },
           ],
         },
@@ -438,7 +438,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 1,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-99201",
+            trackingNumber: "AJ2509000005",
             deliveryStatus: "AttemptingDelivery",
             provider: { "@type": "Organization", name: "Anteraja" },
             additionalProperty: [
@@ -456,7 +456,7 @@ export const SEO: Record<string, SeoConfig> = {
           position: 2,
           item: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-882910412",
+            trackingNumber: "AJ2509000012",
             deliveryStatus: "AttemptingDelivery",
             provider: { "@type": "Organization", name: "Anteraja" },
             additionalProperty: [
@@ -517,7 +517,7 @@ export const SEO: Record<string, SeoConfig> = {
       "@graph": [
         {
           "@type": "ParcelDelivery",
-          trackingNumber: "ANT-INST-99201",
+          trackingNumber: "AJ2509000005",
           deliveryStatus: "AttemptingDelivery",
           provider: { "@type": "Organization", name: "Anteraja" },
           additionalProperty: [
@@ -529,12 +529,12 @@ export const SEO: Record<string, SeoConfig> = {
         },
         {
           "@type": "DeliveryEvent",
-          name: "Pengajuan pengecualian geofence ANT-INST-99201",
+          name: "Pengajuan pengecualian geofence AJ2509000005",
           startDate: "2024-09-22T14:41:00+07:00",
           actionStatus: "https://schema.org/PotentialActionStatus",
           object: {
             "@type": "ParcelDelivery",
-            trackingNumber: "ANT-INST-99201",
+            trackingNumber: "AJ2509000005",
           },
           location: {
             "@type": "Place",

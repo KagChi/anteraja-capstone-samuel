@@ -168,12 +168,6 @@ export interface RadiusSegment {
   accent: RadiusAccent;
 }
 
-export interface Decision {
-  decision: "approve" | "reject";
-  note: string;
-  at: number;
-}
-
 export interface SeoConfig {
   title: string;
   description: string;
