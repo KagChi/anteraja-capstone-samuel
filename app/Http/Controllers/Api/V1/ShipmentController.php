@@ -10,6 +10,7 @@ use App\Support\Auth;
 use App\Support\Presentation\DeliveryPresenter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ShipmentController extends Controller
 {
@@ -54,7 +55,11 @@ class ShipmentController extends Controller
     {
         $shipment = Shipment::query()
             ->where(function ($query) use ($key) {
-                $query->where('id', $key)->orWhere('tracking_number', $key);
+                if (Str::isUuid($key)) {
+                    $query->where('id', $key)->orWhere('tracking_number', $key);
+                } else {
+                    $query->where('tracking_number', $key);
+                }
             })
             ->withPresentation()
             ->withDestinationCoordinates()

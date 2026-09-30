@@ -8,6 +8,7 @@ use App\Models\Courier;
 use App\Models\Shipment;
 use App\Support\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 
 abstract class CourierController extends Controller
 {
@@ -28,10 +29,15 @@ abstract class CourierController extends Controller
     {
         $shipment = Shipment::query()
             ->where(function ($query) use ($key) {
-                $query->where('id', $key)->orWhere('tracking_number', $key);
+                if (Str::isUuid($key)) {
+                    $query->where('id', $key)->orWhere('tracking_number', $key);
+                } else {
+                    $query->where('tracking_number', $key);
+                }
             })
             ->where('courier_id', $this->courier()->id)
             ->withPresentation()
+            ->withDestinationCoordinates()
             ->first();
 
         if (! $shipment) {

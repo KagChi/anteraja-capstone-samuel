@@ -43,7 +43,7 @@ class ProofService
 
         $reviewStatus = $outOfRadius || $deviceMismatch ? 'needs_review' : 'valid';
 
-        $photoPath = $data['photo'] instanceof UploadedFile
+        $photoPath = ($data['photo'] ?? null) instanceof UploadedFile
             ? $data['photo']->store('pod/'.$shipment->tracking_number, 'public')
             : 'pod/'.$shipment->tracking_number.'/pod.jpg';
 

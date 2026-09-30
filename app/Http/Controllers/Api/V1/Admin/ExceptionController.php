@@ -11,6 +11,7 @@ use App\Support\Auth;
 use App\Support\Presentation\ExceptionPresenter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ExceptionController extends Controller
 {
@@ -55,10 +56,14 @@ class ExceptionController extends Controller
 
     private function exception(string $key): DeliveryException
     {
-        $exception = DeliveryException::query()
-            ->with(['shipment.deliveryProofs', 'courier'])
-            ->where('id', $key)
-            ->first();
+        $exception = null;
+
+        if (Str::isUuid($key)) {
+            $exception = DeliveryException::query()
+                ->with(['shipment.deliveryProofs', 'courier'])
+                ->where('id', $key)
+                ->first();
+        }
 
         if (! $exception) {
             $exception = DeliveryException::query()

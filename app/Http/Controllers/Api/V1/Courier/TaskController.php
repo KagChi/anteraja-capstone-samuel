@@ -11,6 +11,7 @@ class TaskController extends CourierController
     public function index(): JsonResponse
     {
         $tasks = Shipment::withPresentation()
+            ->withDestinationCoordinates()
             ->where('courier_id', $this->courier()->id)
             ->whereIn('status', ['pending', 'picked_up', 'in_transit'])
             ->orderBy('created_at')

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Admin;
 use App\Models\Courier;
+use App\Models\Shipment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,10 @@ class AuthUserSeeder extends Seeder
                     'admin_id' => null,
                 ],
             );
+
+            Shipment::query()
+                ->whereIn('tracking_number', ['AJ2509000011', 'AJ2509000012'])
+                ->update(['courier_id' => $courier->id]);
         }
 
         if ($admin) {
