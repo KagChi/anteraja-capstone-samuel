@@ -85,6 +85,11 @@ class DeliveryPresenter
             'badges' => $badges,
             'footerNote' => $shipment->cod_amount > 0 ? 'COD '.self::rupiah($shipment->cod_amount) : null,
             'cta' => 'Mulai Antar',
+            'destination' => [
+                'latitude' => (float) ($shipment->destination_lat ?? 0.0),
+                'longitude' => (float) ($shipment->destination_lng ?? 0.0),
+                'label' => $shipment->destination_address,
+            ],
             'geofence' => $radius !== null ? [
                 'distanceMeters' => $distance ?? 0,
                 'deviationMeters' => $deviation,

@@ -11,11 +11,10 @@ import {
 import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
+import { sendJson } from "../../lib/api";
 import { clamp } from "../../lib/format";
-import { getRelation, setRelation } from "../../lib/storage";
-import type { DeliveryTask } from "../../types";
+import type { DeliveryTask, PinIssue, PinVerifyResult } from "../../types";
 
-const DEMO_PIN = "123456";
 const PIN_KEYS = ["d1", "d2", "d3", "d4", "d5", "d6"] as const;
 const MAX_ATTEMPTS = 3;
 
@@ -30,10 +29,11 @@ const RELATIONS = [
 export function VerificationPage() {
   useSeo("/courier/verifikasi");
   const toast = useToast();
-  const { postal } = useShipmentContext();
+  const { postal, relation, setRelation, setPinVerified } =
+    useShipmentContext();
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
   );
   const task = taskResource.data?.data;
   const geofence = task?.geofence;
@@ -50,14 +50,13 @@ export function VerificationPage() {
   const [locked, setLocked] = useState(false);
   const [verified, setVerified] = useState(false);
   const [shake, setShake] = useState(false);
-  const [relation, setRelationState] = useState(
-    () => getRelation() ?? "langsung",
-  );
+  const [pinCode, setPinCode] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const [resendSeconds, setResendSeconds] = useState(0);
   const [nextBusy, setNextBusy] = useState(false);
 
   const code = digits.join("");
-  const ready = code.length === 6 && verified && !locked;
+  const ready = code.length === 6 && verified && !locked && !verifying;
 
   useEffect(() => {
     return () => {
@@ -65,44 +64,86 @@ export function VerificationPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!task) return;
+    let active = true;
+
+    sendJson<{ data: PinIssue }>(
+      "POST",
+      `/api/v1/courier/tasks/${tracking}/pin`,
+    )
+      .then((response) => {
+        if (active) setPinCode(response.data.debug_code ?? null);
+      })
+      .catch(() => {
+        if (active) setPinCode(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [task, tracking]);
+
   function focusIndex(index: number) {
     inputsRef.current[clamp(index, 0, 5)]?.focus();
   }
 
-  function evaluate(next: string[]) {
-    if (locked) return;
+  async function evaluate(next: string[]) {
+    if (locked || verifying) return;
     const value = next.join("");
     if (value.length !== 6) {
       setVerified(false);
       setStatuses(Array(6).fill("idle"));
       return;
     }
-    if (value === DEMO_PIN) {
-      setVerified(true);
-      resetToken.current += 1;
-      setStatuses(Array(6).fill("ok"));
-      toast("PIN terverifikasi.");
-      return;
+
+    setVerifying(true);
+    try {
+      const response = await sendJson<{ data: PinVerifyResult }>(
+        "POST",
+        `/api/v1/courier/tasks/${tracking}/pin/verify`,
+        { code: value },
+      );
+
+      if (response.data.verified) {
+        setVerified(true);
+        resetToken.current += 1;
+        setStatuses(Array(6).fill("ok"));
+        setPinVerified(true);
+        toast("PIN terverifikasi.");
+        return;
+      }
+
+      const lockedNow = response.data.status === "locked";
+      setVerified(false);
+      setLocked(lockedNow);
+      setAttempts(response.data.attempts);
+      setPinVerified(false);
+      failPin(lockedNow);
+    } catch (error) {
+      setVerified(false);
+      toast(
+        error instanceof Error ? error.message : "Verifikasi PIN gagal.",
+        "error",
+      );
+    } finally {
+      setVerifying(false);
     }
-    setVerified(false);
-    failPin();
   }
 
-  function failPin() {
+  function failPin(lockedNow: boolean) {
     setStatuses(Array(6).fill("error"));
     setShake(false);
     window.setTimeout(() => setShake(true), 0);
     window.setTimeout(() => setShake(false), 360);
 
-    if (attempts >= MAX_ATTEMPTS) {
-      setLocked(true);
+    if (lockedNow) {
       toast(
         `PIN salah ${MAX_ATTEMPTS} kali. Hubungi Admin untuk membuka akses.`,
         "error",
       );
       return;
     }
-    setAttempts(attempts + 1);
     toast("PIN salah. Coba lagi.", "error");
 
     resetToken.current += 1;
@@ -179,7 +220,26 @@ export function VerificationPage() {
 
   function resendPin() {
     if (resendSeconds > 0) return;
-    toast(`PIN baru dikirim ke penerima: ${DEMO_PIN}`);
+
+    sendJson<{ data: PinIssue }>(
+      "POST",
+      `/api/v1/courier/tasks/${tracking}/pin`,
+    )
+      .then((response) => {
+        setPinCode(response.data.debug_code ?? null);
+        toast(
+          response.data.debug_code
+            ? `PIN baru dikirim ke penerima: ${response.data.debug_code}`
+            : "PIN baru dikirim ke penerima.",
+        );
+      })
+      .catch((error: unknown) => {
+        toast(
+          error instanceof Error ? error.message : "Gagal mengirim ulang PIN.",
+          "error",
+        );
+      });
+
     let seconds = 30;
     setResendSeconds(seconds);
     resendTimer.current = window.setInterval(() => {
@@ -194,7 +254,6 @@ export function VerificationPage() {
   }
 
   function chooseRelation(id: string) {
-    setRelationState(id);
     setRelation(id);
   }
 
@@ -448,7 +507,7 @@ export function VerificationPage() {
               >
                 PIN demo:{" "}
                 <strong className="font-semibold text-brand-magenta">
-                  {DEMO_PIN}
+                  {pinCode ?? "••••••"}
                 </strong>{" "}
                 &bull; berlaku 15 menit sejak dikirim.
               </p>

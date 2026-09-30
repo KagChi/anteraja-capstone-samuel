@@ -1,5 +1,6 @@
+import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { LoadingLink } from "../../Components/LoadingAction";
+import { LoadingButton } from "../../Components/LoadingAction";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { Spinner } from "../../Components/ui/Spinner";
@@ -10,21 +11,65 @@ import {
 import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
+import { sendJson } from "../../lib/api";
 import { formatClock } from "../../lib/format";
-import type { DeliveryTask } from "../../types";
+import type {
+  DeliveryCompletionResult,
+  DeliveryProofResult,
+  DeliveryTask,
+} from "../../types";
 
 export function ProofPhotoPage() {
   useSeo("/courier/bukti-foto");
   const toast = useToast();
-  const { proofPhoto } = useShipmentContext();
+  const { proofPhoto, relation, setProof, setCompletion } =
+    useShipmentContext();
   const [clock, setClock] = useState(() => formatClock());
   const [flash, setFlash] = useState(false);
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
   );
   const task = taskResource.data?.data;
   const recipient = task?.recipient ?? "Penerima";
+
+  async function confirmDelivery() {
+    if (!task) return;
+
+    const coordinates = {
+      latitude: task.destination?.latitude ?? 0,
+      longitude: task.destination?.longitude ?? 0,
+    };
+
+    try {
+      const proofResponse = await sendJson<{ data: DeliveryProofResult }>(
+        "POST",
+        `/api/v1/courier/tasks/${task.tracking}/proof`,
+        {
+          ...coordinates,
+          recipient_name: task.recipient || "Penerima",
+          relation,
+        },
+      );
+      setProof(proofResponse.data);
+
+      const completion = await sendJson<{ data: DeliveryCompletionResult }>(
+        "POST",
+        `/api/v1/courier/tasks/${task.tracking}/complete`,
+        coordinates,
+      );
+      setCompletion(completion.data);
+
+      router.visit("/courier/sukses");
+    } catch (error) {
+      toast(
+        error instanceof Error
+          ? error.message
+          : "Gagal menyelesaikan pengiriman.",
+        "error",
+      );
+    }
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatClock()), 1000);
@@ -132,18 +177,19 @@ export function ProofPhotoPage() {
             </p>
           </header>
           <p className="m-0 flex flex-col items-center gap-3 pt-2">
-            <LoadingLink
+            <LoadingButton
               variant="primary"
               size="lg"
               className="w-full"
               id="btn-confirm-pod"
-              to="/courier/sukses"
-              delay={1000}
+              delay={200}
               busyText="Mengunggah bukti..."
+              disabled={!task}
+              onAction={confirmDelivery}
             >
               <MaterialIcon name="check_circle" className="text-[20px]" />{" "}
               Konfirmasi &amp; Selesaikan
-            </LoadingLink>
+            </LoadingButton>
             <Button
               variant="textInverse"
               className="py-1 text-[13px]"

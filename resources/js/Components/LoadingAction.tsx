@@ -9,7 +9,7 @@ interface LoadingButtonProps
   extends Omit<ButtonProps, "onClick" | "children" | "busy"> {
   busyText?: string;
   delay?: number;
-  onAction: () => void;
+  onAction: () => void | Promise<void>;
   keepBusy?: boolean;
   children: ReactNode;
 }
@@ -33,9 +33,14 @@ export function LoadingButton({
         event.preventDefault();
         if (busy || rest.disabled) return;
         setBusy(true);
-        window.setTimeout(() => {
-          onAction();
-          if (!keepBusy) setBusy(false);
+        window.setTimeout(async () => {
+          try {
+            await onAction();
+          } catch {
+            /* caller surfaces the error via toast */
+          } finally {
+            if (!keepBusy) setBusy(false);
+          }
         }, delay);
       }}
     >
@@ -49,7 +54,7 @@ interface LoadingLinkProps
   to: string;
   delay?: number;
   busyText?: string;
-  onAction?: () => void;
+  onAction?: () => void | Promise<void>;
   children: ReactNode;
 }
 
@@ -74,8 +79,13 @@ export function LoadingLink({
         event.preventDefault();
         if (busy || rest.disabled) return;
         setBusy(true);
-        window.setTimeout(() => {
-          onAction?.();
+        window.setTimeout(async () => {
+          try {
+            await onAction?.();
+          } catch {
+            setBusy(false);
+            return;
+          }
           router.visit(to);
         }, delay);
       }}

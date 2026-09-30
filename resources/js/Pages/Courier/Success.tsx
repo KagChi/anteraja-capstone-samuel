@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Avatar } from "../../Components/Avatar";
 import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
@@ -12,30 +12,24 @@ import {
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { formatStamp, randomDigits } from "../../lib/format";
-import { markCompleted } from "../../lib/storage";
 import type { DeliveryTask } from "../../types";
 
 export function SuccessPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
-  const { courierAvatar } = useShipmentContext();
+  const { courierAvatar, proof, completion } = useShipmentContext();
   const name = session?.name ?? "Satria";
 
-  const [done, setDone] = useState(8);
-  const [hash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
+  const done = completion ? 9 : 8;
+  const [fallbackHash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
   const [stamp] = useState(() => new Date());
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
   );
   const task = taskResource.data?.data;
   const tracking = task?.tracking ?? ACTIVE_TRACKING;
-
-  useEffect(() => {
-    if (!task) return;
-    const completed = markCompleted(task.tracking);
-    setDone(8 + completed.length);
-  }, [task]);
+  const auditHash = proof?.watermark_hash ?? fallbackHash;
 
   return (
     <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
@@ -170,7 +164,9 @@ export function SuccessPage() {
                 <time dateTime={stamp.toISOString()}>{formatStamp(stamp)}</time>
               </dd>
               <dt className="text-on-surface-variant">Kode Hash Audit</dt>
-              <dd className="m-0 font-semibold text-brand-magenta">{hash}</dd>
+              <dd className="m-0 font-semibold text-brand-magenta">
+                {auditHash}
+              </dd>
             </dl>
           </details>
 

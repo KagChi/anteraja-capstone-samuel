@@ -13,18 +13,18 @@ import { useFetch } from "../../Hooks/useFetch";
 import { useProofPhoto } from "../../Hooks/useProofPhoto";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
-import { setDecision as saveDecision } from "../../lib/storage";
+import { sendJson } from "../../lib/api";
 import type { DeliveryRow, ShipmentDetail } from "../../types";
 
 export function AuditTrailPage({ id = "" }: { id?: string }) {
   useSeo("/admin/audit-trail");
   const toast = useToast();
   const { postal } = useShipmentContext();
-  const detail = useFetch<{ data: DeliveryRow; detail: ShipmentDetail | null }>(
-    id ? `/api/shipments/${encodeURIComponent(id)}` : null,
-  );
-  const shipment = detail.data?.data;
-  const audit = detail.data?.detail;
+  const detail = useFetch<{
+    data: { shipment: DeliveryRow; detail: ShipmentDetail | null };
+  }>(id ? `/api/v1/shipments/${encodeURIComponent(id)}` : null);
+  const shipment = detail.data?.data?.shipment;
+  const audit = detail.data?.data?.detail;
   const geofence = audit?.geofence;
   const milestones = audit?.milestones ?? [];
   const tracking = shipment?.tracking ?? id;
@@ -37,20 +37,32 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
   const [notesError, setNotesError] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function save() {
+  async function save() {
     const rejected = decision === "reject";
     if (rejected && !notes.trim()) {
       toast("Catatan wajib diisi saat menolak / investigasi.", "error");
       setNotesError(true);
       return;
     }
-    saveDecision(tracking, rejected ? "reject" : "approve", notes);
-    setSaved(true);
-    toast(
-      rejected
-        ? "Kasus ditandai untuk investigasi."
-        : "Kasus disahkan dan ditutup.",
-    );
+
+    try {
+      await sendJson(
+        "POST",
+        `/api/v1/admin/exceptions/${encodeURIComponent(tracking)}/decision`,
+        { decision: rejected ? "rejected" : "approved", note: notes || null },
+      );
+      setSaved(true);
+      toast(
+        rejected
+          ? "Kasus ditandai untuk investigasi."
+          : "Kasus disahkan dan ditutup.",
+      );
+    } catch (error) {
+      toast(
+        error instanceof Error ? error.message : "Gagal menyimpan putusan.",
+        "error",
+      );
+    }
   }
 
   if (detail.isLoading) {

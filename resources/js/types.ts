@@ -70,7 +70,46 @@ export interface DeliveryTask {
   badges: TaskBadge[];
   footerNote?: string;
   cta?: string;
+  destination?: DestinationPoint;
   geofence?: TaskGeofence;
+}
+
+export interface DestinationPoint {
+  latitude: number;
+  longitude: number;
+  label: string;
+}
+
+export interface PinIssue {
+  status: string;
+  expires_at?: string | null;
+  attempts: number;
+  max_attempts: number;
+  debug_code?: string;
+}
+
+export interface PinVerifyResult {
+  verified: boolean;
+  status: string;
+  attempts: number;
+  max_attempts: number;
+}
+
+export interface DeliveryProofResult {
+  id: string;
+  review_status: string;
+  distance_to_destination_m: number;
+  photo_path?: string | null;
+  captured_at?: string | null;
+  watermark_hash?: string | null;
+}
+
+export interface DeliveryCompletionResult {
+  status: string;
+  distance_m: number;
+  inside: boolean;
+  exception_used: boolean;
+  pin_required: boolean;
 }
 
 export type DeliveryFlag = "review" | "delivered" | "exception";
@@ -104,6 +143,8 @@ export interface ExceptionRow {
   deviation: number;
   maxTolerance: number;
   reason: string;
+  status: string;
+  note?: string | null;
 }
 
 export interface RadiusAccent {

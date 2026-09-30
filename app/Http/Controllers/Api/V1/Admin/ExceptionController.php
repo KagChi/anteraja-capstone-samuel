@@ -9,6 +9,7 @@ use App\Models\DeliveryException;
 use App\Services\Delivery\ExceptionService;
 use App\Support\Auth;
 use App\Support\Presentation\ExceptionPresenter;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 
 class ExceptionController extends Controller
@@ -30,16 +31,12 @@ class ExceptionController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $exception = DeliveryException::query()
-            ->with(['shipment.deliveryProofs', 'courier'])
-            ->findOrFail($id);
-
-        return $this->ok(ExceptionPresenter::detail($exception));
+        return $this->ok(ExceptionPresenter::detail($this->exception($id)));
     }
 
     public function decide(string $id, DecideExceptionRequest $request, ExceptionService $exceptions): JsonResponse
     {
-        $exception = DeliveryException::with(['shipment.deliveryProofs', 'courier'])->findOrFail($id);
+        $exception = $this->exception($id);
         $admin = Auth::adminModel();
 
         if (! $admin) {
@@ -54,5 +51,29 @@ class ExceptionController extends Controller
         );
 
         return $this->ok(ExceptionPresenter::detail($exception));
+    }
+
+    private function exception(string $key): DeliveryException
+    {
+        $exception = DeliveryException::query()
+            ->with(['shipment.deliveryProofs', 'courier'])
+            ->where('id', $key)
+            ->first();
+
+        if (! $exception) {
+            $exception = DeliveryException::query()
+                ->with(['shipment.deliveryProofs', 'courier'])
+                ->whereHas('shipment', function ($query) use ($key): void {
+                    $query->where('tracking_number', $key);
+                })
+                ->latest('created_at')
+                ->first();
+        }
+
+        if (! $exception) {
+            throw (new ModelNotFoundException)->setModel(DeliveryException::class, [$key]);
+        }
+
+        return $exception;
     }
 }

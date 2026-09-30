@@ -8,7 +8,6 @@ import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
-import { getDecisions } from "../../lib/storage";
 import type { ExceptionRow, ServiceSegment } from "../../types";
 
 type ServiceFilter = "all" | ServiceSegment;
@@ -23,12 +22,11 @@ const TABS: { id: ServiceFilter; label: string }[] = [
 export function ExceptionQueuePage() {
   useSeo("/admin/antrian-pengecualian");
 
-  const [decided] = useState(() => Object.keys(getDecisions()));
   const exceptionsResource = useFetch<{ data: ExceptionRow[] }>(
-    "/api/exceptions",
+    "/api/v1/admin/exceptions",
   );
   const rows = (exceptionsResource.data?.data ?? []).filter(
-    (row) => !decided.includes(row.id),
+    (row) => row.status === "pending",
   );
 
   const [service, setService] = useState<ServiceFilter>("all");

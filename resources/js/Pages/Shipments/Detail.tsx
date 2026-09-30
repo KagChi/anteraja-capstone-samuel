@@ -40,9 +40,9 @@ function buildTimeline(
 export function ShipmentDetailPage({ id = "" }: { id?: string }) {
   useSeo(`/shipments/${id}`, "/shipments");
   const { getShipmentById } = useShipmentContext();
-  const detail = useFetch<{ data: DeliveryRow; detail: ShipmentDetail | null }>(
-    id ? `/api/shipments/${encodeURIComponent(id)}` : null,
-  );
+  const detail = useFetch<{
+    data: { shipment: DeliveryRow; detail: ShipmentDetail | null };
+  }>(id ? `/api/v1/shipments/${encodeURIComponent(id)}` : null);
 
   if (detail.isLoading) {
     return (
@@ -53,7 +53,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
   }
 
   // API adalah sumber utama; fallback memakai daftar resi yang sudah dimuat.
-  const shipment = detail.data?.data ?? getShipmentById(id);
+  const shipment = detail.data?.data?.shipment ?? getShipmentById(id);
 
   if (!shipment) {
     return (
@@ -81,7 +81,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
   }
 
   const timeline = buildTimeline(
-    detail.data?.detail?.timeline ?? [],
+    detail.data?.data?.detail?.timeline ?? [],
     shipment.flag,
   );
 

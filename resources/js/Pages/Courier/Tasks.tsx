@@ -11,7 +11,6 @@ import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { useWelcomeToast } from "../../Hooks/useWelcomeToast";
-import { getCompleted } from "../../lib/storage";
 import type { DeliveryTask, TaskBadge, TaskCategory } from "../../types";
 
 type Filter = "all" | TaskCategory;
@@ -74,13 +73,15 @@ export function TasksPage() {
   const [flash, setFlash] = useState<string | null>(null);
   const cardRefs = useRef(new Map<string, HTMLElement>());
 
-  const tasksResource = useFetch<{ data: DeliveryTask[] }>("/api/tasks");
+  const tasksResource = useFetch<{ data: DeliveryTask[] }>(
+    "/api/v1/courier/tasks",
+  );
   const tasks = tasksResource.data?.data ?? [];
 
   const visibleTasks = tasks.filter(
     (task) => filter === "all" || task.category === filter,
   );
-  const done = 8 + getCompleted().length;
+  const done = 8;
 
   function scan() {
     const code = window.prompt("Masukkan nomor resi yang ingin dipindai:");

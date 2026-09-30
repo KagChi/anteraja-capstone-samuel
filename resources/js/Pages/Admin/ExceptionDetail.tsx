@@ -5,18 +5,20 @@ import { LoadingLink } from "../../Components/LoadingAction";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { Spinner } from "../../Components/ui/Spinner";
+import { useToast } from "../../Contexts/ToastContext";
 import { useAvatar } from "../../Hooks/useAvatar";
 import { useFetch } from "../../Hooks/useFetch";
 import { useProofPhoto } from "../../Hooks/useProofPhoto";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
-import { setDecision } from "../../lib/storage";
+import { sendJson } from "../../lib/api";
 import type { ExceptionDetail } from "../../types";
 
 export function ExceptionDetailPage({ id = "" }: { id?: string }) {
   useSeo("/admin/pengecualian-detail");
+  const toast = useToast();
   const detail = useFetch<{ data: ExceptionDetail }>(
-    id ? `/api/exceptions/${encodeURIComponent(id)}` : null,
+    id ? `/api/v1/admin/exceptions/${encodeURIComponent(id)}` : null,
   );
   const exception = detail.data?.data;
   const tracking = exception?.tracking ?? id;
@@ -24,6 +26,22 @@ export function ExceptionDetailPage({ id = "" }: { id?: string }) {
   const [note, setNote] = useState("");
   const courierAvatar = useAvatar(courierName);
   const proofPhoto = useProofPhoto(tracking);
+
+  async function decide(choice: "approved" | "rejected") {
+    try {
+      await sendJson(
+        "POST",
+        `/api/v1/admin/exceptions/${encodeURIComponent(id || tracking)}/decision`,
+        { decision: choice, note: note || null },
+      );
+    } catch (error) {
+      toast(
+        error instanceof Error ? error.message : "Keputusan gagal disimpan.",
+        "error",
+      );
+      throw error;
+    }
+  }
 
   if (detail.isLoading) {
     return (
@@ -239,7 +257,7 @@ export function ExceptionDetailPage({ id = "" }: { id?: string }) {
               to="/admin/antrian-pengecualian?decision=reject"
               delay={850}
               busyText="Menolak..."
-              onAction={() => setDecision(tracking, "reject", note)}
+              onAction={() => decide("rejected")}
             >
               Tolak
             </LoadingLink>
@@ -250,7 +268,7 @@ export function ExceptionDetailPage({ id = "" }: { id?: string }) {
               to="/admin/antrian-pengecualian?decision=approve"
               delay={850}
               busyText="Menyetujui..."
-              onAction={() => setDecision(tracking, "approve", note)}
+              onAction={() => decide("approved")}
             >
               <MaterialIcon name="verified_user" className="text-[18px]" />{" "}
               Setujui Pengecualian

@@ -25,6 +25,8 @@ class ExceptionPresenter
             'maxTolerance' => (int) $exception->radius_m,
             'actualDistance' => (int) $exception->distance_m,
             'reason' => $exception->reason,
+            'status' => $exception->status,
+            'note' => $exception->review_note,
         ];
     }
 

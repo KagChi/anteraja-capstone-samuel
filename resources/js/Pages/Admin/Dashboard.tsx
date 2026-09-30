@@ -48,7 +48,7 @@ export function DashboardPage() {
   const reviewCount = shipments.filter((row) => row.flag === "review").length;
 
   const summaryResource = useFetch<{ data: DashboardSummary }>(
-    "/api/dashboard",
+    "/api/v1/admin/dashboard",
   );
   const summary = summaryResource.data?.data;
 

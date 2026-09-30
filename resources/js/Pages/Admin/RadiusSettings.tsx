@@ -8,20 +8,21 @@ import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
+import { sendJson } from "../../lib/api";
 import { clamp } from "../../lib/format";
-import { getRadii, setRadii } from "../../lib/storage";
 import type { RadiusMeta, RadiusSegment } from "../../types";
 
+const SERVICE_TYPES: Record<string, string> = {
+  "radius-instant": "instant",
+  "radius-sameday": "same_day",
+  "radius-reguler": "regular",
+};
+
 function buildValues(segments: RadiusSegment[]): Record<string, number> {
-  const saved = getRadii();
   return Object.fromEntries(
     segments.map((segment) => [
       segment.id,
-      clamp(
-        saved[segment.id] ?? segment.defaultValue,
-        segment.min,
-        segment.max,
-      ),
+      clamp(segment.defaultValue, segment.min, segment.max),
     ]),
   );
 }
@@ -29,9 +30,11 @@ function buildValues(segments: RadiusSegment[]): Record<string, number> {
 function RadiusPolicy({
   segments,
   meta,
+  onApplied,
 }: {
   segments: RadiusSegment[];
   meta?: RadiusMeta;
+  onApplied?: () => void;
 }) {
   const toast = useToast();
 
@@ -63,10 +66,24 @@ function RadiusPolicy({
     toast("Perubahan dibatalkan.");
   }
 
-  function apply() {
-    setRadii(values);
+  async function apply() {
+    const changed = segments.filter(
+      (segment) => values[segment.id] !== baseline[segment.id],
+    );
+
+    for (const segment of changed) {
+      const serviceType = SERVICE_TYPES[segment.id];
+      if (!serviceType) continue;
+
+      await sendJson("PUT", "/api/v1/admin/radius-segments", {
+        service_type: serviceType,
+        radius_m: values[segment.id],
+      });
+    }
+
     setBaseline(values);
     toast("Kebijakan radius berhasil diterapkan.");
+    onApplied?.();
   }
 
   return (
@@ -239,7 +256,7 @@ function RadiusPolicy({
 export function RadiusSettingsPage() {
   useSeo("/admin/pengaturan-radius");
   const resource = useFetch<{ data: RadiusSegment[]; meta: RadiusMeta }>(
-    "/api/radius-segments",
+    "/api/v1/admin/radius-segments",
   );
   const segments = resource.data?.data ?? [];
 
@@ -273,7 +290,13 @@ export function RadiusSettingsPage() {
     );
   }
 
-  return <RadiusPolicy segments={segments} meta={resource.data?.meta} />;
+  return (
+    <RadiusPolicy
+      segments={segments}
+      meta={resource.data?.meta}
+      onApplied={resource.reload}
+    />
+  );
 }
 
 export default RadiusSettingsPage;

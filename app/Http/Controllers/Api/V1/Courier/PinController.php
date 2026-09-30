@@ -36,6 +36,8 @@ class PinController extends CourierController
 
         $result = $pins->verify($shipment, $this->courier(), (string) $request->input('code'));
 
-        return $this->ok($result);
+        return $this->ok([
+            'verified' => $result['status'] === 'verified',
+        ] + $result);
     }
 }
