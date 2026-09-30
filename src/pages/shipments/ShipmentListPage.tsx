@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { ShipmentCard } from "../../components/shipments/ShipmentCard";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
 import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { useSeo } from "../../hooks/useSeo";
@@ -20,7 +21,8 @@ const FILTERS: { id: ServiceFilter; label: string }[] = [
 
 export function ShipmentListPage() {
   useSeo("/shipments");
-  const { shipments, getShipmentById } = useShipmentContext();
+  const { shipments, shipmentsResource, getShipmentById } =
+    useShipmentContext();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -106,7 +108,22 @@ export function ShipmentListPage() {
         ))}
       </div>
 
-      {rows.length === 0 ? (
+      {shipmentsResource.isLoading ? (
+        <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
+          <Spinner /> Memuat resi dari server...
+        </p>
+      ) : shipmentsResource.isError ? (
+        <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
+          Gagal memuat resi dari server.{" "}
+          <Button
+            variant="text"
+            className="text-[12px]"
+            onClick={shipmentsResource.reload}
+          >
+            Coba lagi
+          </Button>
+        </p>
+      ) : rows.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
           <MaterialIcon
             name="inbox"

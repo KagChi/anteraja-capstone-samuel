@@ -3,11 +3,11 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ServiceTag } from "../../components/Badges";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
-import { EXCEPTION_ROWS } from "../../data/shipments";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { getDecisions } from "../../lib/storage";
-import type { ServiceSegment } from "../../types";
+import type { ExceptionRow, ServiceSegment } from "../../types";
 
 type ServiceFilter = "all" | ServiceSegment;
 
@@ -23,7 +23,12 @@ export function AntrianPengecualianPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [decided] = useState(() => Object.keys(getDecisions()));
-  const rows = EXCEPTION_ROWS.filter((row) => !decided.includes(row.id));
+  const exceptionsResource = useFetch<{ data: ExceptionRow[] }>(
+    "/api/exceptions",
+  );
+  const rows = (exceptionsResource.data?.data ?? []).filter(
+    (row) => !decided.includes(row.id),
+  );
 
   const [service, setService] = useState<ServiceFilter>("all");
   const [search, setSearch] = useState("");
@@ -220,61 +225,88 @@ export function AntrianPengecualianPage() {
                 className="divide-y divide-border-subtle/70"
                 id="exception-table-body"
               >
-                {visibleRows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="exception-row transition-colors hover:bg-surface-container-low/40"
-                    data-service={row.service}
-                  >
-                    <th
-                      className="whitespace-nowrap px-5 py-3 align-middle font-normal"
-                      scope="row"
+                {exceptionsResource.isLoading ? (
+                  <tr>
+                    <td
+                      className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+                      colSpan={6}
                     >
-                      <p className="m-0 text-title-md font-semibold text-on-surface">
-                        {row.courierName}{" "}
-                        <span className="text-[12px] font-normal text-on-surface-variant/70">
-                          ({row.courierCode})
-                        </span>
-                      </p>
-                    </th>
-                    <td className="whitespace-nowrap px-4 py-3 align-middle">
-                      <Link
-                        className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
-                        to="/admin/audit-trail"
-                      >
-                        {row.tracking}
-                      </Link>
+                      Memuat pengajuan dari server...
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 align-middle">
-                      <ServiceTag service={row.service} />
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 align-middle">
-                      <span className="text-[12px] font-semibold text-amber-700">
-                        +{row.deviation} m{" "}
-                        <span className="font-normal text-on-surface-variant">
-                          / maks {row.maxTolerance} m
-                        </span>
-                      </span>
-                    </td>
-                    <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
-                      {row.reason}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
+                  </tr>
+                ) : exceptionsResource.isError ? (
+                  <tr>
+                    <td
+                      className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+                      colSpan={6}
+                    >
+                      Gagal memuat pengajuan.{" "}
                       <Button
-                        as="link"
-                        to="/admin/pengecualian-detail"
                         variant="text"
                         className="text-[12px]"
+                        onClick={exceptionsResource.reload}
                       >
-                        Tinjau{" "}
-                        <MaterialIcon
-                          name="arrow_forward"
-                          className="text-[16px]"
-                        />
+                        Coba lagi
                       </Button>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  visibleRows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="exception-row transition-colors hover:bg-surface-container-low/40"
+                      data-service={row.service}
+                    >
+                      <th
+                        className="whitespace-nowrap px-5 py-3 align-middle font-normal"
+                        scope="row"
+                      >
+                        <p className="m-0 text-title-md font-semibold text-on-surface">
+                          {row.courierName}{" "}
+                          <span className="text-[12px] font-normal text-on-surface-variant/70">
+                            ({row.courierCode})
+                          </span>
+                        </p>
+                      </th>
+                      <td className="whitespace-nowrap px-4 py-3 align-middle">
+                        <Link
+                          className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
+                          to={`/admin/audit-trail/${row.tracking}`}
+                        >
+                          {row.tracking}
+                        </Link>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 align-middle">
+                        <ServiceTag service={row.service} />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 align-middle">
+                        <span className="text-[12px] font-semibold text-amber-700">
+                          +{row.deviation} m{" "}
+                          <span className="font-normal text-on-surface-variant">
+                            / maks {row.maxTolerance} m
+                          </span>
+                        </span>
+                      </td>
+                      <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
+                        {row.reason}
+                      </td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
+                        <Button
+                          as="link"
+                          to={`/admin/pengecualian-detail/${row.tracking}`}
+                          variant="text"
+                          className="text-[12px]"
+                        >
+                          Tinjau{" "}
+                          <MaterialIcon
+                            name="arrow_forward"
+                            className="text-[16px]"
+                          />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
                 <tr id="exception-empty" hidden={visibleRows.length !== 0}>
                   <td
                     className="px-5 py-10 text-center text-body-sm text-on-surface-variant"

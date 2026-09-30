@@ -1,21 +1,47 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Avatar } from "../../components/Avatar";
 import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import { useAvatar } from "../../hooks/useAvatar";
+import { useFetch } from "../../hooks/useFetch";
 import { useProofPhoto } from "../../hooks/useProofPhoto";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision } from "../../lib/storage";
-
-const TRACKING = "ANT-INST-99201";
+import type { ExceptionDetail } from "../../types";
 
 export function PengecualianDetailPage() {
+  const { id = "" } = useParams<{ id: string }>();
   useSeo("/admin/pengecualian-detail");
+  const detail = useFetch<{ data: ExceptionDetail }>(
+    id ? `/api/exceptions/${encodeURIComponent(id)}` : null,
+  );
+  const exception = detail.data?.data;
+  const tracking = exception?.tracking ?? id;
+  const courierName = exception?.courierName ?? "Kurir";
   const [note, setNote] = useState("");
-  const courierAvatar = useAvatar("Budi Pratama");
-  const proofPhoto = useProofPhoto(TRACKING);
+  const courierAvatar = useAvatar(courierName);
+  const proofPhoto = useProofPhoto(tracking);
+
+  if (detail.isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-[13px] text-on-surface-variant">
+        <Spinner /> Memuat detail pengecualian dari server...
+      </div>
+    );
+  }
+
+  if (id && !exception) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-[13px] text-on-surface-variant">
+        <MaterialIcon name="search_off" className="mb-1 text-[32px]" />
+        Resi <strong className="tabular-nums text-on-surface">{id}</strong>{" "}
+        tidak ditemukan.
+      </div>
+    );
+  }
 
   return (
     <>
@@ -40,16 +66,16 @@ export function PengecualianDetailPage() {
           open
           aria-modal="true"
           aria-labelledby="judul-modal-pengecualian"
-          data-tracking={TRACKING}
+          data-tracking={tracking}
         >
           <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-border-subtle bg-surface-container-lowest p-5">
             <section>
               <p className="m-0 flex items-center gap-2">
                 <mark className="rounded-full bg-brand-magenta/10 px-2 py-0.5 text-[11px] font-bold uppercase text-brand-magenta">
-                  Instant
+                  {exception?.service ?? "Instant"}
                 </mark>
                 <span className="tabular-nums text-[12px] text-on-surface-variant">
-                  #ANT-99201
+                  {tracking}
                 </span>
               </p>
               <h1
@@ -74,21 +100,21 @@ export function PengecualianDetailPage() {
           <section className="space-y-5 p-5">
             <p className="m-0 flex items-center gap-3">
               <Avatar
-                name="Budi Pratama"
+                name={courierName}
                 resource={courierAvatar}
                 className="size-10 text-[14px]"
               />
               <span className="block leading-tight">
                 <span className="block text-sm font-semibold text-on-surface">
-                  Budi Pratama{" "}
+                  {courierName}{" "}
                   <span className="text-[12px] font-normal text-on-surface-variant">
-                    (SAT-8821)
+                    ({exception?.courierCode ?? "—"})
                   </span>
                 </span>
                 <span className="block text-[12px] text-on-surface-variant">
                   Tiket dibuat{" "}
-                  <time dateTime="2024-09-22T14:41:00+07:00">
-                    22 Sep 2024 &bull; 14:41 WIB
+                  <time dateTime={exception?.ticketIso ?? ""}>
+                    {exception?.ticketAt ?? "—"}
                   </time>
                 </span>
               </span>
@@ -114,7 +140,7 @@ export function PengecualianDetailPage() {
                     Selisih
                   </span>{" "}
                   <strong className="block text-[18px] font-extrabold text-amber-600">
-                    +64 m
+                    +{exception?.deviation ?? 0} m
                   </strong>
                 </dd>
                 <dt className="sr-only">Toleransi Hub</dt>
@@ -123,7 +149,7 @@ export function PengecualianDetailPage() {
                     Toleransi Hub
                   </span>{" "}
                   <strong className="block text-[18px] font-extrabold text-on-surface">
-                    30 m
+                    {exception?.maxTolerance ?? 0} m
                   </strong>
                 </dd>
                 <dt className="sr-only">Jarak Aktual</dt>
@@ -132,7 +158,7 @@ export function PengecualianDetailPage() {
                     Jarak Aktual
                   </span>{" "}
                   <strong className="block text-[18px] font-extrabold text-on-surface">
-                    94 m
+                    {exception?.actualDistance ?? 0} m
                   </strong>
                 </dd>
               </dl>
@@ -146,10 +172,7 @@ export function PengecualianDetailPage() {
                 Alasan Kurir
               </h2>
               <blockquote className="m-0 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4 text-sm leading-relaxed text-on-surface">
-                &ldquo;Gate cluster ditutup untuk kendaraan. Akses hanya lewat
-                pos satpam yang berada sekitar 90 meter dari titik tujuan.
-                Penerima mengonfirmasi via telepon agar paket dititipkan di
-                pos.&rdquo;
+                &ldquo;{exception?.reason ?? "—"}&rdquo;
               </blockquote>
             </section>
 
@@ -179,13 +202,13 @@ export function PengecualianDetailPage() {
                 )}
                 <figcaption className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2">
                   <span className="tabular-nums rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
-                    -6.2418, 106.8086
+                    {exception?.podPoint ?? "—"}
                   </span>
                   <time
                     className="tabular-nums rounded bg-black/70 px-2 py-0.5 text-[10px] text-white"
-                    dateTime="2024-09-22T14:40:00+07:00"
+                    dateTime={exception?.podIso ?? ""}
                   >
-                    22 Sep 2024 &bull; 14:40 WIB
+                    {exception?.podCapturedAt ?? "—"}
                   </time>
                 </figcaption>
               </figure>
@@ -216,7 +239,7 @@ export function PengecualianDetailPage() {
               to="/admin/antrian-pengecualian?decision=reject"
               delay={850}
               busyText="Menolak..."
-              onAction={() => setDecision(TRACKING, "reject", note)}
+              onAction={() => setDecision(tracking, "reject", note)}
             >
               Tolak
             </LoadingLink>
@@ -227,7 +250,7 @@ export function PengecualianDetailPage() {
               to="/admin/antrian-pengecualian?decision=approve"
               delay={850}
               busyText="Menyetujui..."
-              onAction={() => setDecision(TRACKING, "approve", note)}
+              onAction={() => setDecision(tracking, "approve", note)}
             >
               <MaterialIcon name="verified_user" className="text-[18px]" />{" "}
               Setujui Pengecualian

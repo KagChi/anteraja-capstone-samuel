@@ -3,10 +3,15 @@ import { LoadingLink } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
-import { useShipmentContext } from "../../context/ShipmentContext";
+import {
+  ACTIVE_TRACKING,
+  useShipmentContext,
+} from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { formatClock } from "../../lib/format";
+import type { DeliveryTask } from "../../types";
 
 export function BuktiFotoPage() {
   useSeo("/courier/bukti-foto");
@@ -14,6 +19,12 @@ export function BuktiFotoPage() {
   const { proofPhoto } = useShipmentContext();
   const [clock, setClock] = useState(() => formatClock());
   const [flash, setFlash] = useState(false);
+
+  const taskResource = useFetch<{ data: DeliveryTask }>(
+    `/api/tasks/${ACTIVE_TRACKING}`,
+  );
+  const task = taskResource.data?.data;
+  const recipient = task?.recipient ?? "Penerima";
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatClock()), 1000);
@@ -100,7 +111,7 @@ export function BuktiFotoPage() {
               }`}
               id="pod-watermark"
             >
-              {clock} WIB &bull; Senopati, Jaksel
+              {clock} WIB &bull; {task?.address ?? "Jaksel"}
             </span>
           </figcaption>
         </figure>
@@ -114,7 +125,7 @@ export function BuktiFotoPage() {
               id="judul-penerima-pod"
               className="text-[14px] font-semibold tracking-tight text-white"
             >
-              Bpk. Bambang Wijaya
+              {recipient}
             </h2>
             <p className="text-[12px] text-white/50">
               Penerima Langsung &bull; Paket Sesuai

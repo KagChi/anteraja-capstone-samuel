@@ -2,16 +2,18 @@ import { useState } from "react";
 import { LoadingButton } from "../../components/LoadingAction";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
 import { useToast } from "../../context/ToastContext";
-import { RADIUS_SEGMENTS } from "../../data/shipments";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { clamp } from "../../lib/format";
 import { getRadii, setRadii } from "../../lib/storage";
+import type { RadiusMeta, RadiusSegment } from "../../types";
 
-function initialValues(): Record<string, number> {
+function buildValues(segments: RadiusSegment[]): Record<string, number> {
   const saved = getRadii();
   return Object.fromEntries(
-    RADIUS_SEGMENTS.map((segment) => [
+    segments.map((segment) => [
       segment.id,
       clamp(
         saved[segment.id] ?? segment.defaultValue,
@@ -22,20 +24,28 @@ function initialValues(): Record<string, number> {
   );
 }
 
-export function PengaturanRadiusPage() {
-  useSeo("/admin/pengaturan-radius");
+function RadiusPolicy({
+  segments,
+  meta,
+}: {
+  segments: RadiusSegment[];
+  meta?: RadiusMeta;
+}) {
   const toast = useToast();
 
-  const [values, setValues] = useState<Record<string, number>>(initialValues);
-  const [baseline, setBaseline] =
-    useState<Record<string, number>>(initialValues);
+  const [values, setValues] = useState<Record<string, number>>(() =>
+    buildValues(segments),
+  );
+  const [baseline, setBaseline] = useState<Record<string, number>>(() =>
+    buildValues(segments),
+  );
 
-  const dirty = RADIUS_SEGMENTS.some(
+  const dirty = segments.some(
     (segment) => values[segment.id] !== baseline[segment.id],
   );
 
   function step(id: string, delta: number) {
-    const segment = RADIUS_SEGMENTS.find((item) => item.id === id);
+    const segment = segments.find((item) => item.id === id);
     if (!segment) return;
     const current = values[id] ?? segment.min;
     const next = clamp(current + delta, segment.min, segment.max);
@@ -73,7 +83,7 @@ export function PengaturanRadiusPage() {
               aria-hidden="true"
             />
             <span className="text-xs text-on-surface-variant">
-              Fleet Safety Protocol v4.2
+              {meta?.protocol ?? "Fleet Safety Protocol"}
             </span>
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">
@@ -103,7 +113,7 @@ export function PengaturanRadiusPage() {
           </header>
 
           <ul className="m-0 list-none divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-container-lowest shadow-card p-0">
-            {RADIUS_SEGMENTS.map((segment) => {
+            {segments.map((segment) => {
               const value = values[segment.id];
               return (
                 <li
@@ -184,11 +194,11 @@ export function PengaturanRadiusPage() {
             <span>
               Terakhir diperbarui oleh{" "}
               <strong className="font-semibold text-on-surface">
-                Superadmin (Dimas P.)
+                {meta?.updatedBy ?? "Superadmin"}
               </strong>{" "}
               &bull;{" "}
-              <time dateTime="2024-09-12T09:15:00+07:00">
-                12 Sep 2024, 09:15 WIB
+              <time dateTime={meta?.updatedAtIso ?? ""}>
+                {meta?.updatedAtLabel ?? "—"}
               </time>
             </span>
           </p>
@@ -222,4 +232,44 @@ export function PengaturanRadiusPage() {
       </footer>
     </>
   );
+}
+
+export function PengaturanRadiusPage() {
+  useSeo("/admin/pengaturan-radius");
+  const resource = useFetch<{ data: RadiusSegment[]; meta: RadiusMeta }>(
+    "/api/radius-segments",
+  );
+  const segments = resource.data?.data ?? [];
+
+  if (resource.isLoading) {
+    return (
+      <main
+        className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center gap-2 px-4 py-16 text-sm text-on-surface-variant lg:px-8"
+        id="konten-utama"
+      >
+        <Spinner /> Memuat kebijakan radius dari server...
+      </main>
+    );
+  }
+
+  if (resource.isError || segments.length === 0) {
+    return (
+      <main
+        className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-3 px-4 py-16 text-sm text-on-surface-variant lg:px-8"
+        id="konten-utama"
+      >
+        <MaterialIcon name="cloud_off" className="text-[28px]" />
+        Gagal memuat kebijakan radius dari server.
+        <Button
+          variant="text"
+          className="text-[12px]"
+          onClick={resource.reload}
+        >
+          Coba lagi
+        </Button>
+      </main>
+    );
+  }
+
+  return <RadiusPolicy segments={segments} meta={resource.data?.meta} />;
 }

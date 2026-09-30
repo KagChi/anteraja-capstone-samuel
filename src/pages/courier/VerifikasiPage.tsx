@@ -4,16 +4,20 @@ import { useNavigate } from "react-router-dom";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
-import { useShipmentContext } from "../../context/ShipmentContext";
+import {
+  ACTIVE_TRACKING,
+  useShipmentContext,
+} from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { clamp } from "../../lib/format";
 import { getRelation, setRelation } from "../../lib/storage";
+import type { DeliveryTask } from "../../types";
 
 const DEMO_PIN = "123456";
 const PIN_KEYS = ["d1", "d2", "d3", "d4", "d5", "d6"] as const;
 const MAX_ATTEMPTS = 3;
-const TRACKING = "ANT-INST-882910394";
 
 type PinStatus = "idle" | "error" | "ok";
 
@@ -28,6 +32,14 @@ export function VerifikasiPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { postal } = useShipmentContext();
+
+  const taskResource = useFetch<{ data: DeliveryTask }>(
+    `/api/tasks/${ACTIVE_TRACKING}`,
+  );
+  const task = taskResource.data?.data;
+  const geofence = task?.geofence;
+  const tracking = task?.tracking ?? ACTIVE_TRACKING;
+  const recipient = task?.recipient ?? "Penerima";
 
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const resetToken = useRef(0);
@@ -228,14 +240,16 @@ export function VerifikasiPage() {
         >
           <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-black/[0.03] px-3 py-1 text-[12px] font-semibold text-on-surface-variant m-0">
             <span className="tabular-nums text-[11px] tracking-wider text-on-surface-variant/70">
-              {TRACKING}
+              {tracking}
             </span>
           </p>
           <h2 id="judul-geofence" className="sr-only">
             Status geofence
           </h2>
           <p className="mb-2 flex items-baseline justify-center font-extrabold leading-none tracking-tight text-on-surface m-0">
-            <span className="text-[52px]">28</span>
+            <span className="text-[52px]">
+              {geofence?.distanceMeters ?? 28}
+            </span>
             <span className="ml-1 text-[26px] font-bold text-on-surface-variant">
               m
             </span>
@@ -274,16 +288,20 @@ export function VerifikasiPage() {
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
               Jarak kurir
             </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">28 m</dd>
+            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
+              {geofence?.distanceMeters ?? 28} m
+            </dd>
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
               Radius Instant
             </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">30 m</dd>
+            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
+              {geofence?.radiusMeters ?? 30} m
+            </dd>
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
               Titik tujuan
             </dt>
             <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-              Jl. Senopati No. 42
+              {geofence?.point ?? "—"}
             </dd>
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
               Sumber keputusan
@@ -311,7 +329,9 @@ export function VerifikasiPage() {
                 className="text-[16px] text-brand-magenta"
               />{" "}
               Kurir &rarr; Tujuan{" "}
-              <strong className="text-on-surface">28 m</strong>
+              <strong className="text-on-surface">
+                {geofence?.distanceMeters ?? 28} m
+              </strong>
             </li>
             <li className="flex items-center gap-1.5 text-on-surface-variant">
               <MaterialIcon
@@ -319,7 +339,9 @@ export function VerifikasiPage() {
                 className="text-[16px] text-on-surface-variant"
               />{" "}
               Tujuan &rarr; Pembeli{" "}
-              <strong className="text-on-surface">12 m</strong>
+              <strong className="text-on-surface">
+                {geofence?.deviationMeters ?? 12} m
+              </strong>
             </li>
           </ul>
           <p className="m-0 mt-3 flex flex-wrap items-center gap-1.5 border-t border-border-subtle pt-3 text-[12px] text-on-surface-variant">
@@ -455,11 +477,11 @@ export function VerifikasiPage() {
                 className="grid size-8 place-items-center rounded-full bg-brand-magenta/10 text-[12px] font-bold text-brand-magenta"
                 aria-hidden="true"
               >
-                B
+                {recipient.charAt(0)}
               </span>
               <span className="block">
                 <span className="block text-[14px] font-semibold leading-tight text-on-surface">
-                  Bpk. Bambang Wijaya
+                  {recipient}
                 </span>
                 <span className="block text-[12px] text-on-surface-variant">
                   Penerima terdaftar

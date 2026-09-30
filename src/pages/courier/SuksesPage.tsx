@@ -5,12 +5,15 @@ import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
 import { useSession } from "../../context/SessionContext";
-import { useShipmentContext } from "../../context/ShipmentContext";
+import {
+  ACTIVE_TRACKING,
+  useShipmentContext,
+} from "../../context/ShipmentContext";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { formatStamp, randomDigits } from "../../lib/format";
 import { markCompleted } from "../../lib/storage";
-
-const TRACKING = "ANT-INST-882910394";
+import type { DeliveryTask } from "../../types";
 
 export function SuksesPage() {
   useSeo("/courier/sukses");
@@ -22,10 +25,17 @@ export function SuksesPage() {
   const [hash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
   const [stamp] = useState(() => new Date());
 
+  const taskResource = useFetch<{ data: DeliveryTask }>(
+    `/api/tasks/${ACTIVE_TRACKING}`,
+  );
+  const task = taskResource.data?.data;
+  const tracking = task?.tracking ?? ACTIVE_TRACKING;
+
   useEffect(() => {
-    const completed = markCompleted(TRACKING);
+    if (!task) return;
+    const completed = markCompleted(task.tracking);
     setDone(8 + completed.length);
-  }, []);
+  }, [task]);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
@@ -94,7 +104,7 @@ export function SuksesPage() {
                 </span>
               </p>
               <p className="tabular-nums m-0 rounded-md bg-surface-container-low px-2 py-0.5 text-[13px] font-bold tracking-tight text-on-surface">
-                {TRACKING}
+                {tracking}
               </p>
             </header>
             <section className="flex items-start gap-3 pt-0.5">
@@ -110,7 +120,7 @@ export function SuksesPage() {
               <section className="min-w-0 flex-1">
                 <header className="flex items-center justify-between gap-2">
                   <h2 className="truncate text-[14px] font-semibold text-on-surface">
-                    Bpk. Bambang Wijaya
+                    {task?.recipient ?? "Penerima"}
                   </h2>
                   <p className="m-0 flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-tertiary">
                     <MaterialIcon
@@ -122,7 +132,7 @@ export function SuksesPage() {
                   </p>
                 </header>
                 <p className="mt-0.5 text-[12px] leading-relaxed text-on-surface-variant">
-                  Jl. Senopati No. 42, Kebayoran Baru
+                  {task?.address ?? "Kebayoran Baru"}
                 </p>
               </section>
             </section>
@@ -148,7 +158,8 @@ export function SuksesPage() {
             <dl className="m-0 space-y-2 border-t border-border-subtle/60 bg-surface-container-lowest/50 px-4 pb-3 pt-1 tabular-nums text-[11px]">
               <dt className="text-on-surface-variant">Radius Geofence</dt>
               <dd className="m-0 font-bold text-tertiary">
-                28 m (Batas 30 m) &bull; Valid
+                {task?.geofence?.distanceMeters ?? 28} m (Batas{" "}
+                {task?.geofence?.radiusMeters ?? 30} m) &bull; Valid
               </dd>
               <dt className="text-on-surface-variant">Verifikasi PIN</dt>
               <dd className="m-0 font-semibold text-on-surface">

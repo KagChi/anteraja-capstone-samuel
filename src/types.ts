@@ -46,6 +46,13 @@ export interface TaskBadge {
   tone: "service-instant" | "service-sameday" | "pill" | "note" | "pin";
 }
 
+export interface TaskGeofence {
+  distanceMeters: number;
+  deviationMeters: number;
+  radiusMeters: number;
+  point: string;
+}
+
 export interface DeliveryTask {
   tracking: string;
   category: TaskCategory;
@@ -56,6 +63,7 @@ export interface DeliveryTask {
   badges: TaskBadge[];
   footerNote?: string;
   cta?: string;
+  geofence?: TaskGeofence;
 }
 
 export type DeliveryFlag = "review" | "delivered" | "exception";
@@ -122,4 +130,68 @@ export interface SeoConfig {
   title: string;
   description: string;
   jsonLd?: Record<string, unknown>;
+}
+
+export interface DashboardSummary {
+  total: number;
+  reviewCount: number;
+  verifiedCount: number;
+  shift: string;
+}
+
+export interface TimelineStepData {
+  label: string;
+  time: string;
+}
+
+export interface Milestone {
+  time: string;
+  datetime: string;
+  text: string;
+  accent: "tertiary" | "magenta" | null;
+}
+
+export interface GeofenceInfo {
+  target: [number, number];
+  courier: [number, number];
+  radiusMeters: number;
+  deviationMeters: number;
+  pointLabel: string;
+  analysis: string;
+}
+
+export interface PodInfo {
+  photoSeed: string;
+  capturedTime: string;
+  watermark: string;
+  recipientName: string;
+  relation: string;
+  pin: string;
+}
+
+export interface ShipmentDetail {
+  timeline: TimelineStepData[];
+  milestones: Milestone[];
+  geofence: GeofenceInfo;
+  pod: PodInfo;
+  deviationMeters: number;
+  maxToleranceMeters: number;
+  reason: string;
+  completedLabel: string;
+}
+
+export interface ExceptionDetail extends ExceptionRow {
+  actualDistance: number;
+  ticketAt: string;
+  ticketIso: string;
+  podPoint: string;
+  podCapturedAt: string;
+  podIso: string;
+}
+
+export interface RadiusMeta {
+  protocol: string;
+  updatedBy: string;
+  updatedAtIso: string;
+  updatedAtLabel: string;
 }
