@@ -1,23 +1,43 @@
-# Environment variables (never commit credentials)
+# Environment
 .env
+.env.backup
+.env.production
 .env.local
 .env.*.local
+!.env.example
 
 # Dependencies
-node_modules/
-vendor/
+/node_modules
+/vendor
 
 # Build output
-dist/
-build/
-out/
+/public/build
+/public/hot
+/dist
 
-# Logs
+# Storage & framework runtime
+/public/storage
+/storage/*.key
+/storage/pail
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Logs & caches
 *.log
-npm-debug.log*
+.phpunit.result.cache
+/.phpunit.cache
 
-# OS / editor
+# OS / editor / tooling
 .DS_Store
 Thumbs.db
-.idea/
-.vscode/
+/.fleet
+/.idea
+/.nova
+/.phpactor.json
+/.vscode
+/.zed
+/auth.json
+
+# Homestead
+Homestead.json
+Homestead.yaml
