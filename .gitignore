@@ -26,6 +26,8 @@
 *.log
 .phpunit.result.cache
 /.phpunit.cache
+/tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # OS / editor / tooling
 .DS_Store

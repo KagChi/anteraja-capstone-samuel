@@ -1,0 +1,76 @@
+import { Link } from "@inertiajs/react";
+import { initialOf } from "../../../lib/format";
+import type { DeliveryRow } from "../../../types";
+import { ServiceTag, StatusPill } from "../../Badges";
+import { MaterialIcon } from "../../MaterialIcon";
+import { Button } from "../../ui/Button";
+
+interface ShipmentItemProps {
+  shipment: DeliveryRow;
+}
+
+export function ShipmentItem({ shipment }: ShipmentItemProps) {
+  const detailHref =
+    shipment.flag === "exception"
+      ? `/admin/pengecualian-detail/${encodeURIComponent(shipment.id)}`
+      : `/admin/audit-trail/${encodeURIComponent(shipment.id)}`;
+
+  return (
+    <tr
+      className={`delivery-row group transition-colors hover:bg-surface-container-low/40 ${
+        shipment.highlight ? "bg-primary-fixed/10" : ""
+      }`}
+      data-flag={shipment.flag}
+      data-service={shipment.service}
+      data-region={shipment.region}
+    >
+      <th
+        className="whitespace-nowrap px-5 py-3 align-middle font-normal"
+        scope="row"
+      >
+        <p className="m-0 flex items-center gap-3">
+          <span
+            className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-magenta/10 text-[11px] font-bold text-brand-magenta"
+            aria-hidden="true"
+          >
+            {initialOf(shipment.courierName, "?")}
+          </span>
+          <span className="text-title-md font-semibold text-on-surface">
+            {shipment.courierName}{" "}
+            <span className="text-body-sm font-normal text-on-surface-variant/70">
+              ({shipment.courierCode})
+            </span>
+          </span>
+        </p>
+      </th>
+      <td className="whitespace-nowrap px-4 py-3 align-middle">
+        <Link
+          className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
+          href={detailHref}
+        >
+          {shipment.tracking}
+        </Link>
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 align-middle">
+        <ServiceTag service={shipment.service} />
+      </td>
+      <td className="whitespace-nowrap px-4 py-3 align-middle">
+        <StatusPill label={shipment.statusLabel} tone={shipment.statusTone} />
+      </td>
+      <td className="hidden whitespace-nowrap px-4 py-3 align-middle text-body-sm text-on-surface-variant lg:table-cell">
+        {shipment.regionLabel}
+      </td>
+      <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
+        <Button
+          as="link"
+          to={detailHref}
+          variant={shipment.flag === "delivered" ? "textNeutral" : "text"}
+          className="text-[12px]"
+        >
+          {shipment.flag === "delivered" ? "Detail" : "Tinjau"}{" "}
+          <MaterialIcon name="arrow_forward" className="text-[16px]" />
+        </Button>
+      </td>
+    </tr>
+  );
+}

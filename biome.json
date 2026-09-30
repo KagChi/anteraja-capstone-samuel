@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/dist", "!**/docs", "!**/node_modules"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/docs",
+      "!**/node_modules",
+      "!composer.json",
+      "!composer.lock",
+      "!bun.lock"
+    ]
   },
   "formatter": {
     "enabled": true,
