@@ -10,6 +10,11 @@ interface ShipmentItemProps {
 }
 
 export function ShipmentItem({ shipment }: ShipmentItemProps) {
+  const detailHref =
+    shipment.flag === "exception"
+      ? `/admin/pengecualian-detail/${encodeURIComponent(shipment.id)}`
+      : `/admin/audit-trail/${encodeURIComponent(shipment.id)}`;
+
   return (
     <tr
       className={`delivery-row group transition-colors hover:bg-surface-container-low/40 ${
@@ -41,7 +46,7 @@ export function ShipmentItem({ shipment }: ShipmentItemProps) {
       <td className="whitespace-nowrap px-4 py-3 align-middle">
         <Link
           className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
-          to={shipment.href}
+          to={detailHref}
         >
           {shipment.tracking}
         </Link>
@@ -58,7 +63,7 @@ export function ShipmentItem({ shipment }: ShipmentItemProps) {
       <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
         <Button
           as="link"
-          to={shipment.href}
+          to={detailHref}
           variant={shipment.flag === "delivered" ? "textNeutral" : "text"}
           className="text-[12px]"
         >

@@ -4,14 +4,15 @@ import { Avatar } from "../../components/Avatar";
 import { CourierBottomNav } from "../../components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../components/MaterialIcon";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
 import { useSession } from "../../context/SessionContext";
 import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
-import { TASKS } from "../../data/tasks";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { useWelcomeToast } from "../../hooks/useWelcomeToast";
 import { getCompleted } from "../../lib/storage";
-import type { TaskBadge, TaskCategory } from "../../types";
+import type { DeliveryTask, TaskBadge, TaskCategory } from "../../types";
 
 type Filter = "all" | TaskCategory;
 
@@ -73,7 +74,10 @@ export function TugasPage() {
   const [flash, setFlash] = useState<string | null>(null);
   const cardRefs = useRef(new Map<string, HTMLElement>());
 
-  const visibleTasks = TASKS.filter(
+  const tasksResource = useFetch<{ data: DeliveryTask[] }>("/api/tasks");
+  const tasks = tasksResource.data?.data ?? [];
+
+  const visibleTasks = tasks.filter(
     (task) => filter === "all" || task.category === filter,
   );
   const done = 8 + getCompleted().length;
@@ -83,7 +87,7 @@ export function TugasPage() {
     if (!code) return;
     const query = code.trim().toLowerCase();
     if (!query) return;
-    const found = TASKS.find((task) =>
+    const found = tasks.find((task) =>
       task.tracking.toLowerCase().includes(query),
     );
     if (!found) {
@@ -176,65 +180,82 @@ export function TugasPage() {
           id="task-container"
           aria-label="Daftar stop aktif"
         >
-          {visibleTasks.map((task) => (
-            <li key={task.tracking}>
-              <article
-                ref={(element) => {
-                  if (element) cardRefs.current.set(task.tracking, element);
-                  else cardRefs.current.delete(task.tracking);
-                }}
-                className={`task-card relative rounded-2xl border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
-                  task.category === "instant"
-                    ? "border-l-brand-magenta"
-                    : "border-l-energetic-yellow"
-                } ${flash === task.tracking ? "animate-flash" : ""}`}
-                data-category={task.category}
-                data-tracking={task.tracking}
-              >
-                <header className="mb-2 flex items-center justify-between gap-2">
-                  <p className="m-0 flex items-center gap-2">
-                    {task.badges.map((badge) => (
-                      <Badge key={badge.label} badge={badge} />
-                    ))}
-                  </p>
-                  <p className="m-0 whitespace-nowrap text-[12px] text-on-surface-variant/70">
-                    {task.distance} &bull; {task.eta}
-                  </p>
-                </header>
-                <h2 className="truncate text-[16px] font-semibold leading-snug text-on-surface">
-                  <Link className="hover:underline" to="/courier/verifikasi">
-                    {task.recipient}
-                  </Link>
-                </h2>
-                <p className="mt-0.5 truncate text-[13px] leading-relaxed text-on-surface-variant">
-                  {task.address}
-                </p>
-                <footer className="mt-3.5 flex items-center justify-between border-t border-black/[0.05] pt-3">
-                  <span className="tabular-nums text-[12px] tracking-tight text-on-surface-variant/70">
-                    {task.tracking}
-                  </span>
-                  {task.cta ? (
-                    <Button
-                      as="link"
-                      to="/courier/verifikasi"
-                      variant="text"
-                      className="text-[13px]"
-                    >
-                      {task.cta}{" "}
-                      <MaterialIcon
-                        name="arrow_forward"
-                        className="text-[16px]"
-                      />
-                    </Button>
-                  ) : (
-                    <span className="text-[12px] text-on-surface-variant/70">
-                      {task.footerNote}
-                    </span>
-                  )}
-                </footer>
-              </article>
+          {tasksResource.isLoading ? (
+            <li className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
+              <Spinner /> Memuat tugas dari server...
             </li>
-          ))}
+          ) : tasksResource.isError ? (
+            <li className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
+              Gagal memuat tugas dari server.{" "}
+              <Button
+                variant="text"
+                className="text-[12px]"
+                onClick={tasksResource.reload}
+              >
+                Coba lagi
+              </Button>
+            </li>
+          ) : (
+            visibleTasks.map((task) => (
+              <li key={task.tracking}>
+                <article
+                  ref={(element) => {
+                    if (element) cardRefs.current.set(task.tracking, element);
+                    else cardRefs.current.delete(task.tracking);
+                  }}
+                  className={`task-card relative rounded-2xl border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
+                    task.category === "instant"
+                      ? "border-l-brand-magenta"
+                      : "border-l-energetic-yellow"
+                  } ${flash === task.tracking ? "animate-flash" : ""}`}
+                  data-category={task.category}
+                  data-tracking={task.tracking}
+                >
+                  <header className="mb-2 flex items-center justify-between gap-2">
+                    <p className="m-0 flex items-center gap-2">
+                      {task.badges.map((badge) => (
+                        <Badge key={badge.label} badge={badge} />
+                      ))}
+                    </p>
+                    <p className="m-0 whitespace-nowrap text-[12px] text-on-surface-variant/70">
+                      {task.distance} &bull; {task.eta}
+                    </p>
+                  </header>
+                  <h2 className="truncate text-[16px] font-semibold leading-snug text-on-surface">
+                    <Link className="hover:underline" to="/courier/verifikasi">
+                      {task.recipient}
+                    </Link>
+                  </h2>
+                  <p className="mt-0.5 truncate text-[13px] leading-relaxed text-on-surface-variant">
+                    {task.address}
+                  </p>
+                  <footer className="mt-3.5 flex items-center justify-between border-t border-black/[0.05] pt-3">
+                    <span className="tabular-nums text-[12px] tracking-tight text-on-surface-variant/70">
+                      {task.tracking}
+                    </span>
+                    {task.cta ? (
+                      <Button
+                        as="link"
+                        to="/courier/verifikasi"
+                        variant="text"
+                        className="text-[13px]"
+                      >
+                        {task.cta}{" "}
+                        <MaterialIcon
+                          name="arrow_forward"
+                          className="text-[16px]"
+                        />
+                      </Button>
+                    ) : (
+                      <span className="text-[12px] text-on-surface-variant/70">
+                        {task.footerNote}
+                      </span>
+                    )}
+                  </footer>
+                </article>
+              </li>
+            ))
+          )}
         </ul>
 
         <p className="m-0 px-1 pt-2 text-center">

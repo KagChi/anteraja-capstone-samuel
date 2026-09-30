@@ -268,7 +268,7 @@ export function LandingPage() {
                 <li>
                   <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    to="/admin/audit-trail"
+                    to="/admin/audit-trail/ANT-INST-8829104"
                   >
                     2. Detail Audit Trail
                   </Link>
@@ -284,7 +284,7 @@ export function LandingPage() {
                 <li>
                   <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    to="/admin/pengecualian-detail"
+                    to="/admin/pengecualian-detail/ANT-INST-99201"
                   >
                     3b. Detail Pengecualian
                   </Link>

@@ -6,16 +6,16 @@ import {
   TrackingTimeline,
 } from "../../components/shipments/TrackingTimeline";
 import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
 import { useShipmentContext } from "../../context/ShipmentContext";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
-import type { DeliveryFlag } from "../../types";
-
-const RAW_STEPS = [
-  { label: "Paket dibuat di Hub Jakarta Selatan", time: "08:10 WIB" },
-  { label: "Dijemput kurir Satria", time: "08:24 WIB" },
-  { label: "Dalam perjalanan ke alamat tujuan", time: "08:41 WIB" },
-  { label: "Serah terima di alamat tujuan", time: "—" },
-];
+import type {
+  DeliveryFlag,
+  DeliveryRow,
+  ShipmentDetail,
+  TimelineStepData,
+} from "../../types";
 
 const DONE_BY_FLAG: Record<DeliveryFlag, number> = {
   delivered: 4,
@@ -23,9 +23,12 @@ const DONE_BY_FLAG: Record<DeliveryFlag, number> = {
   review: 2,
 };
 
-function buildTimeline(flag: DeliveryFlag): TimelineStep[] {
+function buildTimeline(
+  steps: TimelineStepData[],
+  flag: DeliveryFlag,
+): TimelineStep[] {
   const done = DONE_BY_FLAG[flag];
-  return RAW_STEPS.map((step, index) => ({
+  return steps.map((step, index) => ({
     label: step.label,
     time: index < done ? step.time : "—",
     state: index < done ? "done" : index === done ? "current" : "pending",
@@ -36,8 +39,20 @@ export function ShipmentDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   useSeo(`/shipments/${id}`, "/shipments");
   const { getShipmentById } = useShipmentContext();
+  const detail = useFetch<{ data: DeliveryRow; detail: ShipmentDetail | null }>(
+    id ? `/api/shipments/${encodeURIComponent(id)}` : null,
+  );
 
-  const shipment = getShipmentById(id);
+  if (detail.isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-[13px] text-on-surface-variant">
+        <Spinner /> Memuat detail resi dari server...
+      </div>
+    );
+  }
+
+  // API adalah sumber utama; fallback memakai daftar resi yang sudah dimuat.
+  const shipment = detail.data?.data ?? getShipmentById(id);
 
   if (!shipment) {
     return (
@@ -64,7 +79,10 @@ export function ShipmentDetailPage() {
     );
   }
 
-  const timeline = buildTimeline(shipment.flag);
+  const timeline = buildTimeline(
+    detail.data?.detail?.timeline ?? [],
+    shipment.flag,
+  );
 
   return (
     <div className="flex flex-col gap-4">

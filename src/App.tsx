@@ -46,13 +46,13 @@ export default function App() {
                   element={<Navigate to="/admin/dashboard" replace />}
                 />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="audit-trail" element={<AuditTrailPage />} />
+                <Route path="audit-trail/:id" element={<AuditTrailPage />} />
                 <Route
                   path="antrian-pengecualian"
                   element={<AntrianPengecualianPage />}
                 />
                 <Route
-                  path="pengecualian-detail"
+                  path="pengecualian-detail/:id"
                   element={<PengecualianDetailPage />}
                 />
                 <Route

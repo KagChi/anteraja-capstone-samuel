@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Avatar } from "../../components/Avatar";
 import { AuditTrailMap } from "../../components/admin/audit/AuditTrailMap";
 import { LoadingButton } from "../../components/LoadingAction";
@@ -8,52 +9,28 @@ import { Spinner } from "../../components/ui/Spinner";
 import { useShipmentContext } from "../../context/ShipmentContext";
 import { useToast } from "../../context/ToastContext";
 import { useAvatar } from "../../hooks/useAvatar";
+import { useFetch } from "../../hooks/useFetch";
 import { useProofPhoto } from "../../hooks/useProofPhoto";
 import { useSeo } from "../../hooks/useSeo";
 import { setDecision as saveDecision } from "../../lib/storage";
-
-const TRACKING = "ANT-INST-8829104";
-
-const GEOFENCE = {
-  target: [-6.2401, 106.8093] as [number, number],
-  courier: [-6.24005, 106.80938] as [number, number],
-  radiusMeters: 30,
-  deviationMeters: 12,
-};
-
-const MILESTONES = [
-  {
-    time: "14:10 WIB",
-    datetime: "14:10",
-    text: "Paket diambil dari Hub Jak-Sel oleh Satria #4821",
-    accent: false,
-  },
-  {
-    time: "14:26 WIB",
-    datetime: "14:26",
-    text: "Kurir tiba di Jl. Senopati No. 42 (28 m dari titik tujuan)",
-    accent: false,
-  },
-  {
-    time: "14:30 WIB",
-    datetime: "14:30",
-    text: "PIN 8391 terverifikasi oleh penerima langsung",
-    accent: "tertiary" as const,
-  },
-  {
-    time: "14:32 WIB",
-    datetime: "14:32",
-    text: "Pengiriman dituntaskan dengan toleransi jarak (+12 m)",
-    accent: "magenta" as const,
-  },
-];
+import type { DeliveryRow, ShipmentDetail } from "../../types";
 
 export function AuditTrailPage() {
+  const { id = "" } = useParams<{ id: string }>();
   useSeo("/admin/audit-trail");
   const toast = useToast();
   const { postal } = useShipmentContext();
-  const courierAvatar = useAvatar("Ahmad Satria");
-  const proofPhoto = useProofPhoto(TRACKING);
+  const detail = useFetch<{ data: DeliveryRow; detail: ShipmentDetail | null }>(
+    id ? `/api/shipments/${encodeURIComponent(id)}` : null,
+  );
+  const shipment = detail.data?.data;
+  const audit = detail.data?.detail;
+  const geofence = audit?.geofence;
+  const milestones = audit?.milestones ?? [];
+  const tracking = shipment?.tracking ?? id;
+  const courierName = shipment?.courierName ?? "Ahmad Satria";
+  const courierAvatar = useAvatar(courierName);
+  const proofPhoto = useProofPhoto(tracking);
 
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   const [notes, setNotes] = useState("");
@@ -67,12 +44,30 @@ export function AuditTrailPage() {
       setNotesError(true);
       return;
     }
-    saveDecision(TRACKING, rejected ? "reject" : "approve", notes);
+    saveDecision(tracking, rejected ? "reject" : "approve", notes);
     setSaved(true);
     toast(
       rejected
         ? "Kasus ditandai untuk investigasi."
         : "Kasus disahkan dan ditutup.",
+    );
+  }
+
+  if (detail.isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-[13px] text-on-surface-variant">
+        <Spinner /> Memuat detail audit dari server...
+      </div>
+    );
+  }
+
+  if (id && !shipment) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-[13px] text-on-surface-variant">
+        <MaterialIcon name="search_off" className="mb-1 text-[32px]" />
+        Resi <strong className="tabular-nums text-on-surface">{id}</strong>{" "}
+        tidak ditemukan.
+      </div>
     );
   }
 
@@ -121,7 +116,7 @@ export function AuditTrailPage() {
           <header className="flex flex-col justify-between gap-4 border-b border-border-subtle pb-5 md:flex-row md:items-center">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="tabular-nums text-xl font-bold tracking-tight text-on-surface">
-                {TRACKING}
+                {tracking}
               </h1>
               <mark className="rounded-full bg-secondary-container px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-on-secondary-container">
                 Instant Delivery
@@ -131,7 +126,7 @@ export function AuditTrailPage() {
                   className="size-1.5 rounded-full bg-alert-amber"
                   aria-hidden="true"
                 />{" "}
-                +12 m Geofence
+                +{audit?.deviationMeters ?? 0} m Geofence
               </mark>
             </div>
             <p className="m-0 inline-flex w-fit items-center gap-2 rounded-full border border-border-subtle bg-surface-container-low px-3 py-1.5 text-[11px] font-semibold text-tertiary">
@@ -139,33 +134,35 @@ export function AuditTrailPage() {
                 className="size-2 rounded-full bg-tertiary"
                 aria-hidden="true"
               />{" "}
-              Selesai 14:32 WIB
+              {audit?.completedLabel ?? "—"}
             </p>
           </header>
           <section className="flex flex-col justify-between gap-4 pt-5 sm:flex-row sm:items-center">
             <p className="m-0 flex items-center gap-3.5">
               <Avatar
-                name="Ahmad Satria"
+                name={courierName}
                 resource={courierAvatar}
                 className="size-11 text-[15px]"
               />
               <span className="flex flex-col">
                 <span className="flex items-center gap-2">
                   <span className="text-base font-bold text-on-surface">
-                    Satria #4821
+                    {shipment?.courierCode ?? "#STR-4821"}
                   </span>{" "}
                   <span className="text-sm text-on-surface-variant">
-                    (Ahmad Satria)
+                    ({courierName})
                   </span>
                 </span>
                 <span className="mt-0.5 text-xs text-on-surface-variant">
-                  Layanan Instant 2 Jam &bull; Hub Jakarta Selatan
+                  {shipment?.service ?? "Instant"} &bull;{" "}
+                  {shipment?.regionLabel ?? "Hub Jakarta Selatan"}
                 </span>
               </span>
             </p>
             <address className="m-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-subtle bg-surface-container-low px-3.5 py-2 text-xs font-medium not-italic text-on-surface-variant">
-              <MaterialIcon name="route" className="text-[16px]" /> Hub Jak-Sel
-              &rarr; Jl. Senopati No. 42
+              <MaterialIcon name="route" className="text-[16px]" />{" "}
+              {shipment?.regionLabel ?? "Hub Jak-Sel"} &rarr;{" "}
+              {shipment?.address ?? "Jl. Senopati No. 42"}
               <span className="ml-1 flex items-center gap-1.5 border-l border-border-subtle pl-2">
                 <MaterialIcon
                   name="markunread_mailbox"
@@ -218,7 +215,7 @@ export function AuditTrailPage() {
                   className="size-1.5 rounded-full bg-alert-amber"
                   aria-hidden="true"
                 />{" "}
-                +12 m (Dalam Toleransi)
+                +{audit?.deviationMeters ?? 0} m (Dalam Toleransi)
               </mark>
             </header>
             <section className="grid grid-cols-1 items-center gap-5 md:grid-cols-3">
@@ -227,14 +224,21 @@ export function AuditTrailPage() {
                 aria-label="Visual peta titik tujuan dan posisi kurir"
               >
                 <AuditTrailMap
-                  target={GEOFENCE.target}
-                  courier={GEOFENCE.courier}
-                  radiusMeters={GEOFENCE.radiusMeters}
-                  deviationMeters={GEOFENCE.deviationMeters}
+                  target={
+                    geofence?.target ??
+                    ([-6.2401, 106.8093] as [number, number])
+                  }
+                  courier={
+                    geofence?.courier ??
+                    ([-6.24005, 106.80938] as [number, number])
+                  }
+                  radiusMeters={geofence?.radiusMeters ?? 30}
+                  deviationMeters={geofence?.deviationMeters ?? 0}
                 />
                 <figcaption className="sr-only">
-                  Kurir berada 12 meter dari titik tujuan, di dalam toleransi
-                  radius 30 meter.
+                  Kurir berada {geofence?.deviationMeters ?? 0} meter dari titik
+                  tujuan, di dalam toleransi radius{" "}
+                  {geofence?.radiusMeters ?? 30} meter.
                 </figcaption>
               </figure>
               <dl className="m-0 h-full space-y-3 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4">
@@ -242,14 +246,13 @@ export function AuditTrailPage() {
                   Titik Selesai
                 </dt>
                 <dd className="ml-0 mt-0 text-sm font-semibold text-on-surface">
-                  Lobi Gedung Office Park
+                  {geofence?.pointLabel ?? "—"}
                 </dd>
                 <dt className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
                   Analisis Jarak
                 </dt>
                 <dd className="ml-0 mt-0 text-xs leading-relaxed text-on-surface-variant">
-                  Deviasi +12 m dinilai wajar untuk area drop-off / parkir lobi
-                  perkantoran.
+                  {geofence?.analysis ?? "—"}
                 </dd>
               </dl>
             </section>
@@ -294,29 +297,31 @@ export function AuditTrailPage() {
                   />
                 )}
                 <figcaption className="tabular-nums absolute bottom-1.5 right-1.5 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
-                  14:31 WIB
+                  {audit?.pod.capturedTime ?? "—"}
                 </figcaption>
               </figure>
               <section className="flex min-w-0 flex-1 flex-col gap-2">
                 <p className="m-0 flex items-center gap-2">
                   <span className="text-base font-bold text-on-surface">
-                    Bpk. Bambang
+                    {shipment?.recipient ??
+                      audit?.pod.recipientName ??
+                      "Penerima"}
                   </span>{" "}
                   <mark className="rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs font-medium text-on-surface-variant">
-                    Penerima Langsung
+                    {audit?.pod.relation ?? "Penerima Langsung"}
                   </mark>
                 </p>
                 <p className="text-xs leading-relaxed text-on-surface-variant">
                   PIN cocok pada percobaan pertama. Geotag foto serah terima
                   sinkron dengan koordinat titik lobi tujuan. Watermark:{" "}
                   <code className="tabular-nums">
-                    -6.2401, 106.8093 &bull; 22 Sep 2024 15:14 WIB
+                    {audit?.pod.watermark ?? "—"}
                   </code>
                   .
                 </p>
                 <mark className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container-lowest px-3 py-1.5 text-xs font-bold text-tertiary shadow-sm">
-                  <MaterialIcon name="lock_open" className="text-[15px]" /> PIN:
-                  8391 Terverifikasi
+                  <MaterialIcon name="lock_open" className="text-[15px]" /> PIN:{" "}
+                  {audit?.pod.pin ?? "—"} Terverifikasi
                 </mark>
               </section>
             </section>
@@ -338,11 +343,11 @@ export function AuditTrailPage() {
                 3. Ringkasan Kronologis
               </h2>
               <span className="text-xs font-medium text-on-surface-variant">
-                4 Milestone
+                {milestones.length} Milestone
               </span>
             </header>
             <ol className="relative m-0 list-none space-y-4 pl-3 text-sm">
-              {MILESTONES.map((milestone) => {
+              {milestones.map((milestone) => {
                 const timeClass =
                   milestone.accent === "tertiary"
                     ? "text-tertiary font-bold"

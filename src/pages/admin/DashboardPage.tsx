@@ -6,17 +6,21 @@ import {
   type StatusFilter,
 } from "../../components/admin/dashboard/ShipmentFilters";
 import { ShipmentList } from "../../components/admin/dashboard/ShipmentList";
+import { MaterialIcon } from "../../components/MaterialIcon";
+import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Spinner";
 import { useSession } from "../../context/SessionContext";
 import { useShipmentContext } from "../../context/ShipmentContext";
-import { SHIPMENT_ROWS } from "../../data/shipments";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useFetch } from "../../hooks/useFetch";
 import { useSeo } from "../../hooks/useSeo";
 import { useWelcomeToast } from "../../hooks/useWelcomeToast";
+import type { DashboardSummary } from "../../types";
 
 export function DashboardPage() {
   useSeo("/admin/dashboard");
   const { session } = useSession();
-  const { regencies } = useShipmentContext();
+  const { regencies, shipments, shipmentsResource } = useShipmentContext();
   const name = session?.name ?? "Hub Admin Ops";
   useWelcomeToast(name);
 
@@ -27,7 +31,7 @@ export function DashboardPage() {
   const debouncedSearch = useDebouncedValue(search, 150);
 
   const query = debouncedSearch.trim().toLowerCase();
-  const rows = SHIPMENT_ROWS.filter((row) => {
+  const rows = shipments.filter((row) => {
     const okStatus = status === "all" || row.flag === status;
     const okService = !service || row.service === service;
     const okRegion = !region || row.regencyId === region;
@@ -39,9 +43,12 @@ export function DashboardPage() {
     return okStatus && okService && okRegion && okSearch;
   });
 
-  const reviewCount = SHIPMENT_ROWS.filter(
-    (row) => row.flag === "review",
-  ).length;
+  const reviewCount = shipments.filter((row) => row.flag === "review").length;
+
+  const summaryResource = useFetch<{ data: DashboardSummary }>(
+    "/api/dashboard",
+  );
+  const summary = summaryResource.data?.data;
 
   return (
     <>
@@ -52,14 +59,14 @@ export function DashboardPage() {
         <header className="flex flex-col justify-between gap-space-md md:flex-row md:items-end">
           <DashboardHeader
             eyebrow="Integritas Operasional"
-            shift="Shift Aktif (08:00 - 20:00)"
+            shift={summary?.shift ?? "Shift Aktif (08:00 - 20:00)"}
             title="Daftar Pengiriman"
             description="Pantau status integritas pengiriman kurir Satria hari ini secara real-time."
           />
           <DashboardStats
-            total={142}
-            reviewCount={reviewCount}
-            verifiedCount={138}
+            total={summary?.total ?? 0}
+            reviewCount={summary?.reviewCount ?? reviewCount}
+            verifiedCount={summary?.verifiedCount ?? 0}
           />
         </header>
 
@@ -76,7 +83,27 @@ export function DashboardPage() {
           onSearchChange={setSearch}
         />
 
-        <ShipmentList shipments={rows} />
+        {shipmentsResource.isLoading && (
+          <p className="flex items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-container-lowest px-4 py-10 text-body-sm text-on-surface-variant">
+            <Spinner /> Memuat data pengiriman dari server...
+          </p>
+        )}
+
+        {shipmentsResource.isError && (
+          <p className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-surface-container-lowest px-4 py-10 text-body-sm text-on-surface-variant">
+            <MaterialIcon name="cloud_off" className="text-[18px]" />
+            Gagal memuat data dari server.
+            <Button
+              variant="text"
+              className="text-[12px]"
+              onClick={shipmentsResource.reload}
+            >
+              Coba lagi
+            </Button>
+          </p>
+        )}
+
+        {shipmentsResource.data && <ShipmentList shipments={rows} />}
       </main>
 
       <footer className="border-t border-border-subtle px-4 py-6 text-[11px] text-on-surface-variant/70 lg:px-8">
