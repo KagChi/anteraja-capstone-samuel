@@ -14,6 +14,7 @@ backed by PostgreSQL/PostGIS.
 | Backend    | Laravel 13 (PHP 8.3+), Eloquent, raw PostGIS SQL    |
 | Frontend   | Inertia.js v2, React 19, TypeScript, Tailwind v4    |
 | Database   | PostgreSQL 16 + PostGIS 3.4 (Supabase-compatible)   |
+| Cache/Queue| `file`/`database` by default, optional Redis        |
 | Tooling    | Vite 7, Biome, Vitest, Playwright, PHPUnit, Pint    |
 
 ## Domain
@@ -33,7 +34,8 @@ data live in `docs/db/`.
 - PHP 8.3+ with `pdo_pgsql` and `bcmath`
 - Composer
 - Bun (or Node 20+)
-- Docker (for the PostGIS container)
+- Docker (for the PostGIS container, and the optional Redis container)
+- Optional: phpredis (`ext-redis` ^6.0) when using the Redis backends
 
 ## Getting started
 
@@ -44,7 +46,15 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Start PostGIS (matches the `.env.example` defaults):
+Start PostGIS (and, optionally, Redis) with Docker Compose:
+
+```bash
+docker compose up -d          # PostGIS + Redis
+docker compose up -d postgis  # PostGIS only
+```
+
+The PostGIS service matches the `.env.example` defaults (host port `55432`).
+The equivalent one-off command is:
 
 ```bash
 docker run --name anteraja-pg -e POSTGRES_PASSWORD=postgres \
@@ -58,6 +68,32 @@ php artisan migrate --seed
 bun run dev        # Vite
 php artisan serve  # http://127.0.0.1:8000
 ```
+
+## Optional: Redis
+
+Redis is opt-in; the app ships on the `file`/`database` drivers. To route the
+cache, queue and sessions through Redis:
+
+1. Install phpredis (`pecl install redis`), then `docker compose up -d redis`.
+2. Flip the drivers in `.env`:
+
+   ```dotenv
+   CACHE_STORE=redis
+   QUEUE_CONNECTION=redis
+   SESSION_DRIVER=redis
+   ```
+
+3. Apply the config: `php artisan config:clear`.
+
+The queue worker started by `composer dev` (`queue:listen`) then consumes from
+Redis automatically, and the presentation read caches (shipments, dashboard,
+radius) use the `cache` connection (`REDIS_CACHE_DB=1`). Set `REDIS_PREFIX` /
+`CACHE_PREFIX` to keep keys namespaced when sharing a server.
+
+Redis is optional, so no extension is required to install or run the default
+setup. The `redis`-tagged test suite (`php artisan test --group redis`) skips
+when Redis is unavailable, and the CI pipeline includes a non-blocking Redis
+job that exercises it when present.
 
 ## Demo accounts
 
@@ -96,6 +132,7 @@ in `phpunit.xml`.
 
 ```bash
 php artisan test   # PHPUnit: API + domain
+php artisan test --group redis  # optional Redis integration (skipped without Redis)
 bun run test       # Vitest: UI helpers and fetch layer
 bun run test:e2e   # Playwright (needs the app served on :8123)
 bun run lint       # Biome
