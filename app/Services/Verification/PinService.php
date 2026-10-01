@@ -10,7 +10,10 @@ use App\Models\GeofencePolicy;
 use App\Models\PinChallenge;
 use App\Models\PinDelivery;
 use App\Models\Shipment;
+use App\Services\Delivery\DashboardService;
+use App\Services\Delivery\ShipmentCache;
 use App\Support\Date;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * PIN challenge lifecycle (FRD-03). PIN values are stored hashed.
@@ -96,6 +99,8 @@ class PinService
         if (hash_equals($challenge->code_hash, $this->hash($code))) {
             $challenge->update(['status' => 'verified', 'verified_at' => Date::now()]);
             $this->record($shipment, $courier, ['result' => 'verified']);
+            Cache::forget(DashboardService::CACHE_KEY);
+            ShipmentCache::bump();
 
             return ['status' => 'verified', 'attempts' => (int) $challenge->attempts, 'max_attempts' => $maxAttempts];
         }
@@ -125,6 +130,9 @@ class PinService
                     'is_resolved' => false,
                 ],
             );
+
+            Cache::forget(DashboardService::CACHE_KEY);
+            ShipmentCache::bump();
         }
 
         return [

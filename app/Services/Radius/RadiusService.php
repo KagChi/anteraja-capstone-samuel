@@ -5,13 +5,19 @@ namespace App\Services\Radius;
 use App\Models\Admin;
 use App\Models\AdminAction;
 use App\Models\GeofencePolicy;
+use App\Support\CacheTtl;
 use App\Support\Date;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Geofence radius policy per service segment (FR-01-02 / admin console).
  */
 class RadiusService
 {
+    public const SEGMENTS_CACHE_KEY = 'radius.segments';
+
+    public const META_CACHE_KEY = 'radius.meta';
+
     /**
      * @var array<string, array{id: string, label: string, icon: string, sla: string, description: string, min: int, max: int, step: int, fallback: int, accent: array<string, string>, persist: bool}>
      */
@@ -75,24 +81,26 @@ class RadiusService
      */
     public function segments(): array
     {
-        $policies = GeofencePolicy::all()->keyBy('service_type');
+        return Cache::remember(self::SEGMENTS_CACHE_KEY, CacheTtl::seconds(), function (): array {
+            $policies = GeofencePolicy::all()->keyBy('service_type');
 
-        return collect(self::SEGMENTS)->map(function (array $segment, string $type) use ($policies) {
-            $policy = $policies->get($type);
+            return collect(self::SEGMENTS)->map(function (array $segment, string $type) use ($policies) {
+                $policy = $policies->get($type);
 
-            return [
-                'id' => $segment['id'],
-                'label' => $segment['label'],
-                'icon' => $segment['icon'],
-                'sla' => $segment['sla'],
-                'description' => $segment['description'],
-                'min' => $segment['min'],
-                'max' => $segment['max'],
-                'step' => $segment['step'],
-                'defaultValue' => $policy?->default_radius_m ?? $segment['fallback'],
-                'accent' => $segment['accent'],
-            ];
-        })->values()->all();
+                return [
+                    'id' => $segment['id'],
+                    'label' => $segment['label'],
+                    'icon' => $segment['icon'],
+                    'sla' => $segment['sla'],
+                    'description' => $segment['description'],
+                    'min' => $segment['min'],
+                    'max' => $segment['max'],
+                    'step' => $segment['step'],
+                    'defaultValue' => $policy?->default_radius_m ?? $segment['fallback'],
+                    'accent' => $segment['accent'],
+                ];
+            })->values()->all();
+        });
     }
 
     /**
@@ -100,20 +108,22 @@ class RadiusService
      */
     public function meta(): array
     {
-        $policy = GeofencePolicy::orderBy('updated_at')->first();
-        $action = AdminAction::where('action_type', 'update_radius')
-            ->with('admin')
-            ->orderByDesc('created_at')
-            ->first();
+        return Cache::remember(self::META_CACHE_KEY, CacheTtl::seconds(), function (): array {
+            $policy = GeofencePolicy::orderBy('updated_at')->first();
+            $action = AdminAction::where('action_type', 'update_radius')
+                ->with('admin')
+                ->orderByDesc('created_at')
+                ->first();
 
-        $updatedAt = $action?->created_at ?? $policy?->updated_at;
+            $updatedAt = $action?->created_at ?? $policy?->updated_at;
 
-        return [
-            'protocol' => $policy?->protocol_version ?? 'Fleet Safety Protocol',
-            'updatedBy' => $action?->admin?->name ?? 'Superadmin',
-            'updatedAtIso' => Date::iso($updatedAt),
-            'updatedAtLabel' => Date::dateTimeLabel($updatedAt),
-        ];
+            return [
+                'protocol' => $policy?->protocol_version ?? 'Fleet Safety Protocol',
+                'updatedBy' => $action?->admin?->name ?? 'Superadmin',
+                'updatedAtIso' => Date::iso($updatedAt),
+                'updatedAtLabel' => Date::dateTimeLabel($updatedAt),
+            ];
+        });
     }
 
     public function update(string $serviceType, int $radiusM, Admin $admin): GeofencePolicy
@@ -132,6 +142,9 @@ class RadiusService
             'target_id' => $policy->id,
             'reason' => sprintf('Radius %s diubah menjadi %d m', $serviceType, $radiusM),
         ]);
+
+        Cache::forget(self::SEGMENTS_CACHE_KEY);
+        Cache::forget(self::META_CACHE_KEY);
 
         return $policy;
     }

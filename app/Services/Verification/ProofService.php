@@ -7,10 +7,13 @@ use App\Models\Courier;
 use App\Models\DeliveryEvent;
 use App\Models\DeliveryProof;
 use App\Models\Shipment;
+use App\Services\Delivery\DashboardService;
+use App\Services\Delivery\ShipmentCache;
 use App\Services\Geofence\GeofenceService;
 use App\Support\Date;
 use App\Support\Geo\Point;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -111,6 +114,9 @@ class ProofService
                 ],
             );
         }
+
+        Cache::forget(DashboardService::CACHE_KEY);
+        ShipmentCache::bump();
 
         return $proof;
     }

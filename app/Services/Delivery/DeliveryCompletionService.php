@@ -9,6 +9,7 @@ use App\Models\Shipment;
 use App\Services\Geofence\GeofenceService;
 use App\Support\Date;
 use App\Support\Geo\Point;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -78,6 +79,9 @@ class DeliveryCompletionService
                     : array_values(array_filter(['geofence', $shipment->pin_required ? 'pin' : null, 'pod'])),
             ],
         ]);
+
+        Cache::forget(DashboardService::CACHE_KEY);
+        ShipmentCache::bump();
 
         return [
             'status' => 'delivered',

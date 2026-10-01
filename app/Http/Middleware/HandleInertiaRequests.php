@@ -3,7 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Models\DeliveryException;
+use App\Services\Delivery\ExceptionService;
+use App\Support\CacheTtl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -53,7 +56,11 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'pendingExceptions' => fn () => $user?->isAdmin()
-                ? DeliveryException::query()->where('status', 'pending')->count()
+                ? Cache::remember(
+                    ExceptionService::PENDING_COUNT_CACHE_KEY,
+                    CacheTtl::seconds(),
+                    fn () => DeliveryException::query()->where('status', 'pending')->count(),
+                )
                 : 0,
         ];
     }

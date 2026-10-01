@@ -1,5 +1,12 @@
+import { router } from "@inertiajs/react";
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useAvatar } from "../Hooks/useAvatar";
 import { useFetch } from "../Hooks/useFetch";
 import { useLocationData } from "../Hooks/useLocationData";
@@ -43,14 +50,36 @@ interface ShipmentContextValue {
 
 const ShipmentContext = createContext<ShipmentContextValue | null>(null);
 
-export function ShipmentProvider({ children }: { children: ReactNode }) {
+export function ShipmentProvider({
+  children,
+  initialPathname = "/",
+}: {
+  children: ReactNode;
+  initialPathname?: string;
+}) {
   const { session } = useSession();
   const [postalQuery, setPostalQuery] = useState(DESTINATION_DISTRICT);
+  const [pathname, setPathname] = useState(initialPathname);
+
+  useEffect(() => {
+    return router.on("navigate", (event) => {
+      setPathname(event.detail.page.url.split("?")[0]);
+    });
+  }, []);
+
+  const needsRegencies = pathname.startsWith("/admin");
+  const needsPostal =
+    pathname.startsWith("/courier/verifikasi") ||
+    pathname.startsWith("/admin/audit-trail");
+  const needsProofPhoto = pathname.startsWith("/courier/bukti-foto");
 
   const courierAvatar = useAvatar(session?.name);
-  const proofPhoto = useProofPhoto(ACTIVE_TRACKING);
-  const { provinces, regencies } = useLocationData(JAKARTA_PROVINCE_ID);
-  const postal = usePostalSearch(postalQuery);
+  const proofPhoto = useProofPhoto(needsProofPhoto ? ACTIVE_TRACKING : null);
+  const { provinces, regencies } = useLocationData(
+    needsRegencies ? JAKARTA_PROVINCE_ID : null,
+    needsRegencies,
+  );
+  const postal = usePostalSearch(needsPostal ? postalQuery : "");
 
   const shipmentsResource = useFetch<{ data: DeliveryRow[] }>(
     "/api/v1/shipments",
