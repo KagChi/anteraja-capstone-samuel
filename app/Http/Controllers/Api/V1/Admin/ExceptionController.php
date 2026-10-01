@@ -11,23 +11,43 @@ use App\Support\Auth;
 use App\Support\Presentation\ExceptionPresenter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ExceptionController extends Controller
 {
     use RespondsWithEnvelope;
 
-    public function index(): JsonResponse
+    private const DEFAULT_PER_PAGE = 100;
+
+    private const MAX_PER_PAGE = 300;
+
+    public function index(Request $request): JsonResponse
     {
         $rows = DeliveryException::query()
-            ->with(['shipment.deliveryProofs', 'courier'])
+            ->with([
+                'shipment:id,tracking_number,service_type',
+                'courier:id,name,code',
+            ])
             ->orderByDesc('created_at')
+            ->limit($this->perPage($request))
             ->get()
             ->map(fn (DeliveryException $exception) => ExceptionPresenter::row($exception))
             ->values()
             ->all();
 
         return $this->ok($rows, 200, ['total' => count($rows)]);
+    }
+
+    private function perPage(Request $request): int
+    {
+        $requested = $request->integer('per_page');
+
+        if ($requested < 1) {
+            return self::DEFAULT_PER_PAGE;
+        }
+
+        return min($requested, self::MAX_PER_PAGE);
     }
 
     public function show(string $id): JsonResponse

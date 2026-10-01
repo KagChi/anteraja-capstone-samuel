@@ -115,4 +115,32 @@ class Shipment extends Model
             DB::raw($lng.' as destination_lng'),
         );
     }
+
+    /**
+     * Flat projection for the shipment list: joins the lookups and folds the
+     * flag/review signals into correlated subqueries, so a page of rows is
+     * one query instead of a base query plus nine eager loads.
+     */
+    public function scopeForListPresentation($query)
+    {
+        return $query
+            ->leftJoin('couriers as list_courier', 'list_courier.id', '=', 'shipments.courier_id')
+            ->leftJoin('recipients as list_recipient', 'list_recipient.id', '=', 'shipments.recipient_id')
+            ->leftJoin('service_areas as list_area', 'list_area.id', '=', 'shipments.service_area_id')
+            ->select([
+                'shipments.*',
+                'list_courier.name as courier_name',
+                'list_courier.code as courier_code',
+                'list_recipient.name as recipient_name',
+                'list_area.code as area_code',
+            ])
+            ->addSelect([
+                DB::raw("EXISTS (SELECT 1 FROM delivery_exceptions le WHERE le.shipment_id = shipments.id AND le.status = 'pending') as pending_exception"),
+                DB::raw('coalesce((SELECT sum(la.weight) FROM anomaly_flags la WHERE la.shipment_id = shipments.id AND NOT la.is_resolved), 0) as anomaly_weight'),
+                DB::raw("EXISTS (SELECT 1 FROM delivery_proofs lp WHERE lp.shipment_id = shipments.id AND lp.review_status = 'needs_review') as proof_needs_review"),
+                DB::raw("(SELECT lp2.distance_to_destination_m FROM delivery_proofs lp2 WHERE lp2.shipment_id = shipments.id ORDER BY (lp2.review_status = 'valid') DESC LIMIT 1) as proof_distance"),
+                DB::raw('(SELECT le2.distance_to_destination_m FROM delivery_events le2 WHERE le2.shipment_id = shipments.id AND le2.distance_to_destination_m IS NOT NULL ORDER BY le2.created_at DESC LIMIT 1) as latest_distance'),
+                DB::raw('(SELECT lc.status FROM pin_challenges lc WHERE lc.shipment_id = shipments.id LIMIT 1) as pin_status'),
+            ]);
+    }
 }

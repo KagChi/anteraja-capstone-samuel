@@ -6,31 +6,45 @@ use App\Http\Controllers\Api\Concerns\RespondsWithEnvelope;
 use App\Http\Controllers\Controller;
 use App\Models\Shipment;
 use App\Services\Audit\AuditService;
+use App\Services\Delivery\ShipmentReadService;
 use App\Support\Auth;
-use App\Support\Presentation\DeliveryPresenter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ShipmentController extends Controller
 {
     use RespondsWithEnvelope;
 
-    public function index(): JsonResponse
-    {
-        $rows = Shipment::withPresentation()
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (Shipment $shipment) => DeliveryPresenter::row($shipment))
-            ->values()
-            ->all();
+    private const MAX_PER_PAGE = 500;
 
-        return $this->ok($rows, 200, ['total' => count($rows)]);
+    public function index(Request $request, ShipmentReadService $shipments): JsonResponse
+    {
+        $perPage = $this->perPage($request);
+
+        $rows = $shipments->index($perPage);
+
+        return $this->ok($rows, 200, [
+            'total' => count($rows),
+            'per_page' => $perPage,
+        ]);
     }
 
-    public function show(string $key, AuditService $audit): JsonResponse
+    private function perPage(Request $request): int
     {
-        $shipment = $this->find($key);
+        $requested = $request->integer('per_page');
+
+        if ($requested < 1) {
+            return ShipmentReadService::DEFAULT_INDEX_PER_PAGE;
+        }
+
+        return min($requested, self::MAX_PER_PAGE);
+    }
+
+    public function show(string $key, AuditService $audit, ShipmentReadService $shipments): JsonResponse
+    {
+        $shipmentId = $this->shipmentId($key);
         $admin = Auth::getCurrentAdmin();
         $courier = Auth::getCurrentCourier();
         $actor = $admin ?? $courier;
@@ -40,20 +54,21 @@ class ShipmentController extends Controller
                 'view',
                 $admin ? 'admin' : 'courier',
                 $actor['id'],
-                $shipment->id,
+                $shipmentId,
                 ['page' => '/api/v1/shipments/'.$key],
             );
         }
 
-        return $this->ok([
-            'shipment' => DeliveryPresenter::row($shipment),
-            'detail' => DeliveryPresenter::detail($shipment),
-        ]);
+        return $this->ok($shipments->show($shipmentId));
     }
 
-    private function find(string $key): Shipment
+    /**
+     * Resolves an id/tracking to its shipment id with a single query so the
+     * heavy presentation payload can be cached without re-hydrating relations.
+     */
+    private function shipmentId(string $key): string
     {
-        $shipment = Shipment::query()
+        $id = Shipment::query()
             ->where(function ($query) use ($key) {
                 if (Str::isUuid($key)) {
                     $query->where('id', $key)->orWhere('tracking_number', $key);
@@ -61,14 +76,12 @@ class ShipmentController extends Controller
                     $query->where('tracking_number', $key);
                 }
             })
-            ->withPresentation()
-            ->withDestinationCoordinates()
-            ->first();
+            ->value('id');
 
-        if (! $shipment) {
+        if (! $id) {
             throw (new ModelNotFoundException)->setModel(Shipment::class, [$key]);
         }
 
-        return $shipment;
+        return $id;
     }
 }

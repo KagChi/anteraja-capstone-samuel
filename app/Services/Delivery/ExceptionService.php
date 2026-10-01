@@ -11,6 +11,7 @@ use App\Models\Shipment;
 use App\Services\Geofence\GeofenceService;
 use App\Support\Date;
 use App\Support\Geo\Point;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ExceptionService
 {
+    public const PENDING_COUNT_CACHE_KEY = 'exceptions.pending_count';
+
     public function __construct(private readonly GeofenceService $geofence) {}
 
     public function request(Shipment $shipment, Courier $courier, float $latitude, float $longitude, string $reason): DeliveryException
@@ -44,6 +47,8 @@ class ExceptionService
         ]);
 
         $exception->update(['event_id' => $event->id]);
+
+        self::forgetCaches();
 
         return $exception->refresh();
     }
@@ -73,6 +78,15 @@ class ExceptionService
             'reason' => $note,
         ]);
 
+        self::forgetCaches();
+
         return $exception;
+    }
+
+    private static function forgetCaches(): void
+    {
+        Cache::forget(self::PENDING_COUNT_CACHE_KEY);
+        Cache::forget(DashboardService::CACHE_KEY);
+        ShipmentCache::bump();
     }
 }

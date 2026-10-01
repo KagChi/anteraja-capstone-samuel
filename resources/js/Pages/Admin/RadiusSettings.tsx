@@ -180,7 +180,7 @@ function RadiusPolicy({
                         Radius {segment.label} (meter)
                       </label>
                       <input
-                        className={`w-12 border-none bg-transparent text-center text-base font-bold outline-none focus:ring-0 ${segment.accent.input}`}
+                        className={`h-8 w-14 shrink-0 border-none bg-transparent p-0 text-center text-base font-bold tabular-nums outline-none focus:ring-0 ${segment.accent.input}`}
                         id={segment.id}
                         type="text"
                         inputMode="numeric"

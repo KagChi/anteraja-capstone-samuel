@@ -20,6 +20,9 @@
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^11.5.50"
     },
+    "suggest": {
+        "ext-redis": "Optional phpredis (^6.0) to use the Redis cache, queue and session drivers."
+    },
     "autoload": {
         "psr-4": {
             "App\\": "app/",
@@ -43,7 +46,11 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "@php artisan app:warm-cache",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#a7f3d0\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan schedule:work\" --names=server,queue,logs,vite,schedule --kill-others"
+        ],
+        "warm": [
+            "@php artisan app:warm-cache"
         ],
         "test": [
             "@php artisan config:clear --ansi",

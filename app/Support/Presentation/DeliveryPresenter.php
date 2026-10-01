@@ -37,20 +37,52 @@ class DeliveryPresenter
             'service' => self::serviceSegment($shipment->service_type),
             'flag' => $flag,
             'statusLabel' => self::statusLabel($shipment, $flag, $deviation),
-            'statusTone' => match ($flag) {
-                'exception' => 'orange',
-                'delivered' => 'emerald',
-                default => 'amber',
-            },
+            'statusTone' => self::tone($flag),
             'region' => $area['region'],
             'regionLabel' => $area['label'],
             'regencyId' => $area['regencyId'],
             'recipient' => $shipment->recipient?->name,
             'address' => $shipment->destination_address,
-            'href' => $flag === 'exception'
-                ? '/admin/pengecualian-detail/'.$shipment->id
-                : '/admin/audit-trail/'.$shipment->id,
+            'href' => self::href($shipment->id, $flag),
             'highlight' => $flag !== 'delivered' && self::needsReview($shipment),
+        ];
+    }
+
+    /**
+     * Builds a list row from the flat projection produced by
+     * `Shipment::scopeForListPresentation()` — one query, no eager loads.
+     */
+    public static function rowFromList(object $row): array
+    {
+        $needsReview = (float) $row->anomaly_weight >= 2.0
+            || self::truthy($row->proof_needs_review);
+
+        $flag = self::truthy($row->pending_exception)
+            ? 'exception'
+            : (($row->status === 'delivered' && ! $needsReview) ? 'delivered' : 'review');
+
+        $deviation = $row->proof_distance !== null
+            ? (int) $row->proof_distance
+            : (int) ($row->latest_distance ?? 0);
+
+        $area = self::areaFromCode($row->area_code);
+
+        return [
+            'id' => $row->id,
+            'courierName' => $row->courier_name ?? 'Belum ditugaskan',
+            'courierCode' => '#'.($row->courier_code ?? '—'),
+            'tracking' => $row->tracking_number,
+            'service' => self::serviceSegment($row->service_type),
+            'flag' => $flag,
+            'statusLabel' => self::statusLabelFrom($row->status, $flag, $deviation, $row->pin_status),
+            'statusTone' => self::tone($flag),
+            'region' => $area['region'],
+            'regionLabel' => $area['label'],
+            'regencyId' => $area['regencyId'],
+            'recipient' => $row->recipient_name,
+            'address' => $row->destination_address,
+            'href' => self::href($row->id, $flag),
+            'highlight' => $flag !== 'delivered' && $needsReview,
         ];
     }
 
@@ -217,29 +249,58 @@ class DeliveryPresenter
 
     private static function statusLabel(Shipment $shipment, string $flag, int $deviation): string
     {
+        return self::statusLabelFrom(
+            $shipment->status,
+            $flag,
+            $deviation,
+            $shipment->pinChallenge?->status,
+        );
+    }
+
+    private static function statusLabelFrom(string $status, string $flag, int $deviation, ?string $pinStatus): string
+    {
         if ($flag === 'exception') {
             return 'Pengecualian Menunggu';
         }
 
-        if ($shipment->status === 'delivered') {
+        if ($status === 'delivered') {
             $prefix = $flag === 'review' ? 'Perlu Tinjauan' : 'Terverifikasi';
 
             return $deviation > 0 ? sprintf('%s (+%d m)', $prefix, $deviation) : $prefix;
         }
 
-        if ($shipment->status === 'failed') {
-            $pin = $shipment->pinChallenge;
-
-            return $pin && $pin->status === 'locked'
+        if ($status === 'failed') {
+            return $pinStatus === 'locked'
                 ? 'Perlu Tinjauan (PIN gagal)'
                 : 'Pengiriman Gagal';
         }
 
-        return match ($shipment->status) {
+        return match ($status) {
             'in_transit' => 'Dalam Perjalanan',
             'picked_up' => 'Dalam Penjemputan',
             default => 'Menunggu Penjemputan',
         };
+    }
+
+    private static function tone(string $flag): string
+    {
+        return match ($flag) {
+            'exception' => 'orange',
+            'delivered' => 'emerald',
+            default => 'amber',
+        };
+    }
+
+    private static function href(string $id, string $flag): string
+    {
+        return $flag === 'exception'
+            ? '/admin/pengecualian-detail/'.$id
+            : '/admin/audit-trail/'.$id;
+    }
+
+    private static function truthy(mixed $value): bool
+    {
+        return in_array($value, [true, 1, '1', 't', 'true'], true);
     }
 
     private static function etaLabel(Shipment $shipment): string
@@ -260,8 +321,14 @@ class DeliveryPresenter
      */
     private static function area(Shipment $shipment): array
     {
-        $code = $shipment->serviceArea?->code;
+        return self::areaFromCode($shipment->serviceArea?->code);
+    }
 
+    /**
+     * @return array{region: string, label: string, regencyId: string}
+     */
+    private static function areaFromCode(?string $code): array
+    {
         return self::AREAS[$code] ?? ['region' => 'jaksel', 'label' => 'Jak-Sel', 'regencyId' => '3171'];
     }
 

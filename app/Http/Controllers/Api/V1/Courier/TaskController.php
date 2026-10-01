@@ -2,29 +2,35 @@
 
 namespace App\Http\Controllers\Api\V1\Courier;
 
-use App\Models\Shipment;
-use App\Support\Presentation\DeliveryPresenter;
+use App\Services\Delivery\ShipmentReadService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TaskController extends CourierController
 {
-    public function index(): JsonResponse
+    private const MAX_PER_PAGE = 300;
+
+    public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
-        $tasks = Shipment::withPresentation()
-            ->withDestinationCoordinates()
-            ->where('courier_id', $this->courier()->id)
-            ->whereIn('status', ['pending', 'picked_up', 'in_transit'])
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn (Shipment $shipment) => DeliveryPresenter::task($shipment))
-            ->values()
-            ->all();
+        $courierId = $this->courier()->id;
+        $tasks = $shipments->tasks($courierId, $this->perPage($request));
 
         return $this->ok($tasks, 200, ['total' => count($tasks)]);
     }
 
-    public function show(string $tracking): JsonResponse
+    private function perPage(Request $request): int
     {
-        return $this->ok(DeliveryPresenter::task($this->shipment($tracking)));
+        $requested = $request->integer('per_page');
+
+        if ($requested < 1) {
+            return ShipmentReadService::DEFAULT_TASKS_PER_PAGE;
+        }
+
+        return min($requested, self::MAX_PER_PAGE);
+    }
+
+    public function show(string $tracking, ShipmentReadService $shipments): JsonResponse
+    {
+        return $this->ok($shipments->task($this->shipmentId($tracking)));
     }
 }

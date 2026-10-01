@@ -58,7 +58,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { courierAvatar } = useShipmentContext();
   const [open, setOpen] = useState(false);
 
-  const name = session?.name ?? "Hub Admin Ops";
   const crumb = CRUMBS[pathname] ?? CRUMBS["/admin/dashboard"];
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the drawer on route change
@@ -73,6 +72,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  if (!session) return null;
+
+  const name = session.name;
 
   return (
     <div className="min-h-screen bg-surface-canvas font-sans text-on-surface antialiased">
