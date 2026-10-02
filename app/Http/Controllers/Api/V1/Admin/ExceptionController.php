@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Admin\DecideExceptionRequest;
 use App\Models\DeliveryException;
 use App\Services\Delivery\ExceptionService;
 use App\Support\Auth;
+use App\Support\CursorPage;
 use App\Support\Presentation\ExceptionPresenter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -24,19 +25,35 @@ class ExceptionController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $rows = DeliveryException::query()
+        $perPage = $this->perPage($request);
+
+        $query = DeliveryException::query()
             ->with([
                 'shipment:id,tracking_number,service_type',
                 'courier:id,name,code',
-            ])
-            ->orderByDesc('created_at')
-            ->limit($this->perPage($request))
-            ->get()
-            ->map(fn (DeliveryException $exception) => ExceptionPresenter::row($exception))
-            ->values()
-            ->all();
+            ]);
 
-        return $this->ok($rows, 200, ['total' => count($rows)]);
+        $status = $request->query('status');
+
+        if (is_string($status) && in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('status', $status);
+        }
+
+        $page = CursorPage::get(
+            $query->orderByDesc('created_at')->orderByDesc('id'),
+            $perPage,
+            $request->query('cursor'),
+            'created_at',
+            'id',
+            'desc',
+            fn (DeliveryException $exception) => ExceptionPresenter::row($exception),
+        );
+
+        return $this->ok($page['rows'], 200, [
+            'per_page' => $perPage,
+            'next_cursor' => $page['next_cursor'],
+            'has_more' => $page['next_cursor'] !== null,
+        ]);
     }
 
     private function perPage(Request $request): int
@@ -81,7 +98,8 @@ class ExceptionController extends Controller
         if (Str::isUuid($key)) {
             $exception = DeliveryException::query()
                 ->with(['shipment.deliveryProofs', 'courier'])
-                ->where('id', $key)
+                ->where(fn ($query) => $query->where('id', $key)->orWhere('shipment_id', $key))
+                ->latest('created_at')
                 ->first();
         }
 

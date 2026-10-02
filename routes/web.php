@@ -33,9 +33,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         'id' => $id,
     ]))->name('audit-trail');
     Route::get('antrian-pengecualian', fn () => Inertia::render('Admin/ExceptionQueue'))->name('exception-queue');
-    Route::get('pengecualian-detail/{id}', fn (string $id) => Inertia::render('Admin/ExceptionDetail', [
-        'id' => $id,
-    ]))->name('exception-detail');
+    Route::get('pengecualian-detail/{id}', fn (string $id) => redirect('/admin/antrian-pengecualian?open='.urlencode($id)))
+        ->name('exception-detail');
     Route::get('pengaturan-radius', fn () => Inertia::render('Admin/RadiusSettings'))->name('radius-settings');
 });
 

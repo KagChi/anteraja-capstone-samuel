@@ -4,13 +4,14 @@ import { Avatar } from "../../Components/Avatar";
 import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { Pagination } from "../../Components/ui/Pagination";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useSession } from "../../Contexts/SessionContext";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
-import { useFetch } from "../../Hooks/useFetch";
+import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import { useFlashToast } from "../../Hooks/useFlashToast";
 import { useSeo } from "../../Hooks/useSeo";
-import { useWelcomeToast } from "../../Hooks/useWelcomeToast";
 import type { DeliveryTask, TaskBadge, TaskCategory } from "../../types";
 
 type Filter = "all" | TaskCategory;
@@ -67,21 +68,21 @@ export function TasksPage() {
   const { courierAvatar } = useShipmentContext();
   const toast = useToast();
   const name = session?.name ?? "Satria";
-  useWelcomeToast(name);
+  useFlashToast();
 
   const [filter, setFilter] = useState<Filter>("all");
   const [flash, setFlash] = useState<string | null>(null);
   const cardRefs = useRef(new Map<string, HTMLElement>());
 
-  const tasksResource = useFetch<{ data: DeliveryTask[] }>(
+  const tasksResource = useCursorPagination<DeliveryTask>(
     "/api/v1/courier/tasks",
+    PER_PAGE,
   );
-  const tasks = tasksResource.data?.data ?? [];
+  const tasks = tasksResource.items;
 
   const visibleTasks = tasks.filter(
     (task) => filter === "all" || task.category === filter,
   );
-  const done = 8;
 
   function scan() {
     const code = window.prompt("Masukkan nomor resi yang ingin dipindai:");
@@ -126,9 +127,6 @@ export function TasksPage() {
               <span className="block text-[13px] font-semibold text-on-surface">
                 {name}
               </span>
-              <span className="block text-[11px] font-medium text-on-surface-variant">
-                #4821 &bull; Jak-Sel
-              </span>
             </span>
             <Avatar
               name={name}
@@ -148,8 +146,7 @@ export function TasksPage() {
             Pengiriman
           </h1>
           <p className="text-[13px] text-on-surface-variant">
-            <span>{visibleTasks.length}</span> tersisa &bull;{" "}
-            <span>{done}</span> selesai hari ini
+            <span>{visibleTasks.length}</span> tersisa
           </p>
         </section>
 
@@ -261,6 +258,15 @@ export function TasksPage() {
             ))
           )}
         </ul>
+
+        <Pagination
+          page={tasksResource.page}
+          hasPrev={tasksResource.hasPrev}
+          hasNext={tasksResource.hasNext}
+          isLoading={tasksResource.isLoading}
+          onPrev={tasksResource.prev}
+          onNext={tasksResource.next}
+        />
 
         <p className="m-0 px-1 pt-2 text-center">
           <Button variant="ghost" size="sm" id="btn-scan-resi" onClick={scan}>

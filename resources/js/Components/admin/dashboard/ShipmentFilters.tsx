@@ -1,7 +1,13 @@
 import { titleCase } from "../../../lib/format";
 import type { DeliveryFlag, Regency } from "../../../types";
 import { MaterialIcon } from "../../MaterialIcon";
-import { Button } from "../../ui/Button";
+import {
+  FilterBar,
+  FilterSearch,
+  FilterTab,
+  FilterTabs,
+  SearchField,
+} from "../../ui/FilterBar";
 
 export type StatusFilter = "all" | DeliveryFlag;
 
@@ -38,61 +44,40 @@ export function ShipmentFilters({
   onSearchChange,
 }: ShipmentFiltersProps) {
   return (
-    <section
-      className="flex flex-col items-center justify-between gap-space-sm rounded-xl bg-surface-container-lowest p-space-sm shadow-sm md:flex-row"
-      aria-label="Filter dan pencarian"
-    >
-      <div
-        className="flex w-full items-center rounded-lg bg-surface-container p-1 md:w-auto"
-        id="filter-tabs"
-        role="tablist"
-        aria-label="Filter status"
-      >
-        {TABS.map((tab) => {
-          const isActive = status === tab.id;
-          return (
-            <Button
-              key={tab.id}
-              variant="tab"
-              active={isActive}
-              className="gap-1.5 rounded px-space-md py-1 text-label-md"
-              data-status={tab.id}
-              onClick={() => onStatusChange(tab.id)}
-            >
-              <span>{tab.label}</span>
-              {tab.dot ? (
-                <span
-                  className="size-1.5 rounded-full bg-brand-magenta"
-                  aria-hidden="true"
-                />
-              ) : null}
-            </Button>
-          );
-        })}
-      </div>
-      <search className="flex w-full items-center justify-end gap-space-sm md:w-auto">
-        <label className="relative block flex-1 md:w-64">
-          <span className="sr-only">Cari resi, kurir, penerima</span>
-          <MaterialIcon
-            name="search"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline"
-          />
-          <input
-            className="w-full rounded-lg bg-surface-container-low py-1.5 pl-9 pr-space-md text-body-sm text-on-surface transition-all placeholder:text-on-surface-variant/50 focus:bg-surface-container-lowest focus:outline-none"
-            id="search-input"
-            placeholder="Cari resi, kurir, penerima..."
-            type="search"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
-        </label>
-        <p className="m-0 flex items-center gap-1 rounded-lg bg-surface-container-low px-2 py-1.5">
+    <FilterBar>
+      <FilterTabs id="filter-tabs" label="Filter status">
+        {TABS.map((tab) => (
+          <FilterTab
+            key={tab.id}
+            active={status === tab.id}
+            data-status={tab.id}
+            onClick={() => onStatusChange(tab.id)}
+          >
+            <span>{tab.label}</span>
+            {tab.dot ? (
+              <span
+                className="size-1.5 rounded-full bg-brand-magenta"
+                aria-hidden="true"
+              />
+            ) : null}
+          </FilterTab>
+        ))}
+      </FilterTabs>
+      <FilterSearch>
+        <SearchField
+          id="search-input"
+          label="Cari resi, kurir, penerima"
+          placeholder="Cari resi, kurir, penerima..."
+          value={search}
+          onChange={onSearchChange}
+        />
+        <p className="m-0 flex min-w-0 items-center gap-1 rounded-lg bg-surface-container-low px-3 py-1">
           <label className="sr-only" htmlFor="filter-service">
             Layanan
           </label>
           <MaterialIcon name="tune" className="text-[16px] text-outline" />
           <select
-            className="cursor-pointer bg-transparent pr-1 text-label-md text-on-surface focus:outline-none"
+            className="min-w-0 max-w-[11rem] cursor-pointer truncate border-0 bg-transparent pr-1 text-label-md text-on-surface focus:outline-none"
             id="filter-service"
             value={service}
             onChange={(event) => onServiceChange(event.target.value)}
@@ -103,7 +88,7 @@ export function ShipmentFilters({
             <option value="regular">Reguler</option>
           </select>
         </p>
-        <p className="m-0 hidden items-center gap-1 rounded-lg bg-surface-container-low px-2 py-1.5 lg:flex">
+        <p className="m-0 hidden min-w-0 items-center gap-1 rounded-lg bg-surface-container-low px-3 py-1 lg:flex">
           <label className="sr-only" htmlFor="filter-region">
             Wilayah
           </label>
@@ -112,7 +97,7 @@ export function ShipmentFilters({
             className="text-[16px] text-outline"
           />
           <select
-            className="cursor-pointer bg-transparent pr-1 text-label-md text-on-surface focus:outline-none disabled:cursor-wait disabled:opacity-60"
+            className="min-w-0 max-w-[13rem] cursor-pointer truncate border-0 bg-transparent pr-1 text-label-md text-on-surface focus:outline-none disabled:cursor-wait disabled:opacity-60"
             id="filter-region"
             value={region}
             disabled={regionsLoading}
@@ -128,7 +113,7 @@ export function ShipmentFilters({
             ))}
           </select>
         </p>
-      </search>
-    </section>
+      </FilterSearch>
+    </FilterBar>
   );
 }

@@ -52,9 +52,9 @@ const VARIANT_BASE: Record<ButtonVariant, string> = {
     "inline-flex items-center gap-1 font-semibold text-on-surface-variant transition-colors hover:text-on-surface",
   textInverse:
     "inline-flex items-center gap-1 font-semibold text-white/70 transition-colors hover:text-white",
-  icon: "grid place-items-center text-on-surface-variant transition-colors hover:bg-surface-container",
+  icon: "inline-grid place-items-center text-on-surface-variant transition-colors hover:bg-surface-container",
   iconInverse:
-    "grid place-items-center text-white/90 transition-all hover:bg-white/20",
+    "inline-grid place-items-center text-white/90 transition-all hover:bg-white/20",
   tab: "flex items-center transition-all",
   nav: "flex flex-col items-center justify-center transition-colors",
 };

@@ -1,9 +1,20 @@
 import { Link } from "@inertiajs/react";
-import { initialOf } from "../../../lib/format";
-import type { DeliveryRow } from "../../../types";
+import type { DeliveryFlag, DeliveryRow } from "../../../types";
 import { ServiceTag, StatusPill } from "../../Badges";
 import { MaterialIcon } from "../../MaterialIcon";
 import { Button } from "../../ui/Button";
+
+const ACTION_ICON: Record<DeliveryFlag, string> = {
+  exception: "approval",
+  review: "visibility",
+  delivered: "visibility",
+};
+
+const ACTION_LABEL: Record<DeliveryFlag, string> = {
+  exception: "Tinjau pengecualian",
+  review: "Tinjau audit trail",
+  delivered: "Lihat detail audit trail",
+};
 
 interface ShipmentItemProps {
   shipment: DeliveryRow;
@@ -12,12 +23,12 @@ interface ShipmentItemProps {
 export function ShipmentItem({ shipment }: ShipmentItemProps) {
   const detailHref =
     shipment.flag === "exception"
-      ? `/admin/pengecualian-detail/${encodeURIComponent(shipment.id)}`
+      ? `/admin/antrian-pengecualian?open=${encodeURIComponent(shipment.tracking)}`
       : `/admin/audit-trail/${encodeURIComponent(shipment.id)}`;
 
   return (
     <tr
-      className={`delivery-row group transition-colors hover:bg-surface-container-low/40 ${
+      className={`delivery-row transition-colors hover:bg-surface-container-low/40 ${
         shipment.highlight ? "bg-primary-fixed/10" : ""
       }`}
       data-flag={shipment.flag}
@@ -28,18 +39,10 @@ export function ShipmentItem({ shipment }: ShipmentItemProps) {
         className="whitespace-nowrap px-5 py-3 align-middle font-normal"
         scope="row"
       >
-        <p className="m-0 flex items-center gap-3">
-          <span
-            className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-magenta/10 text-[11px] font-bold text-brand-magenta"
-            aria-hidden="true"
-          >
-            {initialOf(shipment.courierName, "?")}
-          </span>
-          <span className="text-title-md font-semibold text-on-surface">
-            {shipment.courierName}{" "}
-            <span className="text-body-sm font-normal text-on-surface-variant/70">
-              ({shipment.courierCode})
-            </span>
+        <p className="m-0 text-title-md font-semibold text-on-surface">
+          {shipment.courierName}{" "}
+          <span className="text-body-sm font-normal text-on-surface-variant/70">
+            ({shipment.courierCode})
           </span>
         </p>
       </th>
@@ -64,11 +67,14 @@ export function ShipmentItem({ shipment }: ShipmentItemProps) {
         <Button
           as="link"
           to={detailHref}
-          variant={shipment.flag === "delivered" ? "textNeutral" : "text"}
-          className="text-[12px]"
+          variant="icon"
+          aria-label={ACTION_LABEL[shipment.flag]}
+          title={ACTION_LABEL[shipment.flag]}
         >
-          {shipment.flag === "delivered" ? "Detail" : "Tinjau"}{" "}
-          <MaterialIcon name="arrow_forward" className="text-[16px]" />
+          <MaterialIcon
+            name={ACTION_ICON[shipment.flag]}
+            className="text-[18px]"
+          />
         </Button>
       </td>
     </tr>

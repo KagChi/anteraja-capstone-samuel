@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { ShipmentCard } from "../../Components/shipments/ShipmentCard";
 import { Button } from "../../Components/ui/Button";
+import { Pagination } from "../../Components/ui/Pagination";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
@@ -22,7 +23,7 @@ const FILTERS: { id: ServiceFilter; label: string }[] = [
 
 export function ShipmentListPage() {
   useSeo("/shipments");
-  const { shipments, shipmentsResource, getShipmentById } =
+  const { shipments, shipmentsResource, shipmentsPagination, getShipmentById } =
     useShipmentContext();
   const toast = useToast();
 
@@ -50,11 +51,7 @@ export function ShipmentListPage() {
       return;
     }
     const found = getShipmentById(code);
-    if (!found) {
-      toast(`Resi tidak ditemukan: ${code}`, "error");
-      return;
-    }
-    router.visit(`/shipments/${found.id}`);
+    router.visit(`/shipments/${found ? found.id : encodeURIComponent(code)}`);
   }
 
   return (
@@ -140,6 +137,15 @@ export function ShipmentListPage() {
           ))}
         </ul>
       )}
+
+      <Pagination
+        page={shipmentsPagination.page}
+        hasPrev={shipmentsPagination.hasPrev}
+        hasNext={shipmentsPagination.hasNext}
+        isLoading={shipmentsPagination.isLoading}
+        onPrev={shipmentsPagination.prev}
+        onNext={shipmentsPagination.next}
+      />
     </div>
   );
 }

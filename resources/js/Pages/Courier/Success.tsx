@@ -17,10 +17,9 @@ import type { DeliveryTask } from "../../types";
 export function SuccessPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
-  const { courierAvatar, proof, completion } = useShipmentContext();
+  const { courierAvatar, proof } = useShipmentContext();
   const name = session?.name ?? "Satria";
 
-  const done = completion ? 9 : 8;
   const [fallbackHash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
   const [stamp] = useState(() => new Date());
 
@@ -47,13 +46,8 @@ export function SuccessPage() {
             />
           </Link>
           <span className="flex items-center gap-2.5">
-            <span className="flex flex-col items-end leading-tight">
-              <span className="text-[13px] font-semibold text-on-surface">
-                {name}
-              </span>
-              <span className="text-[11px] text-on-surface-variant">
-                #4821 &bull; Jak-Sel
-              </span>
+            <span className="text-[13px] font-semibold text-on-surface">
+              {name}
             </span>
             <Avatar name={name} resource={courierAvatar} />
           </span>
@@ -169,23 +163,6 @@ export function SuccessPage() {
               </dd>
             </dl>
           </details>
-
-          <p className="mt-6 flex items-center justify-center gap-2 text-center text-[12px] text-on-surface-variant">
-            <MaterialIcon
-              name="task_alt"
-              className="text-[15px] text-tertiary"
-            />
-            <span>
-              <strong className="font-semibold text-on-surface">
-                <span>{done}</span> dari <span>12</span>
-              </strong>{" "}
-              tugas selesai hari ini{" "}
-              <span className="mx-1 text-on-surface-variant/40">&bull;</span>{" "}
-              <span className="font-semibold text-tertiary">
-                100% tepat waktu
-              </span>
-            </span>
-          </p>
         </section>
 
         <footer className="w-full pt-4">

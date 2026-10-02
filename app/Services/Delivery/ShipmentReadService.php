@@ -3,6 +3,8 @@
 namespace App\Services\Delivery;
 
 use App\Models\Shipment;
+use App\Support\Cursor;
+use App\Support\CursorPage;
 use App\Support\Presentation\DeliveryPresenter;
 
 /**
@@ -16,20 +18,38 @@ class ShipmentReadService
     public const DEFAULT_TASKS_PER_PAGE = 100;
 
     /**
+     * Rows for the first page, kept for the cache-warming command and callers
+     * that do not paginate.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function index(int $perPage): array
     {
-        return ShipmentCache::remember("index.{$perPage}", function () use ($perPage): array {
-            return Shipment::query()
+        return $this->page($perPage, null)['rows'];
+    }
+
+    /**
+     * Keyset ("cursor") page ordered by `created_at DESC, id DESC`.
+     *
+     * @return array{rows: array<int, array<string, mixed>>, next_cursor: string|null}
+     */
+    public function page(int $perPage, ?string $cursor): array
+    {
+        $decoded = Cursor::decode($cursor);
+        $key = sprintf('index.%d.%s', $perPage, $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first');
+
+        return ShipmentCache::remember($key, fn (): array => CursorPage::get(
+            Shipment::query()
                 ->forListPresentation()
                 ->orderByDesc('shipments.created_at')
-                ->limit($perPage)
-                ->get()
-                ->map(fn (object $shipment) => DeliveryPresenter::rowFromList($shipment))
-                ->values()
-                ->all();
-        });
+                ->orderByDesc('shipments.id'),
+            $perPage,
+            $cursor,
+            'shipments.created_at',
+            'shipments.id',
+            'desc',
+            fn (object $shipment) => DeliveryPresenter::rowFromList($shipment),
+        ));
     }
 
     /**
@@ -51,22 +71,39 @@ class ShipmentReadService
     }
 
     /**
+     * Rows for the first task page (cache-warming command).
+     *
      * @return array<int, array<string, mixed>>
      */
     public function tasks(string $courierId, int $perPage): array
     {
-        return ShipmentCache::remember("tasks.{$courierId}.{$perPage}", function () use ($courierId, $perPage): array {
-            return Shipment::withPresentation()
+        return $this->tasksPage($courierId, $perPage, null)['rows'];
+    }
+
+    /**
+     * Keyset ("cursor") page ordered by `created_at ASC, id ASC`.
+     *
+     * @return array{rows: array<int, array<string, mixed>>, next_cursor: string|null}
+     */
+    public function tasksPage(string $courierId, int $perPage, ?string $cursor): array
+    {
+        $decoded = Cursor::decode($cursor);
+        $key = sprintf('tasks.%s.%d.%s', $courierId, $perPage, $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first');
+
+        return ShipmentCache::remember($key, fn (): array => CursorPage::get(
+            Shipment::withPresentation()
                 ->withDestinationCoordinates()
                 ->where('courier_id', $courierId)
                 ->whereIn('status', ['pending', 'picked_up', 'in_transit'])
                 ->orderBy('created_at')
-                ->limit($perPage)
-                ->get()
-                ->map(fn (Shipment $shipment) => DeliveryPresenter::task($shipment))
-                ->values()
-                ->all();
-        });
+                ->orderBy('id'),
+            $perPage,
+            $cursor,
+            'created_at',
+            'id',
+            'asc',
+            fn (Shipment $shipment) => DeliveryPresenter::task($shipment),
+        ));
     }
 
     /**

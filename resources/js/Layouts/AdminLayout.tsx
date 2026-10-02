@@ -7,6 +7,7 @@ import { Button } from "../Components/ui/Button";
 import { useSession } from "../Contexts/SessionContext";
 import { useShipmentContext } from "../Contexts/ShipmentContext";
 import { ADMIN_NAV_GROUPS } from "../data/nav";
+import { useFlashToast } from "../Hooks/useFlashToast";
 
 interface Crumb {
   section: string;
@@ -33,11 +34,6 @@ const CRUMBS: Record<string, Crumb> = {
     current: "Antrian Pengecualian",
     activeNav: "/admin/antrian-pengecualian",
   },
-  "/admin/pengecualian-detail": {
-    section: "Operasional Harian",
-    current: "Antrian Pengecualian",
-    activeNav: "/admin/antrian-pengecualian",
-  },
   "/admin/pengaturan-radius": {
     section: "Konfigurasi Sistem",
     current: "Pengaturan Radius",
@@ -57,6 +53,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { session, logout } = useSession();
   const { courierAvatar } = useShipmentContext();
   const [open, setOpen] = useState(false);
+
+  useFlashToast();
 
   const crumb = CRUMBS[pathname] ?? CRUMBS["/admin/dashboard"];
 
@@ -101,16 +99,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           }`}
           aria-label="Navigasi konsol admin"
         >
-          <p className="m-0 flex h-16 shrink-0 items-center gap-2.5 border-b border-border-subtle px-5">
+          <div className="flex h-16 shrink-0 items-center justify-center border-b border-border-subtle px-3">
             <img
-              className="h-6 w-auto"
+              className="h-10 w-auto"
               src="/logo-anteraja.png"
               alt="Anteraja"
             />
-            <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
-              Hub
-            </span>
-          </p>
+          </div>
           <nav className="flex-1 overflow-y-auto px-3 py-4">
             {ADMIN_NAV_GROUPS.map((group, index) => (
               <section key={group.title}>
@@ -158,15 +153,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             ))}
           </nav>
           <footer className="shrink-0 border-t border-border-subtle p-3">
-            <section className="rounded-lg bg-surface-container-low px-3 py-2">
-              <p className="m-0 text-[11px] text-on-surface-variant">
-                SLA Delivery
-              </p>
-              <p className="m-0 text-[15px] font-extrabold text-tertiary">
-                99.2%
-              </p>
-            </section>
-            <p className="m-0 flex items-center gap-2.5 px-1 pt-3">
+            <p className="m-0 flex items-center gap-2.5 px-1">
               <Avatar
                 name={name}
                 resource={courierAvatar}
@@ -245,7 +232,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </p>
           </header>
 
-          {children}
+          <main
+            id="konten-utama"
+            className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-space-lg px-4 py-space-md lg:px-8"
+          >
+            {children}
+          </main>
+
+          <footer className="border-t border-border-subtle px-4 py-6 text-[11px] text-on-surface-variant/70 lg:px-8">
+            Anteraja Instant &bull; Satria Rapid Field Dispatch &bull; Data
+            contoh untuk keperluan purwarupa.
+          </footer>
         </div>
       </div>
     </div>

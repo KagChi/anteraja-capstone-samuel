@@ -68,7 +68,9 @@ class AuthenticatedSessionController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        return redirect()->intended($user->homeRoute());
+        return redirect()
+            ->intended($user->homeRoute())
+            ->with('success', 'Berhasil masuk, '.$user->name.'. Selamat bekerja!');
     }
 
     /**

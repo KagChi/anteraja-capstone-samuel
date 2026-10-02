@@ -2,6 +2,7 @@ import { Link, usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { useSession } from "../Contexts/SessionContext";
+import { useFlashToast } from "../Hooks/useFlashToast";
 
 interface RouteMeta {
   title: string;
@@ -29,6 +30,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { session, logout } = useSession();
   const pathname = url.split("?")[0];
   const { title, back } = resolveMeta(pathname);
+
+  useFlashToast();
 
   return (
     <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">

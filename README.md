@@ -122,8 +122,17 @@ Key routes:
 - `GET  /api/v1/shipments`, `GET /api/v1/shipments/{id}`
 - `GET  /api/v1/shipping/quote?weight=&distance=`
 - `GET  /api/v1/admin/dashboard`
+- `POST /api/v1/admin/shipments/{id}/close-case`
 - `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`
 - `GET  /api/v1/admin/radius-segments`, `PUT /api/v1/admin/radius-segments`
+
+All list endpoints — `GET /api/v1/shipments`, `GET /api/v1/admin/exceptions`
+and `GET /api/v1/courier/tasks` — are **cursor-paginated**: pass `?per_page=`
+and resume with the opaque `meta.next_cursor`. Responses include
+`meta.next_cursor` (null on the last page) and `meta.has_more`. The admin,
+exception-queue and courier-task tables page **10 rows at a time** with
+previous/next controls; `GET /api/v1/admin/exceptions` also accepts
+`?status=pending|approved|rejected`.
 
 ## Testing
 

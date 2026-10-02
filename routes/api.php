@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\ClaimCaseController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ExceptionController as AdminExceptionController;
 use App\Http\Controllers\Api\V1\Admin\RadiusController;
@@ -37,6 +38,7 @@ Route::prefix('v1')->middleware('web')->group(function () {
     // Admin / hub endpoints.
     Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('api.admin.')->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::post('shipments/{id}/close-case', [ClaimCaseController::class, 'close'])->name('shipments.close-case');
         Route::get('exceptions', [AdminExceptionController::class, 'index'])->name('exceptions.index');
         Route::get('exceptions/{id}', [AdminExceptionController::class, 'show'])->name('exceptions.show');
         Route::post('exceptions/{id}/decision', [AdminExceptionController::class, 'decide'])->name('exceptions.decide');

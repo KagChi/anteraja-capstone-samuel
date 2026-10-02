@@ -294,7 +294,7 @@ class DeliveryPresenter
     private static function href(string $id, string $flag): string
     {
         return $flag === 'exception'
-            ? '/admin/pengecualian-detail/'.$id
+            ? '/admin/antrian-pengecualian?open='.$id
             : '/admin/audit-trail/'.$id;
     }
 

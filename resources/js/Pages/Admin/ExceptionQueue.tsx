@@ -1,11 +1,21 @@
 import { Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { ExceptionDetailModal } from "../../Components/admin/exceptions/ExceptionDetailModal";
 import { ServiceTag } from "../../Components/Badges";
+import { PageHeader } from "../../Components/layout/PageHeader";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { DataTable } from "../../Components/ui/DataTable";
+import {
+  FilterBar,
+  FilterSearch,
+  FilterTab,
+  FilterTabs,
+  SearchField,
+} from "../../Components/ui/FilterBar";
+import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
-import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
 import type { ExceptionRow, ServiceSegment } from "../../types";
@@ -22,16 +32,16 @@ const TABS: { id: ServiceFilter; label: string }[] = [
 export function ExceptionQueuePage() {
   useSeo("/admin/antrian-pengecualian");
 
-  const exceptionsResource = useFetch<{ data: ExceptionRow[] }>(
-    "/api/v1/admin/exceptions",
+  const exceptionsResource = useCursorPagination<ExceptionRow>(
+    "/api/v1/admin/exceptions?status=pending",
+    PER_PAGE,
   );
-  const rows = (exceptionsResource.data?.data ?? []).filter(
-    (row) => row.status === "pending",
-  );
+  const rows = exceptionsResource.items;
 
   const [service, setService] = useState<ServiceFilter>("all");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 150);
+  const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     text: string;
     approve: boolean;
@@ -40,21 +50,14 @@ export function ExceptionQueuePage() {
 
   const handled = useRef(false);
 
-  useEffect(() => {
-    const decision = new URLSearchParams(window.location.search).get(
-      "decision",
-    );
-    if (!decision || handled.current) return;
-    handled.current = true;
+  function showDecisionToast(approve: boolean) {
     setToast({
-      approve: decision === "approve",
-      text:
-        decision === "approve"
-          ? "Pengecualian disetujui dan tercatat pada jejak audit."
-          : "Pengecualian ditolak. Kurir diminta mengulang verifikasi.",
+      approve,
+      text: approve
+        ? "Pengecualian disetujui dan tercatat pada jejak audit."
+        : "Pengecualian ditolak. Kurir diminta mengulang verifikasi.",
       visible: true,
     });
-    window.history.replaceState(null, "", window.location.pathname);
     window.setTimeout(
       () =>
         setToast((current) =>
@@ -62,7 +65,31 @@ export function ExceptionQueuePage() {
         ),
       3600,
     );
+  }
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount for deep-link params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const decision = params.get("decision");
+    const open = params.get("open");
+
+    if (open) setSelected(open);
+
+    if (decision && !handled.current) {
+      handled.current = true;
+      showDecisionToast(decision === "approve");
+    }
+
+    if (decision || open) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
+
+  function handleDecided(decision: "approved" | "rejected") {
+    setSelected(null);
+    showDecisionToast(decision === "approved");
+    exceptionsResource.reload();
+  }
 
   const query = debouncedSearch.trim().toLowerCase();
   const visibleRows = rows.filter((row) => {
@@ -75,258 +102,185 @@ export function ExceptionQueuePage() {
     return okService && okSearch;
   });
 
-  function tabLabel(tab: ServiceFilter): string {
-    const count = rows.filter(
-      (row) => tab === "all" || row.service === tab,
-    ).length;
-    const label = TABS.find((item) => item.id === tab)?.label ?? "";
-    return `${label} (${count})`;
-  }
-
   return (
     <>
-      <main
-        className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-space-lg px-4 py-space-md lg:px-8"
-        id="konten-utama"
-      >
-        <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <section>
-            <h1 className="text-headline-xl tracking-tight text-on-surface">
-              Antrian Pengecualian
-            </h1>
-            <p className="max-w-2xl text-body-md text-on-surface-variant">
-              Persetujuan dispensasi lokasi kurir di luar radius resmi.
-            </p>
-          </section>
-          <p className="m-0 flex items-center gap-3 self-start rounded-lg border border-border-subtle bg-surface-container-low px-3 py-1.5 md:self-auto">
-            <span
-              className="size-2 shrink-0 rounded-full bg-alert-amber"
-              aria-hidden="true"
-            />
-            <span className="text-label-md text-on-surface" id="pending-count">
-              {rows.length} Menunggu
-            </span>
-          </p>
-        </header>
+      <PageHeader
+        title="Antrian Pengecualian"
+        description="Persetujuan dispensasi lokasi kurir di luar radius resmi."
+      />
 
-        <section
-          className="overflow-hidden rounded-xl border border-border-subtle bg-surface-container-lowest shadow-sm"
-          aria-labelledby="judul-daftar-pengajuan"
-        >
-          <header className="flex flex-col gap-4 border-b border-border-subtle p-4 md:p-6">
-            <section className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-              <h2
-                id="judul-daftar-pengajuan"
-                className="flex items-center gap-3 text-title-md font-semibold text-on-surface"
-              >
-                Daftar Pengajuan{" "}
-                <mark
-                  className="rounded-full bg-surface-container px-2 py-0.5 text-label-sm text-on-surface-variant"
-                  id="exception-count"
+      <DataTable
+        title="Daftar Pengajuan"
+        toolbar={
+          <FilterBar>
+            <FilterTabs id="exception-tabs" label="Filter layanan">
+              {TABS.map((tab) => (
+                <FilterTab
+                  key={tab.id}
+                  active={service === tab.id}
+                  data-service={tab.id}
+                  onClick={() => setService(tab.id)}
                 >
-                  {rows.length} pengajuan
-                </mark>
-              </h2>
-              <p className="m-0 flex items-center gap-2 text-body-sm text-on-surface-variant">
-                <span
-                  className="size-2 animate-pulse rounded-full bg-tertiary-container"
-                  aria-hidden="true"
-                />
-                <span className="font-medium">Auto-sync aktif</span>
-              </p>
-            </section>
-            <section className="flex flex-wrap items-center justify-between gap-3">
-              <div
-                className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container-low/70 p-1"
-                id="exception-tabs"
-                role="tablist"
-                aria-label="Filter layanan"
+                  {tab.label}
+                </FilterTab>
+              ))}
+            </FilterTabs>
+            <FilterSearch>
+              <SearchField
+                id="exception-search"
+                label="Cari kurir, resi, deviasi"
+                placeholder="Cari kurir, resi, deviasi..."
+                value={search}
+                onChange={setSearch}
+              />
+            </FilterSearch>
+          </FilterBar>
+        }
+        pagination={{
+          page: exceptionsResource.page,
+          hasPrev: exceptionsResource.hasPrev,
+          hasNext: exceptionsResource.hasNext,
+          isLoading: exceptionsResource.isLoading,
+          onPrev: exceptionsResource.prev,
+          onNext: exceptionsResource.next,
+        }}
+      >
+        <caption className="sr-only">
+          Pengajuan pengecualian geofence yang menunggu keputusan admin
+        </caption>
+        <thead>
+          <tr className="border-b border-border-subtle bg-surface-container-low/40 text-on-surface-variant/80">
+            <th
+              className="whitespace-nowrap px-5 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Kurir
+            </th>
+            <th
+              className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Nomor Resi
+            </th>
+            <th
+              className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Layanan
+            </th>
+            <th
+              className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Deviasi
+            </th>
+            <th
+              className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Alasan Kurir
+            </th>
+            <th
+              className="whitespace-nowrap px-5 py-3.5 text-right text-label-sm font-bold uppercase tracking-wider"
+              scope="col"
+            >
+              Aksi
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          className="divide-y divide-border-subtle/70"
+          id="exception-table-body"
+        >
+          {exceptionsResource.isLoading ? (
+            <tr>
+              <td
+                className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+                colSpan={6}
               >
-                {TABS.map((tab) => {
-                  const isActive = service === tab.id;
-                  return (
-                    <Button
-                      key={tab.id}
-                      variant="tab"
-                      active={isActive}
-                      className="rounded-md px-3 py-1 text-label-sm"
-                      data-service={tab.id}
-                      onClick={() => setService(tab.id)}
-                    >
-                      {tabLabel(tab.id)}
-                    </Button>
-                  );
-                })}
-              </div>
-              <search className="ml-auto flex max-w-sm flex-1 items-center gap-2.5">
-                <label className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-container-low/50 px-3 py-1.5">
-                  <span className="sr-only">Cari kurir, resi, deviasi</span>
-                  <MaterialIcon
-                    name="search"
-                    className="shrink-0 text-[18px] text-on-surface-variant"
-                  />
-                  <input
-                    className="w-full border-none bg-transparent p-0 text-body-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0"
-                    id="exception-search"
-                    placeholder="Cari kurir, resi, deviasi..."
-                    type="search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </label>
-              </search>
-            </section>
-          </header>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[44rem] border-collapse text-left">
-              <caption className="sr-only">
-                Pengajuan pengecualian geofence yang menunggu keputusan admin
-              </caption>
-              <thead>
-                <tr className="border-b border-border-subtle bg-surface-container-low/40 text-on-surface-variant/80">
-                  <th
-                    className="whitespace-nowrap px-5 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Kurir
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Nomor Resi
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Layanan
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Deviasi
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-4 py-3.5 text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Alasan Kurir
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-5 py-3.5 text-right text-label-sm font-bold uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                className="divide-y divide-border-subtle/70"
-                id="exception-table-body"
+                Memuat pengajuan dari server...
+              </td>
+            </tr>
+          ) : exceptionsResource.isError ? (
+            <tr>
+              <td
+                className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+                colSpan={6}
               >
-                {exceptionsResource.isLoading ? (
-                  <tr>
-                    <td
-                      className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
-                      colSpan={6}
-                    >
-                      Memuat pengajuan dari server...
-                    </td>
-                  </tr>
-                ) : exceptionsResource.isError ? (
-                  <tr>
-                    <td
-                      className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
-                      colSpan={6}
-                    >
-                      Gagal memuat pengajuan.{" "}
-                      <Button
-                        variant="text"
-                        className="text-[12px]"
-                        onClick={exceptionsResource.reload}
-                      >
-                        Coba lagi
-                      </Button>
-                    </td>
-                  </tr>
-                ) : (
-                  visibleRows.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="exception-row transition-colors hover:bg-surface-container-low/40"
-                      data-service={row.service}
-                    >
-                      <th
-                        className="whitespace-nowrap px-5 py-3 align-middle font-normal"
-                        scope="row"
-                      >
-                        <p className="m-0 text-title-md font-semibold text-on-surface">
-                          {row.courierName}{" "}
-                          <span className="text-[12px] font-normal text-on-surface-variant/70">
-                            ({row.courierCode})
-                          </span>
-                        </p>
-                      </th>
-                      <td className="whitespace-nowrap px-4 py-3 align-middle">
-                        <Link
-                          className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
-                          href={`/admin/audit-trail/${row.tracking}`}
-                        >
-                          {row.tracking}
-                        </Link>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 align-middle">
-                        <ServiceTag service={row.service} />
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 align-middle">
-                        <span className="text-[12px] font-semibold text-amber-700">
-                          +{row.deviation} m{" "}
-                          <span className="font-normal text-on-surface-variant">
-                            / maks {row.maxTolerance} m
-                          </span>
-                        </span>
-                      </td>
-                      <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
-                        {row.reason}
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
-                        <Button
-                          as="link"
-                          to={`/admin/pengecualian-detail/${row.tracking}`}
-                          variant="text"
-                          className="text-[12px]"
-                        >
-                          Tinjau{" "}
-                          <MaterialIcon
-                            name="arrow_forward"
-                            className="text-[16px]"
-                          />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-                <tr id="exception-empty" hidden={visibleRows.length !== 0}>
-                  <td
-                    className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
-                    colSpan={6}
+                Gagal memuat pengajuan.{" "}
+                <Button
+                  variant="text"
+                  className="text-[12px]"
+                  onClick={exceptionsResource.reload}
+                >
+                  Coba lagi
+                </Button>
+              </td>
+            </tr>
+          ) : (
+            visibleRows.map((row) => (
+              <tr
+                key={row.id}
+                className="exception-row transition-colors hover:bg-surface-container-low/40"
+                data-service={row.service}
+              >
+                <th
+                  className="whitespace-nowrap px-5 py-3 align-middle font-normal"
+                  scope="row"
+                >
+                  <p className="m-0 text-title-md font-semibold text-on-surface">
+                    {row.courierName}{" "}
+                    <span className="text-[12px] font-normal text-on-surface-variant/70">
+                      ({row.courierCode})
+                    </span>
+                  </p>
+                </th>
+                <td className="whitespace-nowrap px-4 py-3 align-middle">
+                  <Link
+                    className="tabular-nums text-barcode-tracking font-bold text-on-surface hover:text-brand-magenta"
+                    href={`/admin/audit-trail/${row.tracking}`}
                   >
-                    Tidak ada pengajuan pengecualian yang cocok dengan filter
-                    atau pencarian.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-border-subtle px-4 py-6 text-[11px] text-on-surface-variant/70 lg:px-8">
-        Keputusan dispensasi tercatat sebagai bagian jejak audit &bull; Data
-        contoh untuk keperluan purwarupa.
-      </footer>
+                    {row.tracking}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 align-middle">
+                  <ServiceTag service={row.service} />
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 align-middle">
+                  <span className="text-[12px] font-semibold text-amber-700">
+                    +{row.deviation} m{" "}
+                    <span className="font-normal text-on-surface-variant">
+                      / maks {row.maxTolerance} m
+                    </span>
+                  </span>
+                </td>
+                <td className="max-w-[16rem] truncate px-4 py-3 align-middle text-[12px] text-on-surface-variant">
+                  {row.reason}
+                </td>
+                <td className="whitespace-nowrap px-5 py-3 text-right align-middle">
+                  <Button
+                    variant="icon"
+                    aria-label="Tinjau pengecualian"
+                    title="Tinjau pengecualian"
+                    onClick={() => setSelected(row.tracking)}
+                  >
+                    <MaterialIcon name="approval" className="text-[18px]" />
+                  </Button>
+                </td>
+              </tr>
+            ))
+          )}
+          <tr id="exception-empty" hidden={visibleRows.length !== 0}>
+            <td
+              className="px-5 py-10 text-center text-body-sm text-on-surface-variant"
+              colSpan={6}
+            >
+              Tidak ada pengajuan pengecualian yang cocok dengan filter atau
+              pencarian.
+            </td>
+          </tr>
+        </tbody>
+      </DataTable>
 
       <output
         className={`pointer-events-none fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-lg bg-surface-container-highest px-4 py-3 text-on-surface shadow-xl transition-all duration-300 ${
@@ -345,6 +299,14 @@ export function ExceptionQueuePage() {
           {toast?.text ?? "Keputusan berhasil diterapkan ke sistem."}
         </span>
       </output>
+
+      {selected ? (
+        <ExceptionDetailModal
+          id={selected}
+          onClose={() => setSelected(null)}
+          onDecided={handleDecided}
+        />
+      ) : null}
     </>
   );
 }

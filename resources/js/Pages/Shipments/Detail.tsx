@@ -164,10 +164,6 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
           </p>
         ) : null}
       </section>
-
-      <Button as="link" to="/shipments" variant="secondary" className="w-full">
-        <MaterialIcon name="search" className="text-[18px]" /> Lacak Resi Lain
-      </Button>
     </div>
   );
 }

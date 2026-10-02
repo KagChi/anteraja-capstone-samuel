@@ -449,6 +449,157 @@ INSERT INTO admin_actions (id, admin_id, action_type, target_type, target_id, re
 ('13131313-0000-0000-0000-000000000004','22222222-0000-0000-0000-000000000005','update_radius',    'geofence_policy',   '14141414-0000-0000-0000-000000000001','Sinkronisasi Fleet Safety Protocol v4.2'),
 ('13131313-0000-0000-0000-000000000005','22222222-0000-0000-0000-000000000001','review_pod',       'delivery_proof',    '88888888-0000-0000-0000-000000000005','POD di luar geofence, tetap dipakai setelah persetujuan');
 
+
+-- ============================================================================
+--  EXTENDED DATASET (AJ2509000016 .. AJ2509001000)
+--  Generated deterministically so the data tables are large enough to
+--  exercise cursor pagination. Reuses the seeded couriers/recipients/areas.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+--  shipments  (985 extra rows; created_at staggered on 2026-09-24)
+-- ----------------------------------------------------------------------------
+INSERT INTO shipments
+  (id, tracking_number, service_type, courier_id, recipient_id, service_area_id,
+   origin, destination, destination_address, status, pin_required, cod_amount,
+   delivered_at, created_at)
+SELECT
+  ('55555555-0000-0000-0000-' || lpad(v.n::text, 12, '0'))::uuid,
+  'AJ2509' || lpad(v.n::text, 6, '0'),
+  v.service_type,
+  ('33333333-0000-0000-0000-0000000000' || lpad(v.courier_no::text, 2, '0'))::uuid,
+  ('44444444-0000-0000-0000-0000000000' || lpad(v.recipient_no::text, 2, '0'))::uuid,
+  ('11111111-0000-0000-0000-0000000000' || lpad(v.area_no::text, 2, '0'))::uuid,
+  ST_SetSRID(ST_MakePoint(-6.229000, 106.854000), 4326)::geography,
+  ST_SetSRID(ST_MakePoint(v.lng, v.lat), 4326)::geography,
+  'Jl. Contoh No. ' || v.n || ', Jakarta',
+  v.status, v.pin_required, v.cod_amount,
+  CASE WHEN v.status = 'delivered' THEN v.created_at + interval '1 hour' END,
+  v.created_at
+FROM (
+  SELECT
+    n,
+    CASE n % 3 WHEN 0 THEN 'instant' WHEN 1 THEN 'same_day' ELSE 'regular' END AS service_type,
+    ((n - 1) % 16) + 1 AS courier_no,
+    ((n - 1) % 15) + 1 AS recipient_no,
+    ((n - 1) % 3)  + 1 AS area_no,
+    106.80 + ((n % 17) * 0.0031) AS lng,
+    -6.20  - ((n % 13) * 0.0037) AS lat,
+    CASE n % 4
+      WHEN 0 THEN 'delivered'
+      WHEN 1 THEN 'in_transit'
+      WHEN 2 THEN 'pending'
+      ELSE 'failed'
+    END AS status,
+    (n % 3) <> 2 AS pin_required,
+    CASE n % 5 WHEN 0 THEN 55000 WHEN 1 THEN 120000 ELSE 0 END AS cod_amount,
+    '2026-09-24T07:00:00+07'::timestamptz + (n || ' minutes')::interval AS created_at
+  FROM generate_series(16, 1000) AS n
+) AS v;
+
+
+-- ----------------------------------------------------------------------------
+--  geofences for the extended shipments
+-- ----------------------------------------------------------------------------
+INSERT INTO geofences (id, shipment_id, center, radius_m, source, created_by, created_at)
+SELECT
+  ('77777777-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
+  s.id,
+  s.destination,
+  CASE s.service_type WHEN 'instant' THEN 30 WHEN 'same_day' THEN 50 ELSE 100 END,
+  'destination',
+  '22222222-0000-0000-0000-000000000005'::uuid,
+  s.created_at
+FROM shipments s
+WHERE s.created_at >= '2026-09-24T00:00:00+07';
+
+
+-- ----------------------------------------------------------------------------
+--  delivery_events for the extended shipments (pickup / geofence / delivered)
+-- ----------------------------------------------------------------------------
+INSERT INTO delivery_events
+  (shipment_id, courier_id, event_type, point, distance_to_destination_m, actor_type, metadata, created_at)
+SELECT s.id, s.courier_id, 'pickup',
+       ST_SetSRID(ST_MakePoint(-6.229000, 106.854000), 4326)::geography,
+       NULL, 'courier', '{}'::jsonb, s.created_at + interval '15 minutes'
+FROM shipments s
+WHERE s.created_at >= '2026-09-24T00:00:00+07';
+
+INSERT INTO delivery_events
+  (shipment_id, courier_id, event_type, point, distance_to_destination_m, actor_type, metadata, created_at)
+SELECT s.id, s.courier_id, 'geofence_check', s.destination, 12, 'courier',
+       '{"inside":true}'::jsonb, s.created_at + interval '40 minutes'
+FROM shipments s
+WHERE s.created_at >= '2026-09-24T00:00:00+07';
+
+INSERT INTO delivery_events
+  (shipment_id, courier_id, event_type, point, distance_to_destination_m, actor_type, metadata, created_at)
+SELECT s.id, s.courier_id, 'delivered', s.destination, 12, 'system',
+       '{"checks":["geofence","pod"]}'::jsonb, s.created_at + interval '60 minutes'
+FROM shipments s
+WHERE s.status = 'delivered' AND s.created_at >= '2026-09-24T00:00:00+07';
+
+
+-- ----------------------------------------------------------------------------
+--  pin_challenges for the extended PIN-required shipments
+-- ----------------------------------------------------------------------------
+INSERT INTO pin_challenges
+  (id, shipment_id, recipient_id, code_hash, attempts, max_attempts, resend_count,
+   status, expires_at, created_at)
+SELECT
+  ('99999999-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
+  s.id, s.recipient_id,
+  encode(digest('pin:' || s.tracking_number, 'sha256'), 'hex'),
+  0, 3, 0, 'pending', s.created_at + interval '15 minutes', s.created_at + interval '10 minutes'
+FROM shipments s
+WHERE s.pin_required AND s.created_at >= '2026-09-24T00:00:00+07';
+
+
+-- ----------------------------------------------------------------------------
+--  delivery_proofs for the extended delivered shipments
+-- ----------------------------------------------------------------------------
+INSERT INTO delivery_proofs
+  (id, shipment_id, courier_id, photo_path, point, distance_to_destination_m,
+   captured_at, device_captured_at, watermark_hash, watermark_address,
+   recipient_name, review_status)
+SELECT
+  ('abababab-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
+  s.id, s.courier_id, 'pod/' || s.tracking_number || '/pod.jpg',
+  s.destination, 12, s.delivered_at, s.delivered_at,
+  encode(digest(s.tracking_number || '|' || s.delivered_at, 'sha256'), 'hex'),
+  s.destination_address, r.name, 'valid'
+FROM shipments s
+JOIN recipients r ON r.id = s.recipient_id
+WHERE s.status = 'delivered' AND s.created_at >= '2026-09-24T00:00:00+07';
+
+
+-- ----------------------------------------------------------------------------
+--  anomaly_flags so some extended shipments surface as "perlu tinjauan"
+-- ----------------------------------------------------------------------------
+INSERT INTO anomaly_flags (id, shipment_id, flag_type, weight, details)
+SELECT
+  ('acacacac-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
+  s.id, 'out_of_radius', 2.00, '{"distance_m":240,"radius_m":30}'
+FROM shipments s
+WHERE s.status = 'failed' AND s.created_at >= '2026-09-24T00:00:00+07';
+
+
+-- ----------------------------------------------------------------------------
+--  delivery_exceptions for a slice of extended shipments (queue has more work)
+-- ----------------------------------------------------------------------------
+INSERT INTO delivery_exceptions
+  (id, shipment_id, courier_id, requested_point, distance_m, radius_m,
+   reason, status, created_at)
+SELECT
+  ('bebebebe-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
+  s.id, s.courier_id, s.destination, 240, 30,
+  'Deviasi radius: akses jalan ditutup sementara.', 'pending',
+  s.created_at + interval '30 minutes'
+FROM shipments s
+WHERE s.created_at >= '2026-09-24T00:00:00+07'
+  AND (substr(s.tracking_number, 7)::int % 9) = 0;
+
+
 -- ============================================================================
 --  END OF SEED
 -- ============================================================================

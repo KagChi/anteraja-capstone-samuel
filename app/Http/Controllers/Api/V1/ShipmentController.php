@@ -22,12 +22,12 @@ class ShipmentController extends Controller
     public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
         $perPage = $this->perPage($request);
+        $page = $shipments->page($perPage, $request->query('cursor'));
 
-        $rows = $shipments->index($perPage);
-
-        return $this->ok($rows, 200, [
-            'total' => count($rows),
+        return $this->ok($page['rows'], 200, [
             'per_page' => $perPage,
+            'next_cursor' => $page['next_cursor'],
+            'has_more' => $page['next_cursor'] !== null,
         ]);
     }
 

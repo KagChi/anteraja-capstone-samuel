@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useAvatar } from "../Hooks/useAvatar";
-import { useFetch } from "../Hooks/useFetch";
+import { PER_PAGE, useCursorPagination } from "../Hooks/useCursorPagination";
 import { useLocationData } from "../Hooks/useLocationData";
 import { usePostalSearch } from "../Hooks/usePostalSearch";
 import { useProofPhoto } from "../Hooks/useProofPhoto";
@@ -37,6 +37,14 @@ interface ShipmentContextValue {
   searchPostal: (query: string) => void;
   shipments: DeliveryRow[];
   shipmentsResource: AsyncResource<{ data: DeliveryRow[] }>;
+  shipmentsPagination: {
+    page: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+    isLoading: boolean;
+    prev: () => void;
+    next: () => void;
+  };
   getShipmentById: (id: string) => DeliveryRow | undefined;
   relation: string;
   setRelation: (relation: string) => void;
@@ -81,10 +89,21 @@ export function ShipmentProvider({
   );
   const postal = usePostalSearch(needsPostal ? postalQuery : "");
 
-  const shipmentsResource = useFetch<{ data: DeliveryRow[] }>(
+  const shipmentsList = useCursorPagination<DeliveryRow>(
     "/api/v1/shipments",
+    PER_PAGE,
   );
-  const shipments = shipmentsResource.data?.data ?? [];
+  const shipments = shipmentsList.items;
+  const shipmentsResource: AsyncResource<{ data: DeliveryRow[] }> = {
+    data:
+      shipmentsList.isLoading || shipmentsList.isError
+        ? null
+        : { data: shipments },
+    isLoading: shipmentsList.isLoading,
+    isError: shipmentsList.isError,
+    error: shipmentsList.isError ? new Error("Gagal memuat pengiriman.") : null,
+    reload: shipmentsList.reload,
+  };
 
   const [relation, setRelation] = useState("langsung");
   const [pinVerified, setPinVerified] = useState(false);
@@ -122,6 +141,14 @@ export function ShipmentProvider({
         searchPostal,
         shipments,
         shipmentsResource,
+        shipmentsPagination: {
+          page: shipmentsList.page,
+          hasPrev: shipmentsList.hasPrev,
+          hasNext: shipmentsList.hasNext,
+          isLoading: shipmentsList.isLoading,
+          prev: shipmentsList.prev,
+          next: shipmentsList.next,
+        },
         getShipmentById,
         relation,
         setRelation,

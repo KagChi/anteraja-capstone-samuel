@@ -317,91 +317,57 @@ export function VerificationPage() {
             id="geofence-status"
           >
             <span
-              className="size-2 animate-pulse rounded-full bg-emerald-500"
+              className="size-2 rounded-full bg-emerald-500"
               aria-hidden="true"
             />
             Di dalam radius (Aman)
-          </p>
-          <p className="mt-2.5 text-[12px] text-on-surface-variant/70">
-            Presisi GPS &plusmn;3 m &bull; Sinkronisasi PostGIS terverifikasi
           </p>
         </section>
 
         <section
           className="mb-4 rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card"
-          aria-labelledby="judul-radius"
-        >
-          <header className="flex items-center justify-between border-b border-border-subtle pb-3">
-            <h3
-              id="judul-radius"
-              className="text-[14px] font-bold text-on-surface"
-            >
-              Validasi Radius
-            </h3>
-            <mark className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              Lulus
-            </mark>
-          </header>
-          <dl className="m-0 grid grid-cols-2 gap-3 pt-3 text-[12px]">
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-              Jarak kurir
-            </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-              {geofence?.distanceMeters ?? 28} m
-            </dd>
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-              Radius Instant
-            </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-              {geofence?.radiusMeters ?? 30} m
-            </dd>
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-              Titik tujuan
-            </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-              {geofence?.point ?? "—"}
-            </dd>
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-              Sumber keputusan
-            </dt>
-            <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-              Server (ST_Distance)
-            </dd>
-          </dl>
-        </section>
-
-        <aside
-          className="mb-4 rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card"
-          aria-labelledby="judul-titik-temu"
+          aria-labelledby="judul-ringkasan-lokasi"
         >
           <h3
-            id="judul-titik-temu"
-            className="mb-2 text-[12px] font-bold uppercase tracking-wider text-on-surface-variant"
+            id="judul-ringkasan-lokasi"
+            className="mb-3 text-[12px] font-bold uppercase tracking-wider text-on-surface-variant"
           >
-            Konteks Titik Temu
+            Ringkasan Lokasi
           </h3>
-          <ul className="m-0 flex list-none items-center justify-between p-0 text-[12px]">
-            <li className="flex items-center gap-1.5 text-on-surface-variant">
-              <MaterialIcon
-                name="two_wheeler"
-                className="text-[16px] text-brand-magenta"
-              />{" "}
-              Kurir &rarr; Tujuan{" "}
-              <strong className="text-on-surface">
+          <dl className="m-0 grid grid-cols-2 gap-3 text-[12px]">
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
+                Jarak kurir
+              </dt>
+              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
                 {geofence?.distanceMeters ?? 28} m
-              </strong>
-            </li>
-            <li className="flex items-center gap-1.5 text-on-surface-variant">
-              <MaterialIcon
-                name="person_pin_circle"
-                className="text-[16px] text-on-surface-variant"
-              />{" "}
-              Tujuan &rarr; Pembeli{" "}
-              <strong className="text-on-surface">
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
+                Radius
+              </dt>
+              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
+                {geofence?.radiusMeters ?? 30} m
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
+                Kurir &rarr; Tujuan
+              </dt>
+              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
+                {geofence?.distanceMeters ?? 28} m
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
+                Tujuan &rarr; Pembeli
+              </dt>
+              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
                 {geofence?.deviationMeters ?? 12} m
-              </strong>
-            </li>
-          </ul>
+              </dd>
+            </div>
+          </dl>
           <p className="m-0 mt-3 flex flex-wrap items-center gap-1.5 border-t border-border-subtle pt-3 text-[12px] text-on-surface-variant">
             <MaterialIcon
               name="markunread_mailbox"
@@ -433,7 +399,7 @@ export function VerificationPage() {
               </span>
             )}
           </p>
-        </aside>
+        </section>
 
         <form
           id="pin-form"

@@ -13,9 +13,15 @@ class TaskController extends CourierController
     public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
         $courierId = $this->courier()->id;
-        $tasks = $shipments->tasks($courierId, $this->perPage($request));
+        $perPage = $this->perPage($request);
 
-        return $this->ok($tasks, 200, ['total' => count($tasks)]);
+        $page = $shipments->tasksPage($courierId, $perPage, $request->query('cursor'));
+
+        return $this->ok($page['rows'], 200, [
+            'per_page' => $perPage,
+            'next_cursor' => $page['next_cursor'],
+            'has_more' => $page['next_cursor'] !== null,
+        ]);
     }
 
     private function perPage(Request $request): int

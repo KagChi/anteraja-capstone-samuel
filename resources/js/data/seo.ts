@@ -508,52 +508,6 @@ export const SEO: Record<string, SeoConfig> = {
       ],
     },
   },
-  "/admin/pengecualian-detail": {
-    title: "Detail Pengecualian Geofence — Admin Hub | Anteraja Instant",
-    description:
-      "Modal tinjauan detail pengecualian geofence: ringkasan deviasi, alasan kurir, foto bukti lokasi, dan keputusan admin.",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "ParcelDelivery",
-          trackingNumber: "AJ2509000005",
-          deliveryStatus: "AttemptingDelivery",
-          provider: { "@type": "Organization", name: "Anteraja" },
-          additionalProperty: [
-            { "@type": "PropertyValue", name: "deviation_m", value: 64 },
-            { "@type": "PropertyValue", name: "hub_tolerance_m", value: 30 },
-            { "@type": "PropertyValue", name: "actual_distance_m", value: 94 },
-            { "@type": "PropertyValue", name: "gps_status", value: "valid" },
-          ],
-        },
-        {
-          "@type": "DeliveryEvent",
-          name: "Pengajuan pengecualian geofence AJ2509000005",
-          startDate: "2024-09-22T14:41:00+07:00",
-          actionStatus: "https://schema.org/PotentialActionStatus",
-          object: {
-            "@type": "ParcelDelivery",
-            trackingNumber: "AJ2509000005",
-          },
-          location: {
-            "@type": "Place",
-            name: "Pos satpam cluster",
-            geo: {
-              "@type": "GeoCoordinates",
-              latitude: -6.2418,
-              longitude: 106.8086,
-            },
-          },
-          agent: {
-            "@type": "Person",
-            name: "Budi Pratama",
-            jobTitle: "Kurir Anteraja",
-          },
-        },
-      ],
-    },
-  },
   "/admin/pengaturan-radius": {
     title: "Pengaturan Radius Layanan — Admin Hub | Anteraja Instant",
     description:
