@@ -3,6 +3,7 @@ import type { ClipboardEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Spinner } from "../../Components/ui/Spinner";
 import {
   ACTIVE_TRACKING,
@@ -272,7 +273,7 @@ export function VerificationPage() {
           >
             <MaterialIcon name="arrow_back_ios_new" className="text-[24px]" />
           </Button>
-          <h1 className="text-[17px] font-semibold tracking-tight text-on-surface">
+          <h1 className="text-title-lg tracking-tight text-on-surface">
             Verifikasi Pengiriman
           </h1>
           <span className="w-9 text-right text-[12px] font-semibold text-on-surface-variant">
@@ -325,7 +326,7 @@ export function VerificationPage() {
         </section>
 
         <section
-          className="mb-4 rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card"
+          className="mb-4 rounded-md border border-border-subtle bg-surface-card p-4 shadow-card"
           aria-labelledby="judul-ringkasan-lokasi"
         >
           <h3
@@ -411,7 +412,7 @@ export function VerificationPage() {
             goNext();
           }}
         >
-          <fieldset className="rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card">
+          <fieldset className="rounded-md border border-border-subtle bg-surface-card p-4 shadow-card">
             <legend className="sr-only">Otorisasi PIN penerima</legend>
             <header className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-[14px] font-bold text-on-surface">
@@ -491,7 +492,7 @@ export function VerificationPage() {
             </footer>
           </fieldset>
 
-          <fieldset className="rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card">
+          <fieldset className="rounded-md border border-border-subtle bg-surface-card p-4 shadow-card">
             <legend className="sr-only">Konfirmasi serah terima</legend>
             <h3 className="mb-3 text-[14px] font-bold text-on-surface">
               Konfirmasi Serah Terima
@@ -515,28 +516,19 @@ export function VerificationPage() {
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Hubungan penerima
             </p>
-            <div
-              className="flex items-center gap-1.5 rounded-xl bg-surface-container-low p-1"
-              id="relation-tabs"
-              role="tablist"
-              aria-label="Hubungan penerima"
-            >
-              {RELATIONS.map((item) => {
-                const isActive = relation === item.id;
-                return (
-                  <Button
-                    key={item.id}
-                    variant="tab"
-                    active={isActive}
-                    className="flex-1 rounded-lg py-1.5 text-[12px]"
-                    data-relation={item.id}
-                    onClick={() => chooseRelation(item.id)}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </div>
+            <FilterTabs id="relation-tabs" label="Hubungan penerima" fill>
+              {RELATIONS.map((item) => (
+                <FilterTab
+                  key={item.id}
+                  active={relation === item.id}
+                  grow
+                  data-relation={item.id}
+                  onClick={() => chooseRelation(item.id)}
+                >
+                  {item.label}
+                </FilterTab>
+              ))}
+            </FilterTabs>
           </fieldset>
         </form>
       </main>

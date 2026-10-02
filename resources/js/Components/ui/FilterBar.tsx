@@ -30,20 +30,35 @@ export function FilterBar({
 interface FilterTabsProps {
   id: string;
   label: string;
+  /** Equal-width segments (mobile filter bars) instead of content-width pills. */
+  fill?: boolean;
+  className?: string;
   children: ReactNode;
 }
 
-/** Segmented tab strip: labels stay on one line and scroll instead of wrapping. */
-export function FilterTabs({ id, label, children }: FilterTabsProps) {
+/**
+ * Segmented filter strip: one shared recipe for admin toolbars and mobile
+ * filter bars. Labels stay on one line and scroll instead of wrapping.
+ */
+export function FilterTabs({
+  id,
+  label,
+  fill = false,
+  className,
+  children,
+}: FilterTabsProps) {
   return (
-    <div
-      className="flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-lg bg-surface-container p-1 2xl:w-auto 2xl:shrink-0"
+    <fieldset
+      className={cn(
+        "flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-lg border-0 bg-surface-container p-1",
+        !fill && "2xl:w-auto 2xl:shrink-0",
+        className,
+      )}
       id={id}
-      role="tablist"
-      aria-label={label}
     >
+      <legend className="sr-only">{label}</legend>
       {children}
-    </div>
+    </fieldset>
   );
 }
 
@@ -52,14 +67,27 @@ type FilterTabProps = Omit<
   "variant" | "className"
 > & {
   active: boolean;
+  /** Stretch to fill the strip evenly (mobile filter bars). */
+  grow?: boolean;
 };
 
-export function FilterTab({ active, children, ...rest }: FilterTabProps) {
+export function FilterTab({
+  active,
+  grow = false,
+  children,
+  ...rest
+}: FilterTabProps) {
   return (
     <Button
-      variant="tab"
+      variant="segment"
       active={active}
-      className="shrink-0 gap-1.5 whitespace-nowrap rounded-md px-3.5 py-1.5 text-label-md"
+      aria-pressed={active}
+      className={cn(
+        "gap-1.5 rounded-md px-3.5 py-1.5 text-label-md",
+        grow
+          ? "min-w-0 flex-1 whitespace-nowrap"
+          : "shrink-0 whitespace-nowrap",
+      )}
       {...rest}
     >
       {children}

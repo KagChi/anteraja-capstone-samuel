@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { useId } from "react";
+import { cn } from "../../lib/cn";
+import { CARD_CLASS } from "./Card";
 import { Pagination, type PaginationProps } from "./Pagination";
 
 interface DataTableProps {
@@ -23,7 +25,7 @@ export function DataTable({
 
   return (
     <section
-      className="overflow-hidden rounded-xl border border-border-subtle bg-surface-container-lowest shadow-sm"
+      className={cn(CARD_CLASS, "overflow-hidden")}
       aria-labelledby={titleId}
     >
       <header className="flex flex-col gap-4 border-b border-border-subtle p-4 md:p-6">

@@ -74,7 +74,7 @@ export function SuccessPage() {
           <header className="space-y-1 text-center">
             <h1
               id="judul-sukses"
-              className="text-[24px] font-bold tracking-tight text-on-surface"
+              className="text-headline-lg tracking-tight text-on-surface"
             >
               Pengiriman Berhasil
             </h1>
@@ -83,7 +83,7 @@ export function SuccessPage() {
             </p>
           </header>
 
-          <article className="mt-7 w-full space-y-3.5 rounded-2xl border border-border-subtle bg-surface-card p-4 text-left shadow-card">
+          <article className="mt-7 w-full space-y-3.5 rounded-md border border-border-subtle bg-surface-card p-4 text-left shadow-card">
             <header className="flex items-center justify-between border-b border-border-subtle pb-3">
               <p className="m-0 flex items-center gap-1.5 text-on-surface-variant">
                 <MaterialIcon name="inventory_2" className="text-[17px]" />

@@ -109,7 +109,7 @@ function RadiusPolicy({
           </h2>
         </header>
 
-        <ul className="m-0 list-none divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-container-lowest shadow-card p-0">
+        <ul className="m-0 list-none divide-y divide-border-subtle overflow-hidden rounded-md border border-border-subtle bg-surface-card shadow-card p-0">
           {segments.map((segment) => {
             const value = values[segment.id];
             return (

@@ -148,3 +148,16 @@
     outline-offset: 2px;
   }
 }
+
+/* Keep state changes but drop motion for users who ask for less. Unlayered on
+   purpose so it wins over utility layers without resorting to !important. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}

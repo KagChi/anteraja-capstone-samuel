@@ -4,8 +4,9 @@ import { Avatar } from "../../Components/Avatar";
 import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Pagination } from "../../Components/ui/Pagination";
-import { Spinner } from "../../Components/ui/Spinner";
+import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useSession } from "../../Contexts/SessionContext";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
@@ -141,7 +142,7 @@ export function TasksPage() {
         <section className="px-1" aria-labelledby="judul-tugas">
           <h1
             id="judul-tugas"
-            className="text-[26px] font-bold tracking-tight text-on-surface"
+            className="text-headline-lg tracking-tight text-on-surface"
           >
             Pengiriman
           </h1>
@@ -150,28 +151,19 @@ export function TasksPage() {
           </p>
         </section>
 
-        <div
-          className="flex items-center rounded-[10px] bg-surface-container-high p-0.5 shadow-inner"
-          id="segment-bar"
-          role="tablist"
-          aria-label="Filter layanan"
-        >
-          {FILTERS.map((item) => {
-            const isActive = filter === item.id;
-            return (
-              <Button
-                key={item.id}
-                variant="tab"
-                active={isActive}
-                className="flex-1 rounded-[8px] px-3 py-1.5 text-[13px]"
-                data-filter={item.id}
-                onClick={() => setFilter(item.id)}
-              >
-                {item.label}
-              </Button>
-            );
-          })}
-        </div>
+        <FilterTabs id="segment-bar" label="Filter layanan" fill>
+          {FILTERS.map((item) => (
+            <FilterTab
+              key={item.id}
+              active={filter === item.id}
+              grow
+              data-filter={item.id}
+              onClick={() => setFilter(item.id)}
+            >
+              {item.label}
+            </FilterTab>
+          ))}
+        </FilterTabs>
 
         <ul
           className="m-0 flex list-none flex-col gap-3 p-0"
@@ -179,20 +171,25 @@ export function TasksPage() {
           aria-label="Daftar stop aktif"
         >
           {tasksResource.isLoading ? (
-            <li className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
-              <Spinner /> Memuat tugas dari server...
-            </li>
+            <StatusPanel as="li" spinning>
+              Memuat tugas dari server...
+            </StatusPanel>
           ) : tasksResource.isError ? (
-            <li className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
-              Gagal memuat tugas dari server.{" "}
-              <Button
-                variant="text"
-                className="text-[12px]"
-                onClick={tasksResource.reload}
-              >
-                Coba lagi
-              </Button>
-            </li>
+            <StatusPanel
+              as="li"
+              tone="error"
+              action={
+                <Button
+                  variant="text"
+                  className="text-[12px]"
+                  onClick={tasksResource.reload}
+                >
+                  Coba lagi
+                </Button>
+              }
+            >
+              Gagal memuat tugas dari server.
+            </StatusPanel>
           ) : (
             visibleTasks.map((task) => (
               <li key={task.tracking}>
@@ -201,7 +198,7 @@ export function TasksPage() {
                     if (element) cardRefs.current.set(task.tracking, element);
                     else cardRefs.current.delete(task.tracking);
                   }}
-                  className={`task-card relative rounded-2xl border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
+                  className={`task-card relative rounded-md border-y border-r border-border-subtle border-l-4 bg-surface-card p-4 shadow-card ${
                     task.category === "instant"
                       ? "border-l-brand-magenta"
                       : "border-l-energetic-yellow"

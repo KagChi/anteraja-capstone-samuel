@@ -6,9 +6,8 @@ import {
 } from "../../Components/admin/dashboard/ShipmentFilters";
 import { ShipmentList } from "../../Components/admin/dashboard/ShipmentList";
 import { PageHeader } from "../../Components/layout/PageHeader";
-import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
-import { Spinner } from "../../Components/ui/Spinner";
+import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useSeo } from "../../Hooks/useSeo";
@@ -46,23 +45,27 @@ export function DashboardPage() {
       />
 
       {shipmentsResource.isLoading && (
-        <p className="flex items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-container-lowest px-4 py-10 text-body-sm text-on-surface-variant">
-          <Spinner /> Memuat data pengiriman dari server...
-        </p>
+        <StatusPanel spinning>
+          Memuat data pengiriman dari server...
+        </StatusPanel>
       )}
 
       {shipmentsResource.isError && (
-        <p className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-surface-container-lowest px-4 py-10 text-body-sm text-on-surface-variant">
-          <MaterialIcon name="cloud_off" className="text-[18px]" />
+        <StatusPanel
+          icon="cloud_off"
+          tone="error"
+          action={
+            <Button
+              variant="text"
+              className="text-[12px]"
+              onClick={shipmentsResource.reload}
+            >
+              Coba lagi
+            </Button>
+          }
+        >
           Gagal memuat data dari server.
-          <Button
-            variant="text"
-            className="text-[12px]"
-            onClick={shipmentsResource.reload}
-          >
-            Coba lagi
-          </Button>
-        </p>
+        </StatusPanel>
       )}
 
       {shipmentsResource.data && (

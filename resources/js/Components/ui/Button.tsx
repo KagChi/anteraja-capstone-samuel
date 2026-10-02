@@ -19,6 +19,7 @@ export type ButtonVariant =
   | "icon"
   | "iconInverse"
   | "tab"
+  | "segment"
   | "nav";
 
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
@@ -56,6 +57,7 @@ const VARIANT_BASE: Record<ButtonVariant, string> = {
   iconInverse:
     "inline-grid place-items-center text-white/90 transition-all hover:bg-white/20",
   tab: "flex items-center transition-all",
+  segment: "flex items-center transition-all",
   nav: "flex flex-col items-center justify-center transition-colors",
 };
 
@@ -109,7 +111,7 @@ function resolveClasses(
     );
   }
 
-  if (variant === "tab") {
+  if (variant === "tab" || variant === "segment") {
     return cn(
       base,
       active

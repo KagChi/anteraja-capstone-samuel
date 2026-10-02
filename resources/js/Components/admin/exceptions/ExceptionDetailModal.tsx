@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "../../../Contexts/ToastContext";
 import { useAvatar } from "../../../Hooks/useAvatar";
 import { useFetch } from "../../../Hooks/useFetch";
@@ -36,10 +36,46 @@ export function ExceptionDetailModal({
   const [busy, setBusy] = useState<"approved" | "rejected" | null>(null);
   const courierAvatar = useAvatar(courierName);
   const proofPhoto = useProofPhoto(tracking);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const node = dialogRef.current;
+    node?.focus();
+
+    function focusables() {
+      if (!node) return [];
+      return Array.from(
+        node.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+    }
+
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const items = focusables();
+      if (items.length === 0) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || active === node)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     document.addEventListener("keydown", onKey);
@@ -49,6 +85,7 @@ export function ExceptionDetailModal({
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
     };
   }, [onClose]);
 
@@ -81,13 +118,15 @@ export function ExceptionDetailModal({
         onClick={onClose}
       />
       <dialog
-        className="relative m-0 flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto rounded-2xl border border-border-subtle bg-surface-container-lowest p-0 shadow-2xl"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative m-0 flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto rounded-2xl border border-border-subtle bg-surface-card p-0 shadow-2xl focus:outline-none"
         open
         aria-modal="true"
         aria-labelledby="judul-modal-pengecualian"
         data-tracking={tracking}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-border-subtle bg-surface-container-lowest p-5">
+        <header className="flex items-start justify-between gap-4 border-b border-border-subtle bg-surface-card p-5">
           <section>
             <p className="m-0 flex items-center gap-2">
               <mark className="rounded-full bg-brand-magenta/10 px-2 py-0.5 text-[11px] font-bold uppercase text-brand-magenta">
@@ -161,7 +200,7 @@ export function ExceptionDetailModal({
               </h3>
               <dl className="m-0 grid grid-cols-3 gap-3 text-center">
                 <dt className="sr-only">Selisih</dt>
-                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-container-lowest p-2.5">
+                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-card p-2.5">
                   <span className="block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
                     Selisih
                   </span>
@@ -170,7 +209,7 @@ export function ExceptionDetailModal({
                   </strong>
                 </dd>
                 <dt className="sr-only">Toleransi Hub</dt>
-                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-container-lowest p-2.5">
+                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-card p-2.5">
                   <span className="block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
                     Toleransi
                   </span>
@@ -179,7 +218,7 @@ export function ExceptionDetailModal({
                   </strong>
                 </dd>
                 <dt className="sr-only">Jarak Aktual</dt>
-                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-container-lowest p-2.5">
+                <dd className="m-0 rounded-lg border border-border-subtle bg-surface-card p-2.5">
                   <span className="block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
                     Jarak Aktual
                   </span>
@@ -245,7 +284,7 @@ export function ExceptionDetailModal({
                 Catatan keputusan (opsional)
               </span>
               <textarea
-                className="mt-2 w-full resize-none rounded-xl border border-border-subtle bg-surface-container-low p-3 text-sm text-on-surface focus:bg-surface-container-lowest focus:outline-none"
+                className="mt-2 w-full resize-none rounded-xl border border-border-subtle bg-surface-container-low p-3 text-sm text-on-surface focus:bg-surface-card focus:outline-none"
                 id="exception-note"
                 placeholder="Alasan persetujuan atau penolakan..."
                 rows={2}
@@ -256,7 +295,7 @@ export function ExceptionDetailModal({
           </section>
         )}
 
-        <footer className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-subtle bg-surface-container-lowest p-5">
+        <footer className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-subtle bg-surface-card p-5">
           <Button
             variant="outline"
             size="md"

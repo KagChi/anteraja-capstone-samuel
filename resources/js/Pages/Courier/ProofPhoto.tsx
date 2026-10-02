@@ -97,7 +97,7 @@ export function ProofPhotoPage() {
           >
             <MaterialIcon name="arrow_back_ios_new" className="text-[20px]" />
           </Button>
-          <h1 className="text-[16px] font-semibold tracking-tight text-white">
+          <h1 className="text-title-md tracking-tight text-white">
             Bukti Foto
           </h1>
           <span className="size-9" aria-hidden="true" />

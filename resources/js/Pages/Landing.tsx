@@ -2,6 +2,7 @@ import { Link, useForm } from "@inertiajs/react";
 import { useRef, useState } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { Button } from "../Components/ui/Button";
+import { TextField } from "../Components/ui/TextField";
 import { useSeo } from "../Hooks/useSeo";
 import type { Role } from "../types";
 
@@ -95,7 +96,7 @@ export function LandingPage() {
           className="grid gap-5 md:grid-cols-2"
           aria-label="Pilih alur peran"
         >
-          <article className="group flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card transition-all hover:shadow-active">
+          <article className="group flex flex-col gap-4 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card transition-all hover:shadow-active">
             <span
               className="grid size-12 place-items-center rounded-xl bg-brand-magenta/10 text-brand-magenta"
               aria-hidden="true"
@@ -143,7 +144,7 @@ export function LandingPage() {
             </p>
           </article>
 
-          <article className="group flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card transition-all hover:shadow-active">
+          <article className="group flex flex-col gap-4 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card transition-all hover:shadow-active">
             <span
               className="grid size-12 place-items-center rounded-xl bg-surface-container text-on-surface"
               aria-hidden="true"
@@ -201,7 +202,7 @@ export function LandingPage() {
           </h2>
           <section className="grid gap-4 md:grid-cols-2">
             <nav
-              className="rounded-xl border border-border-subtle bg-surface-container-lowest p-4"
+              className="rounded-md border border-border-subtle bg-surface-card p-4"
               aria-label="Halaman aplikasi kurir"
             >
               <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-brand-magenta m-0">
@@ -243,7 +244,7 @@ export function LandingPage() {
               </ol>
             </nav>
             <nav
-              className="rounded-xl border border-border-subtle bg-surface-container-lowest p-4"
+              className="rounded-md border border-border-subtle bg-surface-card p-4"
               aria-label="Halaman konsol admin"
             >
               <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant m-0">
@@ -354,16 +355,15 @@ export function LandingPage() {
             </Button>
           </header>
           <section className="space-y-4 p-5">
-            <p className="m-0">
+            <p>
               <label
                 className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
                 htmlFor="login-email"
               >
                 Email
               </label>
-              <input
+              <TextField
                 ref={inputRef}
-                className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
                 id="login-email"
                 name="email"
                 type="email"
@@ -373,15 +373,14 @@ export function LandingPage() {
                 onChange={(event) => form.setData("email", event.target.value)}
               />
             </p>
-            <p className="m-0">
+            <p>
               <label
                 className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
                 htmlFor="login-password"
               >
                 Kata Sandi
               </label>
-              <input
-                className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
+              <TextField
                 id="login-password"
                 name="password"
                 type="password"

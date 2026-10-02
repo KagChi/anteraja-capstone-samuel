@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { Button } from "../Components/ui/Button";
+import { TextField } from "../Components/ui/TextField";
 import { useShipmentContext } from "../Contexts/ShipmentContext";
 import { useToast } from "../Contexts/ToastContext";
 import { useSeo } from "../Hooks/useSeo";
@@ -37,7 +38,7 @@ export function NotFoundPage() {
       >
         404
       </p>
-      <h1 className="text-[20px] font-bold tracking-tight text-on-surface">
+      <h1 className="text-headline-lg tracking-tight text-on-surface">
         Halaman tidak ditemukan
       </h1>
       <p className="max-w-sm text-[13px] leading-relaxed text-on-surface-variant">
@@ -49,20 +50,15 @@ export function NotFoundPage() {
         className="mt-1 flex w-full max-w-sm items-center gap-2"
         onSubmit={track}
       >
-        <label className="relative block flex-1">
-          <span className="sr-only">Cari nomor resi</span>
-          <MaterialIcon
-            name="search"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline"
-          />
-          <input
-            className="h-11 w-full rounded-xl border border-border-subtle bg-surface-container-low pl-9 pr-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/50 focus:border-brand-magenta focus:outline-none focus:ring-0"
-            type="search"
-            placeholder="Lacak nomor resi..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
+        <TextField
+          className="flex-1"
+          label="Cari nomor resi"
+          icon="search"
+          type="search"
+          placeholder="Lacak nomor resi..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
         <Button type="submit" variant="primary" className="h-11 shrink-0">
           Lacak
         </Button>

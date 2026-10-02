@@ -7,11 +7,13 @@ import {
   TrackingTimeline,
 } from "../../Components/shipments/TrackingTimeline";
 import { Button } from "../../Components/ui/Button";
+import { CARD_CLASS } from "../../Components/ui/Card";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { MainLayout } from "../../Layouts/MainLayout";
+import { cn } from "../../lib/cn";
 import type {
   DeliveryFlag,
   DeliveryRow,
@@ -94,7 +96,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
         <MaterialIcon name="arrow_back" className="text-[18px]" /> Semua Resi
       </Link>
 
-      <article className="rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-card">
+      <article className="rounded-md border border-border-subtle bg-surface-card p-5 shadow-card">
         <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
           Nomor Resi
         </p>
@@ -107,10 +109,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
         </p>
       </article>
 
-      <section
-        className="rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-card"
-        aria-labelledby="judul-tujuan"
-      >
+      <section className={cn(CARD_CLASS, "p-5")} aria-labelledby="judul-tujuan">
         <h2
           id="judul-tujuan"
           className="mb-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
@@ -147,7 +146,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
       </section>
 
       <section
-        className="rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-card"
+        className={cn(CARD_CLASS, "p-5")}
         aria-labelledby="judul-perjalanan"
       >
         <h2

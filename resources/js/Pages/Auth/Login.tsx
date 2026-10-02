@@ -1,6 +1,7 @@
 import { Link, useForm } from "@inertiajs/react";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { TextField } from "../../Components/ui/TextField";
 
 export function LoginPage() {
   const form = useForm({ email: "", password: "", remember: true });
@@ -30,20 +31,19 @@ export function LoginPage() {
         </header>
 
         <form
-          className="rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card"
+          className="rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
           onSubmit={submit}
           noValidate
         >
           <section className="space-y-4">
-            <p className="m-0">
+            <p>
               <label
                 className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
                 htmlFor="email"
               >
                 Email
               </label>
-              <input
-                className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
+              <TextField
                 id="email"
                 name="email"
                 type="email"
@@ -59,15 +59,14 @@ export function LoginPage() {
               ) : null}
             </p>
 
-            <p className="m-0">
+            <p>
               <label
                 className="mb-2 block text-label-md uppercase tracking-wider text-on-surface-variant"
                 htmlFor="password"
               >
                 Kata Sandi
               </label>
-              <input
-                className="h-12 w-full rounded-xl border border-border-subtle bg-surface-container-low px-3 text-body-md text-on-surface focus:border-brand-magenta focus:outline-none focus:ring-0"
+              <TextField
                 id="password"
                 name="password"
                 type="password"
@@ -115,7 +114,7 @@ export function LoginPage() {
           </footer>
         </form>
 
-        <section className="mt-4 rounded-xl border border-dashed border-border-subtle p-4 text-[12px] leading-relaxed text-on-surface-variant">
+        <section className="mt-4 rounded-md border border-dashed border-border-subtle p-4 text-[12px] leading-relaxed text-on-surface-variant">
           <p className="m-0 font-semibold text-on-surface">Akun demo</p>
           <p className="m-0">Kurir — budi.pratama@anteraja.example.com</p>
           <p className="m-0">Admin — windy.kusuma@anteraja.example.com</p>

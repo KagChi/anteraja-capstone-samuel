@@ -28,26 +28,30 @@ export function Pagination({
 
   return (
     <nav
-      className={cn("flex items-center justify-end gap-3", className ?? "pt-2")}
+      className={cn("flex items-center justify-end gap-2", className ?? "pt-2")}
       aria-label="Navigasi halaman"
+      aria-busy={isLoading || undefined}
     >
       <Button
-        variant="outline"
+        variant="secondary"
         size="sm"
+        className="h-11 px-4 sm:h-9 sm:px-3"
         disabled={!hasPrev || isLoading}
         onClick={onPrev}
       >
         <MaterialIcon name="chevron_left" className="text-[18px]" /> Sebelumnya
       </Button>
       <span
-        className="text-[13px] font-semibold text-on-surface-variant"
+        className="tabular-nums whitespace-nowrap rounded-full bg-surface-container px-3 py-1.5 text-body-sm font-semibold text-on-surface-variant"
         id="page-indicator"
       >
-        Halaman {page}
+        Halaman{" "}
+        <strong className="font-extrabold text-on-surface">{page}</strong>
       </span>
       <Button
-        variant="outline"
+        variant="secondary"
         size="sm"
+        className="h-11 px-4 sm:h-9 sm:px-3"
         disabled={!hasNext || isLoading}
         onClick={onNext}
       >

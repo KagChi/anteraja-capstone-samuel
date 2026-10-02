@@ -126,7 +126,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         </LoadingButton>
       </nav>
 
-      <article className="mb-6 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card">
+      <article className="mb-6 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card">
         <header className="flex flex-col justify-between gap-4 border-b border-border-subtle pb-5 md:flex-row md:items-center">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="tabular-nums text-xl font-bold tracking-tight text-on-surface">
@@ -203,7 +203,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
 
       <section className="flex flex-col space-y-6" aria-label="Detail audit">
         <article
-          className="space-y-5 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card"
+          className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
           aria-labelledby="sec-geofence"
         >
           <header className="flex items-center justify-between border-b border-border-subtle pb-4">
@@ -258,7 +258,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         </article>
 
         <article
-          className="space-y-5 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card"
+          className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
           aria-labelledby="sec-pod"
         >
           <header className="flex items-center justify-between border-b border-border-subtle pb-4">
@@ -323,7 +323,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         </article>
 
         <article
-          className="space-y-5 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card"
+          className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
           aria-labelledby="sec-kronologi"
         >
           <header className="flex items-center justify-between border-b border-border-subtle pb-4">
@@ -378,7 +378,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         </article>
 
         <article
-          className="space-y-5 rounded-2xl border border-border-subtle bg-surface-container-lowest p-6 shadow-card"
+          className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
           aria-labelledby="sec-putusan"
         >
           <header className="flex items-center justify-between border-b border-border-subtle pb-4">

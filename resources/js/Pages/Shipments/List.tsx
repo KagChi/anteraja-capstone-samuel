@@ -1,11 +1,14 @@
 import { router } from "@inertiajs/react";
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
+import { PageHeader } from "../../Components/layout/PageHeader";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { ShipmentCard } from "../../Components/shipments/ShipmentCard";
 import { Button } from "../../Components/ui/Button";
+import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Pagination } from "../../Components/ui/Pagination";
-import { Spinner } from "../../Components/ui/Spinner";
+import { StatusPanel } from "../../Components/ui/StatusPanel";
+import { TextField } from "../../Components/ui/TextField";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useSeo } from "../../Hooks/useSeo";
@@ -56,80 +59,63 @@ export function ShipmentListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="px-1">
-        <h1 className="text-[26px] font-bold tracking-tight text-on-surface">
-          Lacak Resi
-        </h1>
-        <p className="text-[13px] text-on-surface-variant">
-          <span>{rows.length}</span> resi ditemukan &bull; masukkan nomor resi
-          untuk membuka detail
-        </p>
-      </header>
+      <PageHeader
+        title="Lacak Resi"
+        description={`${rows.length} resi ditemukan • masukkan nomor resi untuk membuka detail`}
+      />
 
       <form className="flex items-center gap-2" onSubmit={track}>
-        <label className="relative block flex-1">
-          <span className="sr-only">Cari nomor resi</span>
-          <MaterialIcon
-            name="search"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline"
-          />
-          <input
-            className="h-11 w-full rounded-xl border border-border-subtle bg-surface-container-low pl-9 pr-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/50 focus:border-brand-magenta focus:outline-none focus:ring-0"
-            id="shipment-search"
-            type="search"
-            placeholder="Cari / lacak nomor resi..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
+        <TextField
+          className="flex-1"
+          label="Cari nomor resi"
+          icon="search"
+          id="shipment-search"
+          type="search"
+          placeholder="Cari / lacak nomor resi..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
         <Button type="submit" variant="primary" className="h-11 shrink-0">
           <MaterialIcon name="my_location" className="text-[18px]" /> Lacak
         </Button>
       </form>
 
-      <div
-        className="flex items-center gap-1 overflow-x-auto rounded-[10px] bg-surface-container-high p-0.5 shadow-inner"
-        role="tablist"
-        aria-label="Filter layanan"
-      >
+      <FilterTabs id="shipment-tabs" label="Filter layanan" fill>
         {FILTERS.map((item) => (
-          <Button
+          <FilterTab
             key={item.id}
-            variant="tab"
             active={service === item.id}
-            className="flex-1 whitespace-nowrap rounded-[8px] px-3 py-1.5 text-[12px]"
+            grow
             onClick={() => setService(item.id)}
           >
             {item.label}
-          </Button>
+          </FilterTab>
         ))}
-      </div>
+      </FilterTabs>
 
       {shipmentsResource.isLoading ? (
-        <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
-          <Spinner /> Memuat resi dari server...
-        </p>
+        <StatusPanel spinning>Memuat resi dari server...</StatusPanel>
       ) : shipmentsResource.isError ? (
-        <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
-          Gagal memuat resi dari server.{" "}
-          <Button
-            variant="text"
-            className="text-[12px]"
-            onClick={shipmentsResource.reload}
-          >
-            Coba lagi
-          </Button>
-        </p>
+        <StatusPanel
+          tone="error"
+          action={
+            <Button
+              variant="text"
+              className="text-[12px]"
+              onClick={shipmentsResource.reload}
+            >
+              Coba lagi
+            </Button>
+          }
+        >
+          Gagal memuat resi dari server.
+        </StatusPanel>
       ) : rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border-subtle bg-surface-card px-4 py-10 text-center text-[13px] text-on-surface-variant">
-          <MaterialIcon
-            name="inbox"
-            className="mb-2 block text-[32px] text-on-surface-variant/40"
-          />
+        <StatusPanel icon="inbox">
           Tidak ada resi yang cocok. Coba kata kunci lain.
-        </p>
+        </StatusPanel>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-3 p-0 md:grid md:grid-cols-2 lg:grid-cols-3">
+        <ul className="m-0 flex list-none flex-col gap-3 p-0 md:grid md:grid-cols-2">
           {rows.map((row) => (
             <li key={row.id}>
               <ShipmentCard shipment={row} />
