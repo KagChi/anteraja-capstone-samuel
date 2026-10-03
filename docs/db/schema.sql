@@ -132,6 +132,7 @@ CREATE TABLE shipments (
                          CHECK (status IN ('pending', 'picked_up', 'in_transit', 'delivered', 'failed')),
   pin_required         boolean NOT NULL DEFAULT false,
   cod_amount           integer NOT NULL DEFAULT 0 CHECK (cod_amount >= 0),
+  weight_kg            numeric(6,2) NOT NULL DEFAULT 1.00 CHECK (weight_kg > 0),
   delivered_at         timestamptz,
   created_at           timestamptz NOT NULL DEFAULT now(),
   updated_at           timestamptz NOT NULL DEFAULT now()

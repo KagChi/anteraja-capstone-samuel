@@ -117,6 +117,7 @@ digraph erd {
       <TR><TD ALIGN="LEFT">service_area_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
       <TR><TD ALIGN="LEFT">origin / destination</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
       <TR><TD ALIGN="LEFT">status / pin_required</TD><TD ALIGN="LEFT"></TD></TR>
+      <TR><TD ALIGN="LEFT">weight_kg</TD><TD ALIGN="LEFT"></TD></TR>
     </TABLE>>];
 
   geofences [label = <
