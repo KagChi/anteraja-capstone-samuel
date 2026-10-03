@@ -129,6 +129,7 @@ Inti pengiriman.
 | `status` | text | `pending` / `picked_up` / `in_transit` / `delivered` / `failed` |
 | `pin_required` | boolean | Ditentukan dari `service_type` |
 | `cod_amount` | integer | Nilai COD (0 bila tanpa COD) |
+| `weight_kg` | numeric(6,2) | Berat paket (kg); nilai demo deterministik dari nomor resi |
 | `delivered_at` | timestamptz | |
 
 #### `geofences`

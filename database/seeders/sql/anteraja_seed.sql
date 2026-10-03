@@ -76,7 +76,8 @@ INSERT INTO couriers (id, code, name, phone, service_area_id) VALUES
 ('33333333-0000-0000-0000-000000000013', 'STR-013', 'Nanang Suryana',  '+6281200000013', '11111111-0000-0000-0000-000000000001'),
 ('33333333-0000-0000-0000-000000000014', 'STR-014', 'Oki Setiana',     '+6281200000014', '11111111-0000-0000-0000-000000000001'),
 ('33333333-0000-0000-0000-000000000015', 'STR-015', 'Pandu Wibowo',    '+6281200000015', '11111111-0000-0000-0000-000000000003'),
-('33333333-0000-0000-0000-000000000016', 'STR-016', 'Qori Ramadhan',   '+6281200000016', '11111111-0000-0000-0000-000000000002');
+('33333333-0000-0000-0000-000000000016', 'STR-016', 'Qori Ramadhan',   '+6281200000016', '11111111-0000-0000-0000-000000000002'),
+('33333333-0000-0000-0000-000000000017', 'STR-017', 'Rizal Fadillah',  '+6281200000017', '11111111-0000-0000-0000-000000000001');
 
 
 -- ----------------------------------------------------------------------------
@@ -106,11 +107,12 @@ INSERT INTO recipients (id, name, phone, email) VALUES
 INSERT INTO shipments
   (id, tracking_number, service_type, courier_id, recipient_id, service_area_id,
    origin, destination, destination_address, status, pin_required, cod_amount,
-   delivered_at, created_at)
+   weight_kg, delivered_at, created_at)
 SELECT v.id::uuid, v.tracking, v.service_type, c.id, r.id, v.area::uuid,
        ST_SetSRID(ST_MakePoint(-6.229000, 106.854000), 4326)::geography,
        ST_SetSRID(ST_MakePoint(v.dest_lng, v.dest_lat), 4326)::geography,
        v.address, v.status, v.pin_required, v.cod_amount,
+       round((0.50 + (abs(('x' || substr(md5(v.tracking), 1, 8))::bit(32)::int) % 2950) / 100.0)::numeric, 2),
        v.delivered_at::timestamptz, v.created_at::timestamptz
 FROM (VALUES
  ('55555555-0000-0000-0000-000000000001','AJ2509000001','instant', '33333333-0000-0000-0000-000000000001','44444444-0000-0000-0000-000000000001','11111111-0000-0000-0000-000000000001',106.827153,-6.175392,'Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan','delivered', true, 0,     '2026-09-22T09:14:00+07','2026-09-22T08:10:00+07'),
@@ -462,7 +464,7 @@ INSERT INTO admin_actions (id, admin_id, action_type, target_type, target_id, re
 INSERT INTO shipments
   (id, tracking_number, service_type, courier_id, recipient_id, service_area_id,
    origin, destination, destination_address, status, pin_required, cod_amount,
-   delivered_at, created_at)
+   weight_kg, delivered_at, created_at)
 SELECT
   ('55555555-0000-0000-0000-' || lpad(v.n::text, 12, '0'))::uuid,
   'AJ2509' || lpad(v.n::text, 6, '0'),
@@ -473,7 +475,7 @@ SELECT
   ST_SetSRID(ST_MakePoint(-6.229000, 106.854000), 4326)::geography,
   ST_SetSRID(ST_MakePoint(v.lng, v.lat), 4326)::geography,
   'Jl. Contoh No. ' || v.n || ', Jakarta',
-  v.status, v.pin_required, v.cod_amount,
+  v.status, v.pin_required, v.cod_amount, v.weight_kg,
   CASE WHEN v.status = 'delivered' THEN v.created_at + interval '1 hour' END,
   v.created_at
 FROM (
@@ -493,6 +495,7 @@ FROM (
     END AS status,
     (n % 3) <> 2 AS pin_required,
     CASE n % 5 WHEN 0 THEN 55000 WHEN 1 THEN 120000 ELSE 0 END AS cod_amount,
+    round((0.50 + (abs(('x' || substr(md5('AJ2509' || lpad(n::text, 6, '0')), 1, 8))::bit(32)::int) % 2950) / 100.0)::numeric, 2) AS weight_kg,
     '2026-09-24T07:00:00+07'::timestamptz + (n || ' minutes')::interval AS created_at
   FROM generate_series(16, 1000) AS n
 ) AS v;

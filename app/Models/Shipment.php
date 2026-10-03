@@ -14,7 +14,7 @@ class Shipment extends Model
     protected $fillable = [
         'tracking_number', 'service_type', 'courier_id', 'recipient_id',
         'service_area_id', 'origin', 'destination', 'destination_address',
-        'status', 'pin_required', 'cod_amount', 'delivered_at',
+        'status', 'pin_required', 'cod_amount', 'weight_kg', 'delivered_at',
     ];
 
     protected function casts(): array
@@ -22,6 +22,7 @@ class Shipment extends Model
         return [
             'pin_required' => 'boolean',
             'cod_amount' => 'integer',
+            'weight_kg' => 'decimal:2',
             'delivered_at' => 'datetime',
         ];
     }
