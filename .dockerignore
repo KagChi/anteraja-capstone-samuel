@@ -5,6 +5,7 @@
 !.env.example
 node_modules
 vendor
+frankenphp
 public/build
 public/storage
 bootstrap/cache/*.php

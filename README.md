@@ -12,6 +12,7 @@ backed by PostgreSQL/PostGIS.
 | Layer      | Choice                                              |
 | ---------- | --------------------------------------------------- |
 | Backend    | Laravel 13 (PHP 8.3+), Eloquent, raw PostGIS SQL    |
+| Runtime    | FrankenPHP 1 (Caddy) + Laravel Octane worker mode   |
 | Frontend   | Inertia.js v2, React 19, TypeScript, Tailwind v4    |
 | Database   | PostgreSQL 16 + PostGIS 3.4 (Supabase-compatible)   |
 | Cache/Queue| `file`/`database` by default, optional Redis        |
@@ -44,6 +45,8 @@ data live in `docs/db/`.
 - Bun (or Node 20+)
 - Docker (for the PostGIS container, and the optional Redis container)
 - Optional: phpredis (`ext-redis` ^6.0) when using the Redis backends
+- Optional: the `frankenphp` binary if you run the Octane worker outside
+  Docker; the image below already bundles it
 
 ## Getting started
 
@@ -76,6 +79,61 @@ php artisan migrate --seed
 bun run dev        # Vite
 php artisan serve  # http://127.0.0.1:8000
 ```
+
+### Run the whole stack in Docker (FrankenPHP)
+
+The image serves the app through FrankenPHP in Laravel Octane worker mode, so
+Laravel boots once per worker instead of once per request:
+
+```bash
+docker compose --profile app up -d --build   # PostGIS + the app on :8080
+docker compose --profile app exec -T app php artisan migrate --seed --force
+```
+
+The `app` service sits behind the `app` profile, so a plain
+`docker compose up -d` still starts only the datastores. Caddy answers for
+`public/build` and the rest of the static files, and only application routes
+reach PHP.
+
+## Serving in production (FrankenPHP + Octane)
+
+The container starts `php artisan octane:frankenphp`, which keeps a booted
+Laravel application per worker. Octane restores the per-request state (auth
+guard, session, config sandbox, Inertia shared props) before every request and
+recycles each worker after `--max-requests` requests:
+
+```bash
+php artisan octane:frankenphp --host=0.0.0.0 --port=8080 \
+  --workers=8 --max-requests=500
+```
+
+Set `--workers` to fit the pod's CPU and memory budget;
+`deploy/kubernetes.yaml` passes it on the `web` container, while the queue
+worker still runs `php artisan queue:work`. `OCTANE_SERVER=frankenphp` is
+only read by the other `octane:*` commands.
+
+## Performance
+
+`php artisan serve` boots the framework for every request; worker mode boots
+it once per worker. Both images were built from this commit and run with 8
+workers against the same PostGIS container, with `ab` driving the load from a
+container on the same Docker network (arm64 Mac, OrbStack, 1,500–3,000 requests
+per run, median of 3 runs):
+
+| Request                                   | `php artisan serve` | FrankenPHP + Octane | Change |
+| ----------------------------------------- | -------------------- | ------------------- | ------ |
+| `GET /up`                                 | 741 req/s            | 7,184 req/s         | 9.7×   |
+| `GET /login` (c=8)                        | 770 req/s            | 2,811 req/s         | 3.7×   |
+| `GET /login` (c=32)                       | 573 req/s            | 2,593 req/s         | 4.5×   |
+| `GET /api/v1/courier/tasks` (auth)         | 852 req/s            | 1,295 req/s         | 1.5×   |
+| `GET /api/v1/shipments?per_page=10` (auth) | 808 req/s            | 1,329 req/s         | 1.6×   |
+
+The DB-backed endpoints gain less because each authenticated request is
+dominated by the Postgres round-trip; the CPU-bound work (framework boot,
+Blade/Inertia rendering, asset URLs) is where worker mode pays off. Tail
+latency improves as well: `GET /login` at concurrency 32 had a p99 of about
+480 ms on `artisan serve` against about 65 ms on FrankenPHP, and the built-in
+server dropped 1–2% of requests under load where Caddy dropped none.
 
 ## Optional: Redis
 
@@ -171,9 +229,10 @@ in `phpunit.xml`.
 php artisan test   # PHPUnit: API + domain
 php artisan test --group redis  # optional Redis integration (skipped without Redis)
 bun run test       # Vitest: UI helpers and fetch layer
-bun run test:e2e   # Playwright (needs the app served on :8123); the courier
-                   # spec mocks the device GPS fix and uses Chromium's fake
-                   # camera to exercise the full POD flow
+bun run test:e2e   # Playwright (needs the app served on :8123, override with
+                   # E2E_BASE_URL=http://localhost:8080 for the container); the
+                   # courier spec mocks the device GPS fix and uses Chromium's
+                   # fake camera to exercise the full POD flow
 bun run lint       # Biome
 bun run typecheck  # tsc
 vendor/bin/pint    # PHP formatting
