@@ -22,7 +22,9 @@ class StoreProofRequest extends FormRequest
             'recipient_name' => ['required', 'string', 'max:120'],
             'relation' => ['nullable', 'string', 'max:60'],
             'device_captured_at' => ['nullable', 'date'],
-            'photo' => ['nullable', 'image', 'max:5120'],
+            // FR-02-01/02: the POD photo is mandatory and must come from the
+            // in-app camera capture (the client offers no gallery path).
+            'photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
     }
 }

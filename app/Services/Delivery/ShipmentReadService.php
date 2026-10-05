@@ -2,10 +2,12 @@
 
 namespace App\Services\Delivery;
 
+use App\Models\DeliveryProof;
 use App\Models\Shipment;
 use App\Support\Cursor;
 use App\Support\CursorPage;
 use App\Support\Presentation\DeliveryPresenter;
+use App\Support\ProofMedia;
 
 /**
  * Owns the cached shipment/task presentation payloads so both the HTTP
@@ -57,7 +59,7 @@ class ShipmentReadService
      */
     public function show(string $id): array
     {
-        return ShipmentCache::remember("show.{$id}", function () use ($id): array {
+        $payload = ShipmentCache::remember("show.{$id}", function () use ($id): array {
             $shipment = Shipment::query()
                 ->withPresentation()
                 ->withDestinationCoordinates()
@@ -68,6 +70,21 @@ class ShipmentReadService
                 'detail' => DeliveryPresenter::detail($shipment),
             ];
         });
+
+        // Signed POD URLs are short-lived and admin-only, so they are attached
+        // per request instead of being cached with the shared payload.
+        $payload['detail']['pod']['photoUrl'] = $this->podPhotoUrl($payload['detail']['pod']['id'] ?? null);
+
+        return $payload;
+    }
+
+    private function podPhotoUrl(?string $proofId): ?string
+    {
+        if (! $proofId) {
+            return null;
+        }
+
+        return ProofMedia::signedUrl(DeliveryProof::query()->find($proofId));
     }
 
     /**

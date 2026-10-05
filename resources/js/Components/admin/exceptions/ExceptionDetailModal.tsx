@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "../../../Contexts/ToastContext";
 import { useAvatar } from "../../../Hooks/useAvatar";
 import { useFetch } from "../../../Hooks/useFetch";
-import { useProofPhoto } from "../../../Hooks/useProofPhoto";
 import { sendJson } from "../../../lib/api";
 import type { ExceptionDetail } from "../../../types";
 import { Avatar } from "../../Avatar";
@@ -35,7 +34,6 @@ export function ExceptionDetailModal({
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<"approved" | "rejected" | null>(null);
   const courierAvatar = useAvatar(courierName);
-  const proofPhoto = useProofPhoto(tracking);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -249,16 +247,12 @@ export function ExceptionDetailModal({
                 Foto Bukti Lokasi (POD)
               </h3>
               <figure className="relative m-0 grid h-36 w-full place-items-center overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
-                {proofPhoto.data &&
-                !proofPhoto.isLoading &&
-                !proofPhoto.isError ? (
+                {exception.podPhotoUrl ? (
                   <img
-                    src={proofPhoto.data}
-                    alt="Foto bukti lokasi (POD)"
+                    src={exception.podPhotoUrl}
+                    alt="Foto bukti lokasi (POD) ber-watermark"
                     className="absolute inset-0 size-full object-cover"
                   />
-                ) : proofPhoto.isLoading ? (
-                  <Spinner className="text-white/60" />
                 ) : (
                   <MaterialIcon
                     name="photo_camera"

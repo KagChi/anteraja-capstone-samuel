@@ -21,7 +21,10 @@ backed by PostgreSQL/PostGIS.
 
 - **Geofence** — server-side `ST_Distance` against the destination point.
 - **PIN** — hashed recipient challenge with attempt limits and lock-out.
-- **POD** — watermarked proof photo with server-side distance and clock check.
+- **POD** — in-app camera photo watermarked server-side (coordinates, address,
+  recipient name, server time) and stored as a private object on the `pod`
+  disk — S3 when `POD_DISK=s3` — reachable only through short-lived signed
+  URLs.
 - **Anomaly scoring** — weighted flags surface shipments needing review.
 - **Exception queue** — couriers can request an out-of-radius exception that
   an admin approves or rejects; decisions are written to the audit trail.
@@ -95,6 +98,16 @@ setup. The `redis`-tagged test suite (`php artisan test --group redis`) skips
 when Redis is unavailable, and the CI pipeline includes a non-blocking Redis
 job that exercises it when present.
 
+## Proof-of-delivery storage (S3)
+
+POD photos are **private** objects on the dedicated `pod` disk. With the
+default `POD_DISK=local` they live under `storage/app/private/pod`; set
+`POD_DISK=s3` plus the `AWS_*` variables to store them in AWS S3 or an
+S3-compatible service (Supabase Storage, MinIO, ...; set `AWS_ENDPOINT` and
+`AWS_USE_PATH_STYLE_ENDPOINT=true` where needed). The admin console never
+reads the raw path: it requests a short-lived **signed URL**, and when the
+disk is S3 that request is answered with the object's presigned URL.
+
 ## Demo accounts
 
 | Role   | Email                              | Password |
@@ -125,6 +138,8 @@ Key routes:
 - `POST /api/v1/admin/shipments/{id}/close-case`
 - `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`
 - `GET  /api/v1/admin/radius-segments`, `PUT /api/v1/admin/radius-segments`
+- `POST /api/v1/admin/proofs/{id}/review` (FR-02-09 invalidate/restore a POD)
+- `GET  /api/v1/admin/proofs/{id}/photo` (signed, admin-only POD object)
 
 All list endpoints — `GET /api/v1/shipments`, `GET /api/v1/admin/exceptions`
 and `GET /api/v1/courier/tasks` — are **cursor-paginated**: pass `?per_page=`
@@ -143,7 +158,9 @@ in `phpunit.xml`.
 php artisan test   # PHPUnit: API + domain
 php artisan test --group redis  # optional Redis integration (skipped without Redis)
 bun run test       # Vitest: UI helpers and fetch layer
-bun run test:e2e   # Playwright (needs the app served on :8123)
+bun run test:e2e   # Playwright (needs the app served on :8123); the courier
+                   # spec mocks the device GPS fix and uses Chromium's fake
+                   # camera to exercise the full POD flow
 bun run lint       # Biome
 bun run typecheck  # tsc
 vendor/bin/pint    # PHP formatting

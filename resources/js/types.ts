@@ -102,6 +102,8 @@ export interface DeliveryProofResult {
   photo_path?: string | null;
   captured_at?: string | null;
   watermark_hash?: string | null;
+  watermark_address?: string | null;
+  review_note?: string | null;
 }
 
 export interface DeliveryCompletionResult {
@@ -203,12 +205,17 @@ export interface GeofenceInfo {
 }
 
 export interface PodInfo {
-  photoSeed: string;
+  id?: string | null;
+  photoUrl?: string | null;
   capturedTime: string;
+  capturedAtIso?: string | null;
   watermark: string;
   recipientName: string;
   relation: string;
   pin: string;
+  reviewStatus?: string | null;
+  reviewNote?: string | null;
+  watermarkHash?: string | null;
 }
 
 export interface ShipmentDetail {
@@ -229,6 +236,7 @@ export interface ExceptionDetail extends ExceptionRow {
   podPoint: string;
   podCapturedAt: string;
   podIso: string;
+  podPhotoUrl?: string | null;
 }
 
 export interface RadiusMeta {

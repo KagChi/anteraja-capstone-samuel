@@ -167,14 +167,25 @@ class DeliveryPresenter
                     : 'Deviasi dinilai wajar untuk area drop-off / parkir lobi.',
             ],
             'pod' => [
-                'photoSeed' => $proof?->photo_path ?? $shipment->tracking_number,
+                'id' => $proof?->id,
+                // Attached per request by ShipmentReadService (short-lived,
+                // admin-only signed URL); never cached here.
+                'photoUrl' => null,
                 'capturedTime' => $proof ? Date::timeLabel($proof->captured_at) : '—',
+                'capturedAtIso' => $proof ? Date::iso($proof->captured_at) : null,
                 'watermark' => $proof
-                    ? trim(($proof->watermark_address ?? '').' • '.Date::dateTimeLabel($proof->captured_at), ' •')
+                    ? trim(implode(' • ', array_filter([
+                        self::proofCoordinates($proof),
+                        $proof->watermark_address,
+                        Date::dateTimeLabel($proof->captured_at),
+                    ])), ' •')
                     : '—',
                 'recipientName' => $proof?->recipient_name ?? $shipment->recipient?->name ?? 'Penerima',
                 'relation' => 'Penerima Langsung',
                 'pin' => $pin && $pin->status === 'verified' ? '••••' : '—',
+                'reviewStatus' => $proof?->review_status,
+                'reviewNote' => $proof?->review_note,
+                'watermarkHash' => $proof?->watermark_hash,
             ],
             'deviationMeters' => $deviation,
             'maxToleranceMeters' => $radius,
@@ -245,6 +256,18 @@ class DeliveryPresenter
         return $shipment->deliveryProofs
             ->sortByDesc(fn ($proof) => $proof->review_status === 'valid')
             ->first();
+    }
+
+    private static function proofCoordinates(DeliveryProof $proof): ?string
+    {
+        $latitude = $proof->point_lat ?? null;
+        $longitude = $proof->point_lng ?? null;
+
+        if ($latitude === null || $longitude === null) {
+            return null;
+        }
+
+        return sprintf('%.6f, %.6f', (float) $latitude, (float) $longitude);
     }
 
     private static function statusLabel(Shipment $shipment, string $flag, int $deviation): string

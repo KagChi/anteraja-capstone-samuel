@@ -11,9 +11,11 @@ import {
 } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
+import { useGeolocation } from "../../Hooks/useGeolocation";
 import { useSeo } from "../../Hooks/useSeo";
 import { sendJson } from "../../lib/api";
 import { clamp } from "../../lib/format";
+import { formatMeters, haversineMeters } from "../../lib/geo";
 import type { DeliveryTask, PinIssue, PinVerifyResult } from "../../types";
 
 const PIN_KEYS = ["d1", "d2", "d3", "d4", "d5", "d6"] as const;
@@ -41,6 +43,23 @@ export function VerificationPage() {
   const tracking = task?.tracking ?? ACTIVE_TRACKING;
   const recipient = task?.recipient ?? "Penerima";
 
+  // Live GPS: the device fix drives the distance readout and is the exact
+  // coordinate pair later submitted with the POD (the server re-verifies it).
+  const geo = useGeolocation(true);
+  const destination = task?.destination;
+  const radius = geofence?.radiusMeters ?? 30;
+  const liveDistance =
+    geo.latitude !== null && geo.longitude !== null && destination
+      ? haversineMeters(
+          geo.latitude,
+          geo.longitude,
+          destination.latitude,
+          destination.longitude,
+        )
+      : null;
+  const gpsReady = geo.status === "ready" && liveDistance !== null;
+  const inside = liveDistance !== null ? liveDistance <= radius : null;
+
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const resetToken = useRef(0);
   const resendTimer = useRef<number | null>(null);
@@ -57,7 +76,18 @@ export function VerificationPage() {
   const [nextBusy, setNextBusy] = useState(false);
 
   const code = digits.join("");
-  const ready = code.length === 6 && verified && !locked && !verifying;
+  const ready =
+    code.length === 6 && verified && !locked && !verifying && gpsReady;
+
+  const gateMessage = !gpsReady
+    ? (geo.error ?? "Menunggu sinyal GPS…")
+    : inside === false
+      ? "Posisi " +
+        formatMeters(liveDistance ?? 0) +
+        " dari tujuan (radius " +
+        radius +
+        " m). Serah terima di luar radius butuh persetujuan Admin."
+      : null;
 
   useEffect(() => {
     return () => {
@@ -306,23 +336,50 @@ export function VerificationPage() {
             Status geofence
           </h2>
           <p className="mb-2 flex items-baseline justify-center font-extrabold leading-none tracking-tight text-on-surface m-0">
-            <span className="text-[52px]">
-              {geofence?.distanceMeters ?? 28}
+            <span className="tabular-nums text-[52px]">
+              {liveDistance ?? "—"}
             </span>
             <span className="ml-1 text-[26px] font-bold text-on-surface-variant">
               m
             </span>
           </p>
           <p
-            className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[13px] font-semibold text-emerald-700 m-0"
+            className={
+              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-semibold m-0 " +
+              (geo.status === "error"
+                ? "bg-red-50 text-red-700"
+                : !gpsReady
+                  ? "bg-amber-50 text-amber-700"
+                  : inside
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700")
+            }
             id="geofence-status"
           >
-            <span
-              className="size-2 rounded-full bg-emerald-500"
-              aria-hidden="true"
-            />
-            Di dalam radius (Aman)
+            {gpsReady ? (
+              <span
+                className={
+                  "size-2 rounded-full " +
+                  (inside ? "bg-emerald-500" : "bg-amber-500")
+                }
+                aria-hidden="true"
+              />
+            ) : (
+              <Spinner />
+            )}
+            {geo.status === "error"
+              ? "GPS tidak aktif"
+              : !gpsReady
+                ? "Mencari sinyal GPS…"
+                : inside
+                  ? "Di dalam radius (Aman)"
+                  : "Di luar radius"}
           </p>
+          {geo.status === "error" ? (
+            <p className="mt-2 m-0 max-w-sm text-[12px] font-medium text-error">
+              {geo.error}
+            </p>
+          ) : null}
         </section>
 
         <section
@@ -338,34 +395,34 @@ export function VerificationPage() {
           <dl className="m-0 grid grid-cols-2 gap-3 text-[12px]">
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-                Jarak kurir
+                Jarak kurir (GPS)
               </dt>
-              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-                {geofence?.distanceMeters ?? 28} m
+              <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
+                {liveDistance !== null ? formatMeters(liveDistance) : "—"}
               </dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
                 Radius
               </dt>
-              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-                {geofence?.radiusMeters ?? 30} m
+              <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
+                {radius} m
               </dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-                Kurir &rarr; Tujuan
+                Akurasi GPS
               </dt>
-              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-                {geofence?.distanceMeters ?? 28} m
+              <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
+                {geo.accuracy !== null ? `± ${geo.accuracy} m` : "—"}
               </dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
                 Tujuan &rarr; Pembeli
               </dt>
-              <dd className="ml-0 mt-0.5 font-semibold text-on-surface">
-                {geofence?.deviationMeters ?? 12} m
+              <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
+                {geofence?.deviationMeters ?? "—"} m
               </dd>
             </div>
           </dl>
@@ -556,11 +613,19 @@ export function VerificationPage() {
           <p
             className="mt-2 text-center text-[11px] text-on-surface-variant/70"
             id="lock-reason"
-            hidden={!locked}
           >
-            Tombol terkunci: posisi di luar radius. Ajukan pengecualian ke
-            Admin.
+            {gateMessage}
           </p>
+          {geo.status === "error" ? (
+            <Button
+              variant="text"
+              className="mx-auto mt-1 text-[12px]"
+              id="btn-retry-gps"
+              onClick={geo.retry}
+            >
+              Coba lagi deteksi GPS
+            </Button>
+          ) : null}
         </section>
       </footer>
     </div>

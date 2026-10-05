@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\V1\Admin\ClaimCaseController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ExceptionController as AdminExceptionController;
+use App\Http\Controllers\Api\V1\Admin\ProofPhotoController;
+use App\Http\Controllers\Api\V1\Admin\ProofReviewController;
 use App\Http\Controllers\Api\V1\Admin\RadiusController;
 use App\Http\Controllers\Api\V1\Courier\DeliveryController;
 use App\Http\Controllers\Api\V1\Courier\ExceptionController as CourierExceptionController;
@@ -44,5 +46,11 @@ Route::prefix('v1')->middleware('web')->group(function () {
         Route::post('exceptions/{id}/decision', [AdminExceptionController::class, 'decide'])->name('exceptions.decide');
         Route::get('radius-segments', [RadiusController::class, 'index'])->name('radius.index');
         Route::put('radius-segments', [RadiusController::class, 'update'])->name('radius.update');
+
+        // POD review (FR-02-09) and signed POD photo access (FR-02-06).
+        Route::post('proofs/{proof}/review', [ProofReviewController::class, 'review'])->name('proofs.review');
+        Route::get('proofs/{proof}/photo', ProofPhotoController::class)
+            ->middleware('signed')
+            ->name('proofs.photo');
     });
 });

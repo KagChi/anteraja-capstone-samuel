@@ -11,7 +11,6 @@ import { useAvatar } from "../Hooks/useAvatar";
 import { PER_PAGE, useCursorPagination } from "../Hooks/useCursorPagination";
 import { useLocationData } from "../Hooks/useLocationData";
 import { usePostalSearch } from "../Hooks/usePostalSearch";
-import { useProofPhoto } from "../Hooks/useProofPhoto";
 import type {
   AsyncResource,
   DeliveryCompletionResult,
@@ -29,7 +28,6 @@ export const DESTINATION_DISTRICT = "Kebayoran Baru";
 
 interface ShipmentContextValue {
   courierAvatar: AsyncResource<string>;
-  proofPhoto: AsyncResource<string>;
   provinces: AsyncResource<Province[]>;
   regencies: AsyncResource<Regency[]>;
   postal: AsyncResource<PostalResult[]>;
@@ -79,10 +77,8 @@ export function ShipmentProvider({
   const needsPostal =
     pathname.startsWith("/courier/verifikasi") ||
     pathname.startsWith("/admin/audit-trail");
-  const needsProofPhoto = pathname.startsWith("/courier/bukti-foto");
 
   const courierAvatar = useAvatar(session?.name);
-  const proofPhoto = useProofPhoto(needsProofPhoto ? ACTIVE_TRACKING : null);
   const { provinces, regencies } = useLocationData(
     needsRegencies ? JAKARTA_PROVINCE_ID : null,
     needsRegencies,
@@ -133,7 +129,6 @@ export function ShipmentProvider({
     <ShipmentContext.Provider
       value={{
         courierAvatar,
-        proofPhoto,
         provinces,
         regencies,
         postal,

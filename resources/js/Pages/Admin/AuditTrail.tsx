@@ -11,7 +11,6 @@ import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useAvatar } from "../../Hooks/useAvatar";
 import { useFetch } from "../../Hooks/useFetch";
-import { useProofPhoto } from "../../Hooks/useProofPhoto";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
 import { sendJson } from "../../lib/api";
@@ -31,12 +30,60 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
   const tracking = shipment?.tracking ?? id;
   const courierName = shipment?.courierName ?? "Ahmad Satria";
   const courierAvatar = useAvatar(courierName);
-  const proofPhoto = useProofPhoto(tracking);
 
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   const [notes, setNotes] = useState("");
   const [notesError, setNotesError] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [podNote, setPodNote] = useState("");
+  const [podBusy, setPodBusy] = useState<"invalid" | "valid" | null>(null);
+
+  const podStatus = audit?.pod.reviewStatus ?? null;
+  const podStatusLabel =
+    podStatus === "valid"
+      ? "POD Valid"
+      : podStatus === "needs_review"
+        ? "Perlu Tinjauan"
+        : podStatus === "invalid"
+          ? "Tidak Valid"
+          : "Belum Ada POD";
+
+  async function reviewPod(decision: "invalid" | "valid") {
+    const proofId = audit?.pod.id;
+
+    if (!proofId) return;
+
+    if (decision === "invalid" && !podNote.trim()) {
+      toast("Alasan wajib diisi saat menandai POD tidak valid.", "error");
+      return;
+    }
+
+    setPodBusy(decision);
+
+    try {
+      await sendJson(
+        "POST",
+        `/api/v1/admin/proofs/${encodeURIComponent(proofId)}/review`,
+        { decision, note: podNote.trim() || null },
+      );
+      setPodNote("");
+      toast(
+        decision === "invalid"
+          ? "POD ditandai tidak valid (FR-02-09)."
+          : "POD dikembalikan menjadi valid.",
+      );
+      detail.reload();
+    } catch (error) {
+      toast(
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan tinjauan POD.",
+        "error",
+      );
+    } finally {
+      setPodBusy(null);
+    }
+  }
 
   async function save() {
     const rejected = decision === "reject";
@@ -275,16 +322,12 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
           </header>
           <section className="flex flex-col items-start gap-5 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4 sm:flex-row sm:items-center">
             <figure className="relative m-0 grid h-28 w-40 shrink-0 place-items-center overflow-hidden rounded-lg border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
-              {proofPhoto.data &&
-              !proofPhoto.isLoading &&
-              !proofPhoto.isError ? (
+              {audit?.pod.photoUrl ? (
                 <img
-                  src={proofPhoto.data}
-                  alt="Foto bukti serah terima"
+                  src={audit.pod.photoUrl}
+                  alt="Foto bukti serah terima ber-watermark"
                   className="absolute inset-0 size-full object-cover"
                 />
-              ) : proofPhoto.isLoading ? (
-                <Spinner className="text-white/60" />
               ) : (
                 <MaterialIcon
                   name="photo_camera"
@@ -320,6 +363,78 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
               </mark>
             </section>
           </section>
+
+          {audit?.pod.id ? (
+            <section
+              className="space-y-3 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4"
+              aria-labelledby="judul-review-pod"
+            >
+              <header className="flex flex-wrap items-center justify-between gap-2">
+                <h3
+                  id="judul-review-pod"
+                  className="m-0 text-[12px] font-bold uppercase tracking-wider text-on-surface-variant"
+                >
+                  Peninjauan POD
+                </h3>
+                <mark
+                  className={
+                    "rounded-full px-2.5 py-0.5 text-[11px] font-bold " +
+                    (podStatus === "invalid"
+                      ? "bg-red-50 text-red-700"
+                      : podStatus === "needs_review"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-emerald-50 text-emerald-700")
+                  }
+                >
+                  {podStatusLabel}
+                </mark>
+              </header>
+              {audit.pod.reviewNote ? (
+                <p className="m-0 text-xs text-on-surface-variant">
+                  Catatan terakhir: {audit.pod.reviewNote}
+                </p>
+              ) : null}
+              <label className="m-0 block">
+                <span className="sr-only">Alasan tinjauan POD</span>
+                <textarea
+                  className="w-full resize-none rounded-xl border border-border-subtle bg-surface-container-lowest p-3 text-sm text-on-surface focus:bg-surface-card focus:outline-none"
+                  id="pod-review-note"
+                  placeholder="Alasan bila menandai POD tidak valid..."
+                  rows={2}
+                  value={podNote}
+                  onChange={(event) => setPodNote(event.target.value)}
+                />
+              </label>
+              <p className="m-0 flex flex-wrap items-center gap-2">
+                <LoadingButton
+                  variant="outline"
+                  size="sm"
+                  className="border-error/30 px-4 text-error"
+                  id="btn-invalidate-pod"
+                  delay={150}
+                  busyText="Menyimpan..."
+                  disabled={podBusy !== null}
+                  onAction={() => reviewPod("invalid")}
+                >
+                  Tandai Tidak Valid
+                </LoadingButton>
+                {podStatus === "invalid" ? (
+                  <LoadingButton
+                    variant="secondary"
+                    size="sm"
+                    className="px-4"
+                    id="btn-restore-pod"
+                    delay={150}
+                    busyText="Memulihkan..."
+                    disabled={podBusy !== null}
+                    onAction={() => reviewPod("valid")}
+                  >
+                    Kembalikan Valid
+                  </LoadingButton>
+                ) : null}
+              </p>
+            </section>
+          ) : null}
         </article>
 
         <article

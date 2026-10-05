@@ -10,6 +10,17 @@ export default defineConfig({
     baseURL,
     headless: true,
     trace: "on-first-retry",
+    // The courier POD flow requires a device position and an in-app camera.
+    // Tests run with a mocked position at the demo destination and Chromium's
+    // fake media device standing in for the phone camera.
+    permissions: ["geolocation"],
+    geolocation: { latitude: -6.175392, longitude: 106.827153 },
+    launchOptions: {
+      args: [
+        "--use-fake-device-for-media-stream",
+        "--use-fake-ui-for-media-stream",
+      ],
+    },
   },
   reporter: [["list"]],
 });

@@ -55,6 +55,33 @@ export async function sendJson<T>(
   return (await response.json()) as T;
 }
 
+/**
+ * Multipart POST/PUT/PATCH (used for the POD photo upload). The browser sets
+ * the multipart boundary, so no Content-Type header is passed here.
+ */
+export async function sendForm<T>(
+  method: "POST" | "PUT" | "PATCH",
+  url: string,
+  form: FormData,
+): Promise<T> {
+  const response = await fetch(url, {
+    method,
+    credentials: "same-origin",
+    headers: jsonHeaders(),
+    body: form,
+  });
+
+  if (!response.ok) {
+    throw new Error(await errorMessage(response));
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+}
+
 async function errorMessage(response: Response): Promise<string> {
   try {
     const payload = (await response.json()) as {

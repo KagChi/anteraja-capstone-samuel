@@ -51,7 +51,9 @@ class DeliveryCompletionService
 
         $shipment->update([
             'status' => 'delivered',
-            'delivered_at' => Date::now(),
+            // Persist the instant as UTC so the audit trail lines up with the
+            // POD captured_at written by ProofService.
+            'delivered_at' => Date::now()->utc(),
         ]);
 
         if ($approvedException) {

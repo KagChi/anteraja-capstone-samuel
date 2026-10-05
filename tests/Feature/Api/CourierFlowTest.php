@@ -7,6 +7,8 @@ use App\Models\User;
 use Database\Seeders\AnterajaSeeder;
 use Database\Seeders\AuthUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CourierFlowTest extends TestCase
@@ -19,6 +21,7 @@ class CourierFlowTest extends TestCase
 
         $this->seed(AnterajaSeeder::class);
         $this->seed(AuthUserSeeder::class);
+        Storage::fake('pod');
     }
 
     private function courier(): User
@@ -63,11 +66,13 @@ class CourierFlowTest extends TestCase
 
         $task = $this->getJson("/api/v1/courier/tasks/{$tracking}")->json('data');
 
-        $this->postJson("/api/v1/courier/tasks/{$tracking}/proof", [
+        $this->post("/api/v1/courier/tasks/{$tracking}/proof", [
             'latitude' => $task['destination']['latitude'],
             'longitude' => $task['destination']['longitude'],
             'recipient_name' => $task['recipient'],
             'relation' => 'langsung',
+            'device_captured_at' => now()->toIso8601String(),
+            'photo' => UploadedFile::fake()->image('pod.jpg', 480, 640),
         ])->assertCreated();
 
         $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", [

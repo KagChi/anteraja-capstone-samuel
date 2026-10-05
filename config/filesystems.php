@@ -60,6 +60,41 @@ return [
             'report' => false,
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Proof-of-delivery storage (FRD-02)
+        |--------------------------------------------------------------------------
+        |
+        | POD photos are private objects. Set POD_DISK=s3 to store them in the
+        | AWS / S3-compatible bucket configured below (AWS_*); the fallback
+        | keeps them under storage/app/private/pod so the app runs without
+        | cloud credentials. Access always goes through short-lived signed
+        | URLs, never a public disk.
+        |
+        */
+
+        'pod' => env('POD_DISK', 'local') === 's3'
+            ? [
+                'driver' => 's3',
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                'region' => env('AWS_DEFAULT_REGION'),
+                'bucket' => env('AWS_BUCKET'),
+                'url' => env('AWS_URL'),
+                'endpoint' => env('AWS_ENDPOINT'),
+                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+                'visibility' => 'private',
+                'throw' => true,
+                'report' => false,
+            ]
+            : [
+                'driver' => 'local',
+                'root' => storage_path('app/private/pod'),
+                'visibility' => 'private',
+                'throw' => true,
+                'report' => false,
+            ],
+
     ],
 
     /*

@@ -59,7 +59,14 @@ class Shipment extends Model
 
     public function deliveryProofs()
     {
-        return $this->hasMany(DeliveryProof::class);
+        [$lat, $lng] = Point::latLngExpression('point');
+
+        // Project the proof coordinates and keep the newest attempt first, so
+        // presenters can show the geotag without re-parsing EWKB.
+        return $this->hasMany(DeliveryProof::class)
+            ->select('delivery_proofs.*')
+            ->addSelect(DB::raw($lat.' as point_lat'), DB::raw($lng.' as point_lng'))
+            ->orderByDesc('captured_at');
     }
 
     public function pinChallenge()

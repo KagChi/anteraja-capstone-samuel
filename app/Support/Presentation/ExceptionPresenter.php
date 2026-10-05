@@ -5,6 +5,7 @@ namespace App\Support\Presentation;
 use App\Models\DeliveryException;
 use App\Support\Date;
 use App\Support\Geo\Point;
+use App\Support\ProofMedia;
 
 /**
  * Maps delivery exceptions onto `ExceptionRow` / `ExceptionDetail`.
@@ -47,6 +48,7 @@ class ExceptionPresenter
                 : '—',
             'podCapturedAt' => Date::dateTimeLabel($proof?->captured_at),
             'podIso' => Date::iso($proof?->captured_at),
+            'podPhotoUrl' => ProofMedia::signedUrl($proof),
         ];
     }
 }
