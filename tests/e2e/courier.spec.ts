@@ -57,6 +57,12 @@ test("courier completes a GPS-stamped in-app camera POD delivery", async ({
     { timeout: 20_000 },
   );
 
+  // The radius map renders so the courier can confirm the drop-off location.
+  await expect(page.locator("#geofence-map")).toBeVisible();
+  await expect(page.locator("#geofence-map").locator("path")).not.toHaveCount(
+    0,
+  );
+
   const pinHint = page.locator("#pin-hint");
   await expect(pinHint).toContainText(/\d{6}/, { timeout: 20_000 });
   const code = (await pinHint.innerText()).match(/\d{6}/)?.[0];

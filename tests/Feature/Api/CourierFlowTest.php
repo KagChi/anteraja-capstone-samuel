@@ -57,7 +57,7 @@ class CourierFlowTest extends TestCase
 
         $this->assertNotNull($maxy, 'The Maxy AI Hub shipment should be seeded for the demo courier.');
         $this->assertSame(
-            'Maxy AI Hub, Jl. Prof. Dr. Satrio No. 18, Kuningan, Jakarta Selatan',
+            'Grha Pengharapan 2nd Fl, Jl. Denpasar Raya No.2 Blok F3, RT.16/RW.4, Kuningan, East Kuningan, Setiabudi, South Jakarta City, Jakarta 12950',
             $maxy['address'],
         );
     }

@@ -1,6 +1,7 @@
 import { router } from "@inertiajs/react";
 import type { ClipboardEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { GeofenceMap } from "../../Components/courier/GeofenceMap";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
@@ -426,6 +427,44 @@ export function VerificationPage() {
               </dd>
             </div>
           </dl>
+          <figure
+            className="relative m-0 mt-4 h-48 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
+            id="geofence-map"
+          >
+            {destination ? (
+              <GeofenceMap
+                target={[destination.latitude, destination.longitude]}
+                courier={
+                  geo.latitude !== null && geo.longitude !== null
+                    ? [geo.latitude, geo.longitude]
+                    : null
+                }
+                radiusMeters={radius}
+                distanceMeters={liveDistance}
+              />
+            ) : null}
+            <figcaption className="pointer-events-none absolute inset-x-2 bottom-2 z-[800] flex items-center justify-between gap-2 text-[10px] font-semibold">
+              <span className="rounded bg-black/70 px-2 py-0.5 text-white">
+                Radius {radius} m
+              </span>
+              <span
+                className={
+                  "rounded px-2 py-0.5 text-white " +
+                  (inside === false
+                    ? "bg-red-600/80"
+                    : inside
+                      ? "bg-emerald-600/80"
+                      : "bg-black/70")
+                }
+              >
+                {inside === null
+                  ? "Menunggu GPS"
+                  : inside
+                    ? "Di dalam radius"
+                    : "Di luar radius"}
+              </span>
+            </figcaption>
+          </figure>
           <p className="m-0 mt-3 flex flex-wrap items-center gap-1.5 border-t border-border-subtle pt-3 text-[12px] text-on-surface-variant">
             <MaterialIcon
               name="markunread_mailbox"
