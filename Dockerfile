@@ -52,4 +52,6 @@ ENV PHP_CLI_SERVER_WORKERS=8
 
 EXPOSE 8080
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+# --no-reload lets PHP_CLI_SERVER_WORKERS fork multiple workers (the reload
+# watcher otherwise forces a single-process server).
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080", "--no-reload"]

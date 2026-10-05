@@ -30,6 +30,7 @@ spec:
       containers:
         - name: web
           image: ghcr.io/kagchi/anteraja-capstone-samuel:main-1791167568265
+          command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080", "--no-reload"]
           ports:
             - containerPort: 8080
               name: http
@@ -40,14 +41,17 @@ spec:
             httpGet:
               path: /up
               port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
           livenessProbe:
             httpGet:
               path: /up
               port: http
-            initialDelaySeconds: 20
-            periodSeconds: 20
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
           resources:
             requests:
               cpu: 50m
