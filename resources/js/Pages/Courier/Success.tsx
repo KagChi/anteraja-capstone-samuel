@@ -5,10 +5,7 @@ import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { useSession } from "../../Contexts/SessionContext";
-import {
-  ACTIVE_TRACKING,
-  useShipmentContext,
-} from "../../Contexts/ShipmentContext";
+import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { formatStamp, randomDigits } from "../../lib/format";
@@ -17,17 +14,21 @@ import type { DeliveryTask } from "../../types";
 export function SuccessPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
-  const { courierAvatar, proof } = useShipmentContext();
+  const {
+    courierAvatar,
+    proof,
+    tracking: activeTracking,
+  } = useShipmentContext();
   const name = session?.name ?? "Satria";
 
   const [fallbackHash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
   const [stamp] = useState(() => new Date());
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${activeTracking}`,
   );
   const task = taskResource.data?.data;
-  const tracking = task?.tracking ?? ACTIVE_TRACKING;
+  const tracking = task?.tracking ?? activeTracking;
   const auditHash = proof?.watermark_hash ?? fallbackHash;
 
   return (

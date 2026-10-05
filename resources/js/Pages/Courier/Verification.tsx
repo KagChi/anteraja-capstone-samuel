@@ -6,10 +6,7 @@ import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Spinner } from "../../Components/ui/Spinner";
-import {
-  ACTIVE_TRACKING,
-  useShipmentContext,
-} from "../../Contexts/ShipmentContext";
+import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useGeolocation } from "../../Hooks/useGeolocation";
@@ -33,15 +30,20 @@ const RELATIONS = [
 export function VerificationPage() {
   useSeo("/courier/verifikasi");
   const toast = useToast();
-  const { postal, relation, setRelation, setPinVerified } =
-    useShipmentContext();
+  const {
+    postal,
+    relation,
+    setRelation,
+    setPinVerified,
+    tracking: activeTracking,
+  } = useShipmentContext();
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${activeTracking}`,
   );
   const task = taskResource.data?.data;
   const geofence = task?.geofence;
-  const tracking = task?.tracking ?? ACTIVE_TRACKING;
+  const tracking = task?.tracking ?? activeTracking;
   const recipient = task?.recipient ?? "Penerima";
 
   // Live GPS: the device fix drives the distance readout and is the exact
@@ -247,7 +249,10 @@ export function VerificationPage() {
     }
     if (nextBusy) return;
     setNextBusy(true);
-    window.setTimeout(() => router.visit("/courier/bukti-foto"), 900);
+    window.setTimeout(
+      () => router.visit(`/courier/bukti-foto?tracking=${tracking}`),
+      900,
+    );
   }
 
   function resendPin() {
@@ -633,7 +638,7 @@ export function VerificationPage() {
         <section className="mx-auto max-w-md px-4 py-3">
           <Button
             as="link"
-            to="/courier/bukti-foto"
+            to={`/courier/bukti-foto?tracking=${tracking}`}
             variant="primary"
             size="xl"
             id="btn-next-step"

@@ -22,11 +22,24 @@ import type {
 } from "../types";
 import { useSession } from "./SessionContext";
 
-export const ACTIVE_TRACKING = "AJ2509001001";
+/** Fallback shipment when the URL carries no ?tracking= parameter. */
+export const DEFAULT_TRACKING = "AJ2509001001";
 export const JAKARTA_PROVINCE_ID = "31";
 export const DESTINATION_DISTRICT = "Kuningan Jakarta Selatan";
 
+function trackingFromUrl(): string {
+  if (typeof window === "undefined") {
+    return DEFAULT_TRACKING;
+  }
+
+  return (
+    new URLSearchParams(window.location.search).get("tracking")?.trim() ||
+    DEFAULT_TRACKING
+  );
+}
+
 interface ShipmentContextValue {
+  tracking: string;
   courierAvatar: AsyncResource<string>;
   provinces: AsyncResource<Province[]>;
   regencies: AsyncResource<Regency[]>;
@@ -66,10 +79,14 @@ export function ShipmentProvider({
   const { session } = useSession();
   const [postalQuery, setPostalQuery] = useState(DESTINATION_DISTRICT);
   const [pathname, setPathname] = useState(initialPathname);
+  const [tracking, setTracking] = useState(trackingFromUrl);
 
   useEffect(() => {
     return router.on("navigate", (event) => {
-      setPathname(event.detail.page.url.split("?")[0]);
+      const url = new URL(event.detail.page.url, window.location.origin);
+
+      setPathname(url.pathname);
+      setTracking(url.searchParams.get("tracking")?.trim() || DEFAULT_TRACKING);
     });
   }, []);
 
@@ -128,6 +145,7 @@ export function ShipmentProvider({
   return (
     <ShipmentContext.Provider
       value={{
+        tracking,
         courierAvatar,
         provinces,
         regencies,

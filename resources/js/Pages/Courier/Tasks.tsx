@@ -219,7 +219,7 @@ export function TasksPage() {
                   <h2 className="truncate text-[16px] font-semibold leading-snug text-on-surface">
                     <Link
                       className="hover:underline"
-                      href="/courier/verifikasi"
+                      href={`/courier/verifikasi?tracking=${task.tracking}`}
                     >
                       {task.recipient}
                     </Link>
@@ -234,7 +234,7 @@ export function TasksPage() {
                     {task.cta ? (
                       <Button
                         as="link"
-                        to="/courier/verifikasi"
+                        to={`/courier/verifikasi?tracking=${task.tracking}`}
                         variant="text"
                         className="text-[13px]"
                       >

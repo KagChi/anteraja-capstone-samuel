@@ -8,7 +8,11 @@ test("courier lands on tasks and opens the verification step", async ({
 
   await expect(page.getByRole("heading", { name: "Pengiriman" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Mulai Antar" }).first().click();
+  // Open the Maxy AI Hub task explicitly; its tracking drives the flow.
+  await page
+    .locator('article[data-tracking="AJ2509001001"]')
+    .getByRole("link", { name: /Mulai Antar/ })
+    .click();
 
   await expect(page).toHaveURL(/\/courier\/verifikasi/);
   await expect(

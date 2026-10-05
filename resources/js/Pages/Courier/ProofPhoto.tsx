@@ -4,10 +4,7 @@ import { LoadingButton } from "../../Components/LoadingAction";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { Spinner } from "../../Components/ui/Spinner";
-import {
-  ACTIVE_TRACKING,
-  useShipmentContext,
-} from "../../Contexts/ShipmentContext";
+import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useGeolocation } from "../../Hooks/useGeolocation";
@@ -37,7 +34,12 @@ interface Capture {
 export function ProofPhotoPage() {
   useSeo("/courier/bukti-foto");
   const toast = useToast();
-  const { relation, setProof, setCompletion } = useShipmentContext();
+  const {
+    relation,
+    setProof,
+    setCompletion,
+    tracking: activeTracking,
+  } = useShipmentContext();
   const geo = useGeolocation(true);
 
   const [clock, setClock] = useState(() => formatClock());
@@ -49,9 +51,10 @@ export function ProofPhotoPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${ACTIVE_TRACKING}`,
+    `/api/v1/courier/tasks/${activeTracking}`,
   );
   const task = taskResource.data?.data;
+  const tracking = task?.tracking ?? activeTracking;
   const recipient = task?.recipient ?? "Penerima";
   const destination = task?.destination;
 
@@ -243,7 +246,7 @@ export function ProofPhotoPage() {
       );
       setCompletion(completion.data);
 
-      router.visit("/courier/sukses");
+      router.visit(`/courier/sukses?tracking=${tracking}`);
     } catch (error) {
       toast(
         error instanceof Error
@@ -260,7 +263,7 @@ export function ProofPhotoPage() {
         <div className="mx-auto flex h-12 max-w-md items-center justify-between">
           <Button
             as="link"
-            to="/courier/verifikasi"
+            to={`/courier/verifikasi?tracking=${tracking}`}
             variant="iconInverse"
             size="lg"
             shape="pill"
