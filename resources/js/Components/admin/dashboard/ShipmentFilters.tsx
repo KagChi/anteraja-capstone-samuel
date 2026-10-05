@@ -11,9 +11,9 @@ import {
 
 export type StatusFilter = "all" | DeliveryFlag;
 
-const TABS: { id: StatusFilter; label: string; dot?: boolean }[] = [
+const TABS: { id: StatusFilter; label: string }[] = [
   { id: "all", label: "Semua" },
-  { id: "review", label: "Perlu Tinjauan", dot: true },
+  { id: "review", label: "Perlu Tinjauan" },
   { id: "delivered", label: "Terkirim" },
   { id: "exception", label: "Pengecualian" },
 ];
@@ -54,12 +54,6 @@ export function ShipmentFilters({
             onClick={() => onStatusChange(tab.id)}
           >
             <span>{tab.label}</span>
-            {tab.dot ? (
-              <span
-                className="size-1.5 rounded-full bg-brand-magenta"
-                aria-hidden="true"
-              />
-            ) : null}
           </FilterTab>
         ))}
       </FilterTabs>

@@ -18,7 +18,7 @@ import type { DeliveryRow } from "../../types";
 export function DashboardPage() {
   useSeo("/admin/dashboard");
 
-  const [status, setStatus] = useState<StatusFilter>("review");
+  const [status, setStatus] = useState<StatusFilter>("all");
   const [service, setService] = useState("");
   const [region, setRegion] = useState("");
   const [search, setSearch] = useState("");
