@@ -43,6 +43,8 @@ services:
     depends_on:
       postgis:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -53,6 +55,17 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_SSLMODE: prefer
+      # Sessions and the read caches go to the Redis service: the file drivers
+      # serialise on one hot session file, which shows up as a ~25 ms p99 under
+      # concurrent load even though it costs nothing at rest.
+      SESSION_DRIVER: redis
+      CACHE_STORE: redis
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      REDIS_CACHE_DB: "1"
+      REDIS_CACHE_CONNECTION: cache
     ports:
       - "8080:8080"
 

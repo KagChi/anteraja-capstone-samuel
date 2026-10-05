@@ -93,7 +93,9 @@ docker compose --profile app exec -T app php artisan migrate --seed --force
 The `app` service sits behind the `app` profile, so a plain
 `docker compose up -d` still starts only the datastores. Caddy answers for
 `public/build` and the rest of the static files, and only application routes
-reach PHP.
+reach PHP. The service keeps sessions and the read caches on the Redis service
+(see "Optional: Redis" below); the file drivers serialise on one hot session
+file under concurrent load.
 
 Every build stage stays on a Debian/glibc base (`oven/bun:1-debian`,
 `php:8.4-cli-bookworm`, `dunglas/frankenphp:1-php8.4-bookworm`). Bun, PHP and
@@ -118,26 +120,46 @@ only read by the other `octane:*` commands.
 
 ## Performance
 
-`php artisan serve` boots the framework for every request; worker mode boots
-it once per worker. Both images were built from this commit and run with 8
-workers against the same PostGIS container, with `ab` driving the load from a
-container on the same Docker network (arm64 Mac, OrbStack, 1,500–3,000 requests
-per run, median of 3 runs):
+`php artisan serve` boots the framework on every request; Octane boots it once
+per worker. Worker mode only removes that boot, so it gains most where a request
+is CPU-bound and least where the request waits on I/O. Measured on one machine
+(arm64 Mac, OrbStack, 10 cores, 8 workers, `ab` sharing the app's network
+namespace, 1,500–3,000 requests per run). Treat the figures as directional: it
+is a shared laptop and repeat runs move by 20–30%.
 
-| Request                                   | `php artisan serve` | FrankenPHP + Octane | Change |
-| ----------------------------------------- | -------------------- | ------------------- | ------ |
-| `GET /up`                                 | 741 req/s            | 7,184 req/s         | 9.7×   |
-| `GET /login` (c=8)                        | 770 req/s            | 2,811 req/s         | 3.7×   |
-| `GET /login` (c=32)                       | 573 req/s            | 2,593 req/s         | 4.5×   |
-| `GET /api/v1/courier/tasks` (auth)         | 852 req/s            | 1,295 req/s         | 1.5×   |
-| `GET /api/v1/shipments?per_page=10` (auth) | 808 req/s            | 1,329 req/s         | 1.6×   |
+| Request | `php artisan serve` | FrankenPHP + Octane | Change |
+| ------- | -------------------- | ------------------- | ------ |
+| `GET /up` | ~740 req/s | 6,200–7,500 req/s | ~9× |
+| `GET /login` | ~710 req/s | 3,000–3,600 req/s | ~4.5× |
+| `GET /api/v1/courier/tasks?per_page=10` | ~700 req/s | 1,500–1,900 req/s | ~2.4× |
+| `GET /api/v1/shipments?per_page=10` | ~460 req/s | 1,500–1,800 req/s | ~3.4× |
 
-The DB-backed endpoints gain less because each authenticated request is
-dominated by the Postgres round-trip; the CPU-bound work (framework boot,
-Blade/Inertia rendering, asset URLs) is where worker mode pays off. Tail
-latency improves as well: `GET /login` at concurrency 32 had a p99 of about
-480 ms on `artisan serve` against about 65 ms on FrankenPHP, and the built-in
-server dropped 1–2% of requests under load where Caddy dropped none.
+An authenticated JSON request also reads and writes its session, reads the
+presentation caches and runs two or three queries, and none of that is boot
+cost. The instrumented worker answers `/up` in 0.27 ms, `/login` in 1.6 ms, a
+cached task list in 2.5 ms (the user row and the courier row), and an uncached
+list page in 4–5 ms. Worker mode cannot remove those round trips, which is why
+the JSON endpoints gain proportionally less than the rendered pages.
+
+Two changes beyond swapping the runtime:
+
+- **Sessions and cache on Redis.** With the `file` drivers every request reads
+  and writes a session file; with one hot session that serialises, showing up as
+  a p99 near 25 ms and a ceiling around 1.6–1.9k req/s. Pointing the stores at
+  Redis removed the tail (p99 3–12 ms) and lifted the JSON endpoints by roughly
+  20–25% (`/login` 3.0–3.6k → 4.1–4.3k req/s). The Compose `app` service now
+  does this, and the cluster already runs Dragonfly.
+- **Warm the cache with the page size the UI reads.** The tables ask for
+  `per_page=10` while `app:warm-cache` primed 100/200, so those keys were
+  never read and the first page load after a deploy paid the full list query. It
+  now warms both sizes.
+
+Raising `--workers` past 8 did not help (8/16/32/64 all landed near 2k req/s),
+so the ceiling is per-request I/O rather than concurrency. The database is not
+the limit either: a single connection runs about 15k primary-key lookups per
+second and the list query is ~1.5 ms warm. It is still worth keeping the query
+count low, because against a remote Postgres every query is a network round
+trip.
 
 ## Optional: Redis
 

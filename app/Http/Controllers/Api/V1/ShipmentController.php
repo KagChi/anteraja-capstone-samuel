@@ -22,14 +22,15 @@ class ShipmentController extends Controller
     public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
         $perPage = $this->perPage($request);
-        $courier = Auth::getCurrentCourier();
 
         $page = $shipments->page($perPage, $request->query('cursor'), [
             'search' => $request->query('search'),
             'status' => $request->query('status'),
             'service' => $request->query('service'),
             'region' => $request->query('region'),
-            'courier_id' => $courier['id'] ?? null,
+            // Only the id is needed to scope a courier's reads (FR-05-10), and
+            // the users row already carries it.
+            'courier_id' => Auth::courierId(),
         ]);
 
         return $this->ok($page['rows'], 200, [
