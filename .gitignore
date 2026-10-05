@@ -46,3 +46,6 @@ Homestead.yaml
 /test-results
 /playwright-report
 /playwright/.cache
+
+# Deployment secrets: created in the cluster, never committed.
+deploy/secrets.env

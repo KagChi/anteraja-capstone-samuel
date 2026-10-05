@@ -1,0 +1,138 @@
+# Anteraja Instant - prod deployment for the innovare-cloud cluster.
+#
+# Apply with:
+#   kubectl --context innovare-cloud -n prod-other apply -f deploy/kubernetes.yaml
+#
+# The anteraja-secrets Secret is created out of band (never committed) with the
+# app env keys: APP_*, DB_* (Supabase Postgres), REDIS_* (the dragonfly
+# Service) and POD_DISK/AWS_* (Supabase Storage S3). Migrations run with:
+#   kubectl --context innovare-cloud -n prod-other exec deploy/anteraja-web -c web -- php artisan migrate --force
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anteraja-web
+  namespace: prod-other
+  labels:
+    app: anteraja-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anteraja-web
+  template:
+    metadata:
+      labels:
+        app: anteraja-web
+    spec:
+      imagePullSecrets:
+        - name: image-pull-secrets
+      containers:
+        - name: web
+          image: ghcr.io/kagchi/anteraja-capstone-samuel:main-1791167568265
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - secretRef:
+                name: anteraja-secrets
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+        - name: worker
+          image: ghcr.io/kagchi/anteraja-capstone-samuel:main-1791167568265
+          command: ["php", "artisan", "queue:work", "--tries=1", "--sleep=2", "--timeout=60"]
+          envFrom:
+            - secretRef:
+                name: anteraja-secrets
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: anteraja-service
+  namespace: prod-other
+  labels:
+    app: anteraja-web
+spec:
+  selector:
+    app: anteraja-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anteraja-ingress
+  namespace: prod-other
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 64m
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: capstone.kagchi.my.id
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: anteraja-service
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - capstone.kagchi.my.id
+      secretName: anteraja-tls
+
+---
+# Redis-compatible cache/queue backend (cluster convention: Dragonfly operator).
+# Exposes Service "dragonfly" on 6379 inside prod-other.
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+  namespace: prod-other
+  labels:
+    app.kubernetes.io/name: dragonfly
+spec:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  snapshot:
+    cron: "*/30 * * * *"
+    persistentVolumeClaimSpec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+      storageClassName: longhorn
