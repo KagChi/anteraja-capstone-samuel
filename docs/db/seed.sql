@@ -98,7 +98,8 @@ INSERT INTO recipients (id, name, phone, email) VALUES
 ('44444444-0000-0000-0000-000000000012', 'Nadia Utami',     '+6281300000012', 'nadia.utami@example.com'),
 ('44444444-0000-0000-0000-000000000013', 'Bayu Prabowo',    '+6281300000013', 'bayu.prabowo@example.com'),
 ('44444444-0000-0000-0000-000000000014', 'Citra Kirana',    '+6281300000014', 'citra.kirana@example.com'),
-('44444444-0000-0000-0000-000000000015', 'Dimas Anggara',   '+6281300000015', 'dimas.anggara@example.com');
+('44444444-0000-0000-0000-000000000015', 'Dimas Anggara',   '+6281300000015', 'dimas.anggara@example.com'),
+('44444444-0000-0000-0000-000000000016', 'Maxy AI Hub',     '+6281300000016', 'hub@maxy.example.com');
 
 
 -- ----------------------------------------------------------------------------
@@ -129,7 +130,8 @@ FROM (VALUES
  ('55555555-0000-0000-0000-000000000012','AJ2509000012','same_day','33333333-0000-0000-0000-000000000012','44444444-0000-0000-0000-000000000012','11111111-0000-0000-0000-000000000002',106.832000,-6.195000,'Jl. Tebet Timur Dalam No. 15, Tebet, Jakarta Selatan','in_transit', true, 0,  NULL,                   '2026-09-23T09:40:00+07'),
  ('55555555-0000-0000-0000-000000000013','AJ2509000013','regular', '33333333-0000-0000-0000-000000000013','44444444-0000-0000-0000-000000000013','11111111-0000-0000-0000-000000000001',106.813000,-6.260000,'Jl. Margaguna No. 3, Gandaria Utara, Jakarta Selatan','failed',    false,88000, NULL,                   '2026-09-23T10:10:00+07'),
  ('55555555-0000-0000-0000-000000000014','AJ2509000014','instant', '33333333-0000-0000-0000-000000000014','44444444-0000-0000-0000-000000000014','11111111-0000-0000-0000-000000000001',106.821247,-6.208763,'Jl. Panglima Polim IX No. 45, Melawai, Jakarta Selatan','delivered', true, 0,    '2026-09-23T12:00:00+07','2026-09-23T11:00:00+07'),
- ('55555555-0000-0000-0000-000000000015','AJ2509000015','same_day','33333333-0000-0000-0000-000000000015','44444444-0000-0000-0000-000000000015','11111111-0000-0000-0000-000000000003',106.799000,-6.225000,'Jl. Panjang Arteri No. 99, Kebon Jeruk, Jakarta Barat','delivered', true, 0,     '2026-09-23T13:20:00+07','2026-09-23T12:20:00+07')
+ ('55555555-0000-0000-0000-000000000015','AJ2509000015','same_day','33333333-0000-0000-0000-000000000015','44444444-0000-0000-0000-000000000015','11111111-0000-0000-0000-000000000003',106.799000,-6.225000,'Jl. Panjang Arteri No. 99, Kebon Jeruk, Jakarta Barat','delivered', true, 0,     '2026-09-23T13:20:00+07','2026-09-23T12:20:00+07'),
+ ('55555555-0000-0000-0000-000000001001','AJ2509001001','instant', '33333333-0000-0000-0000-000000000001','44444444-0000-0000-0000-000000000016','11111111-0000-0000-0000-000000000001',106.824800,-6.223600,'Maxy AI Hub, Jl. Prof. Dr. Satrio No. 18, Kuningan, Jakarta Selatan','pending',  true, 0,     NULL,                   '2026-09-23T08:00:00+07')
 ) AS v(id, tracking, service_type, courier_id, recipient_id, area, dest_lng, dest_lat, address, status, pin_required, cod_amount, delivered_at, created_at)
 JOIN couriers   c ON c.id = v.courier_id::uuid
 JOIN recipients r ON r.id = v.recipient_id::uuid;
@@ -156,7 +158,8 @@ FROM (VALUES
  ('77777777-0000-0000-0000-000000000012','AJ2509000012',106.832000,-6.195000, 50,'destination'),
  ('77777777-0000-0000-0000-000000000013','AJ2509000013',106.813000,-6.260000,100,'destination'),
  ('77777777-0000-0000-0000-000000000014','AJ2509000014',106.821247,-6.208763, 30,'destination'),
- ('77777777-0000-0000-0000-000000000015','AJ2509000015',106.799000,-6.225000, 50,'destination')
+ ('77777777-0000-0000-0000-000000000015','AJ2509000015',106.799000,-6.225000, 50,'destination'),
+ ('77777777-0000-0000-0000-000000001001','AJ2509001001',106.824800,-6.223600, 30,'destination')
 ) AS g(id, tracking, lng, lat, radius, source)
 JOIN shipments s ON s.tracking_number = g.tracking;
 
@@ -306,7 +309,7 @@ INSERT INTO pin_challenges
   (id, shipment_id, recipient_id, code_hash, attempts, max_attempts, resend_count,
    status, expires_at, verified_at, locked_at, override_by, override_reason, override_at, created_at)
 SELECT c.id::uuid, s.id, s.recipient_id,
-       encode(digest('pin:' || s.tracking_number, 'sha256'), 'hex'),
+       encode(digest('pin:123456', 'sha256'), 'hex'),
        c.attempts, 3, c.resend_count, c.status,
        c.created_at::timestamptz + interval '15 minutes',
        c.verified_at::timestamptz, c.locked_at::timestamptz,
@@ -324,7 +327,8 @@ FROM (VALUES
  ('99999999-0000-0000-0000-000000000009','AJ2509000011',0,0,'pending', NULL,               NULL,NULL,NULL,NULL,'2026-09-23T09:20:00+07'),
  ('99999999-0000-0000-0000-000000000010','AJ2509000012',0,0,'pending', NULL,               NULL,NULL,NULL,NULL,'2026-09-23T10:20:00+07'),
  ('99999999-0000-0000-0000-000000000011','AJ2509000014',1,0,'verified','2026-09-23T11:45:00+07',NULL,'22222222-0000-0000-0000-000000000003','Override PIN karena akses jalan ditutup','2026-09-23T11:50:00+07','2026-09-23T11:35:00+07'),
- ('99999999-0000-0000-0000-000000000012','AJ2509000015',1,0,'verified','2026-09-23T13:03:00+07',NULL,NULL,NULL,NULL,'2026-09-23T12:55:00+07')
+ ('99999999-0000-0000-0000-000000000012','AJ2509000015',1,0,'verified','2026-09-23T13:03:00+07',NULL,NULL,NULL,NULL,'2026-09-23T12:55:00+07'),
+ ('99999999-0000-0000-0000-000000001001','AJ2509001001',0,0,'pending', NULL,               NULL,NULL,NULL,NULL,'2026-09-23T08:00:00+07')
 ) AS c(id, tracking, attempts, resend_count, status, verified_at, locked_at, override_by, override_reason, override_at, created_at)
 JOIN shipments s ON s.tracking_number = c.tracking;
 
@@ -552,7 +556,7 @@ INSERT INTO pin_challenges
 SELECT
   ('99999999-0000-0000-0000-' || lpad((substr(s.tracking_number, 7))::int::text, 12, '0'))::uuid,
   s.id, s.recipient_id,
-  encode(digest('pin:' || s.tracking_number, 'sha256'), 'hex'),
+  encode(digest('pin:123456', 'sha256'), 'hex'),
   0, 3, 0, 'pending', s.created_at + interval '15 minutes', s.created_at + interval '10 minutes'
 FROM shipments s
 WHERE s.pin_required AND s.created_at >= '2026-09-24T00:00:00+07';

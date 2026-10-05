@@ -48,6 +48,35 @@ class CourierFlowTest extends TestCase
         $this->assertArrayHasKey('destination', $response->json('data.0'));
     }
 
+    public function test_seeded_maxy_ai_hub_task_is_available_for_the_demo(): void
+    {
+        $this->actingAs($this->courier());
+
+        $tasks = $this->getJson('/api/v1/courier/tasks')->json('data');
+        $maxy = collect($tasks)->firstWhere('tracking', 'AJ2509001001');
+
+        $this->assertNotNull($maxy, 'The Maxy AI Hub shipment should be seeded for the demo courier.');
+        $this->assertSame(
+            'Maxy AI Hub, Jl. Prof. Dr. Satrio No. 18, Kuningan, Jakarta Selatan',
+            $maxy['address'],
+        );
+    }
+
+    public function test_demo_recipient_pin_is_fixed_to_123456(): void
+    {
+        $this->actingAs($this->courier());
+
+        $tracking = $this->getJson('/api/v1/courier/tasks')->json('data.0.tracking');
+
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/pin")
+            ->assertCreated()
+            ->assertJsonPath('data.debug_code', '123456');
+
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/pin/verify", ['code' => '123456'])
+            ->assertOk()
+            ->assertJsonPath('data.verified', true);
+    }
+
     public function test_full_delivery_flow_succeeds(): void
     {
         $this->actingAs($this->courier());

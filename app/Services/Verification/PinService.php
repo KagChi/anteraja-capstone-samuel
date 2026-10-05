@@ -20,6 +20,13 @@ use Illuminate\Support\Facades\Cache;
  */
 class PinService
 {
+    /**
+     * Demo prototype: the recipient PIN is a fixed code so the whole flow can
+     * be demonstrated without SMS/email delivery. Production would generate a
+     * random code per challenge.
+     */
+    private const DEMO_PIN = '123456';
+
     public function policyFor(Shipment $shipment): ?GeofencePolicy
     {
         return GeofencePolicy::where('service_type', $shipment->service_type)->first();
@@ -37,7 +44,7 @@ class PinService
         $ttl = $policy->pin_ttl_minutes ?? 15;
         $maxAttempts = $policy->pin_max_attempts ?? 3;
 
-        $code = str_pad((string) random_int(0, (10 ** $length) - 1), $length, '0', STR_PAD_LEFT);
+        $code = str_pad(substr(self::DEMO_PIN, 0, $length), $length, '0', STR_PAD_LEFT);
 
         $challenge = PinChallenge::updateOrCreate(
             ['shipment_id' => $shipment->id],
