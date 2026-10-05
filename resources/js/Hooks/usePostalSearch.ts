@@ -2,14 +2,9 @@ import type { AsyncResource, PostalResult } from "../types";
 import { useDebouncedValue } from "./useDebouncedValue";
 import { useFetch } from "./useFetch";
 
-const POSTAL_BASE = "https://kodepos.vercel.app/search/";
+// Same-origin proxy - the postal upstream is only called by the server.
+const POSTAL_BASE = "/api/v1/postal/search";
 const MIN_QUERY_LENGTH = 3;
-
-interface PostalResponse {
-  statusCode: number;
-  code: string;
-  data: PostalResult[];
-}
 
 export function usePostalSearch(query: string): AsyncResource<PostalResult[]> {
   const debounced = useDebouncedValue(query, 350);
@@ -19,7 +14,7 @@ export function usePostalSearch(query: string): AsyncResource<PostalResult[]> {
       ? `${POSTAL_BASE}?q=${encodeURIComponent(term)}`
       : null;
 
-  const resource = useFetch<PostalResponse>(url);
+  const resource = useFetch<{ data: PostalResult[] }>(url);
 
   return { ...resource, data: resource.data?.data ?? null };
 }

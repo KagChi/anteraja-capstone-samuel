@@ -1,20 +1,28 @@
 import type { Province, Regency } from "../types";
 import { useFetch } from "./useFetch";
 
-const WILAYAH_BASE = "https://www.emsifa.com/api-wilayah-indonesia/api";
+// Same-origin proxy - the wilayah upstream is only called by the server.
+const REGION_BASE = "/api/v1/regions";
 
 export function useLocationData(
   provinceId?: string | null,
   enabled = Boolean(provinceId),
 ) {
-  const provinces = useFetch<Province[]>(
-    enabled ? `${WILAYAH_BASE}/provinces.json` : null,
+  const provincesResource = useFetch<{ data: Province[] }>(
+    enabled ? `${REGION_BASE}/provinces` : null,
   );
-  const regencies = useFetch<Regency[]>(
-    enabled && provinceId
-      ? `${WILAYAH_BASE}/regencies/${provinceId}.json`
-      : null,
+  const regenciesResource = useFetch<{ data: Regency[] }>(
+    enabled && provinceId ? `${REGION_BASE}/regencies/${provinceId}` : null,
   );
 
-  return { provinces, regencies };
+  return {
+    provinces: {
+      ...provincesResource,
+      data: provincesResource.data?.data ?? null,
+    },
+    regencies: {
+      ...regenciesResource,
+      data: regenciesResource.data?.data ?? null,
+    },
+  };
 }

@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Indonesian region data (proxied server-side, never called by browsers)
+    |--------------------------------------------------------------------------
+    */
+
+    'wilayah' => [
+        'base' => env('WILAYAH_API_BASE', 'https://www.emsifa.com/api-wilayah-indonesia/api'),
+    ],
+
+    'kodepos' => [
+        'base' => env('KODEPOS_API_BASE', 'https://kodepos.vercel.app'),
+    ],
+
 ];

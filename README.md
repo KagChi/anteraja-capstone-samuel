@@ -134,6 +134,9 @@ Key routes:
 - `POST /api/v1/courier/tasks/{tracking}/complete`
 - `GET  /api/v1/shipments`, `GET /api/v1/shipments/{id}`
 - `GET  /api/v1/shipping/quote?weight=&distance=`
+- `GET  /api/v1/regions/provinces`, `GET /api/v1/regions/regencies/{id}`,
+  `GET /api/v1/postal/search?q=` — same-origin proxies; the wilayah and
+  kodepos upstreams are only called server-side and cached
 - `GET  /api/v1/admin/dashboard`
 - `POST /api/v1/admin/shipments/{id}/close-case`
 - `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`

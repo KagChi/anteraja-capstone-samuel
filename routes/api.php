@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Courier\PinController;
 use App\Http\Controllers\Api\V1\Courier\ProofController;
 use App\Http\Controllers\Api\V1\Courier\TaskController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\RegionController;
 use App\Http\Controllers\Api\V1\ShipmentController;
 use App\Http\Controllers\Api\V1\ShippingQuoteController;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,12 @@ Route::prefix('v1')->middleware('web')->group(function () {
         Route::get('shipments', [ShipmentController::class, 'index'])->name('api.shipments.index');
         Route::get('shipments/{id}', [ShipmentController::class, 'show'])->name('api.shipments.show');
         Route::get('shipping/quote', ShippingQuoteController::class)->name('api.shipping.quote');
+
+        // Same-origin proxies for the region directory upstreams.
+        Route::get('regions/provinces', [RegionController::class, 'provinces'])->name('api.regions.provinces');
+        Route::get('regions/regencies/{province}', [RegionController::class, 'regencies'])
+            ->name('api.regions.regencies');
+        Route::get('postal/search', [RegionController::class, 'postal'])->name('api.postal.search');
     });
 
     // Admin / hub endpoints.
