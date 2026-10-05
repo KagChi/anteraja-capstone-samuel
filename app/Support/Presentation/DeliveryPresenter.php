@@ -82,6 +82,9 @@ class DeliveryPresenter
         $distance = self::latestDistance($shipment);
         $deviation = self::deviation($shipment);
         $radius = $shipment->activeGeofence?->radius_m;
+        $exception = $shipment->deliveryExceptions
+            ->sortByDesc('created_at')
+            ->first();
 
         $category = $shipment->service_type === 'instant' ? 'instant' : 'sameday';
 
@@ -119,6 +122,11 @@ class DeliveryPresenter
                 'radiusMeters' => $radius,
                 'point' => $shipment->destination_address,
             ] : null,
+            'exception' => $exception ? [
+                'status' => $exception->status,
+                'reason' => $exception->reason,
+                'submittedTime' => Date::timeLabel($exception->created_at),
+            ] : null,
         ], static fn ($value) => $value !== null);
     }
 
@@ -129,6 +137,9 @@ class DeliveryPresenter
         $radius = $shipment->activeGeofence?->radius_m ?? 0;
         $proof = self::proof($shipment);
         $pin = $shipment->pinChallenge;
+        $case = $shipment->claimCases
+            ->sortByDesc('created_at')
+            ->first();
 
         $timeline = $events->map(fn ($event) => [
             'label' => self::eventLabel($event->event_type, $event->metadata ?? []),
@@ -174,10 +185,22 @@ class DeliveryPresenter
                 'recipientName' => $proof?->recipient_name ?? $shipment->recipient?->name ?? 'Penerima',
                 'relation' => self::relationLabel($proof?->relation),
                 'pin' => $pin && $pin->status === 'verified' ? '••••' : '—',
+                'pinStatus' => $pin?->status,
+                'pinVerifiedAt' => Date::timeLabel($pin?->verified_at),
+                'distanceMeters' => $proof?->distance_to_destination_m,
                 'reviewStatus' => $proof?->review_status,
                 'reviewNote' => $proof?->review_note,
                 'watermarkHash' => $proof?->watermark_hash,
             ],
+            'case' => $case ? [
+                'number' => $case->case_number,
+                'status' => $case->status,
+                'closed' => $case->status === 'closed',
+                'investigating' => $case->status === 'investigating',
+                'resolution' => $case->resolution
+                    ?? $case->findings->sortByDesc('created_at')->first()?->finding,
+                'closedAt' => Date::dateTimeLabel($case->closed_at),
+            ] : null,
             'deviationMeters' => $deviation,
             'maxToleranceMeters' => $radius,
             'reason' => $shipment->deliveryExceptions

@@ -72,6 +72,13 @@ export interface DeliveryTask {
   cta?: string;
   destination?: DestinationPoint;
   geofence?: TaskGeofence;
+  exception?: TaskException | null;
+}
+
+export interface TaskException {
+  status: string;
+  reason: string;
+  submittedTime: string;
 }
 
 export interface DestinationPoint {
@@ -213,6 +220,9 @@ export interface PodInfo {
   recipientName: string;
   relation: string;
   pin: string;
+  pinStatus?: string | null;
+  pinVerifiedAt?: string | null;
+  distanceMeters?: number | null;
   reviewStatus?: string | null;
   reviewNote?: string | null;
   watermarkHash?: string | null;
@@ -227,6 +237,16 @@ export interface ShipmentDetail {
   maxToleranceMeters: number;
   reason: string;
   completedLabel: string;
+  case?: ShipmentCase | null;
+}
+
+export interface ShipmentCase {
+  number: string;
+  status: string;
+  closed: boolean;
+  investigating: boolean;
+  resolution?: string | null;
+  closedAt: string;
 }
 
 export interface ExceptionDetail extends ExceptionRow {

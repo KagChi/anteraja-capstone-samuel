@@ -127,4 +127,37 @@ class CourierFlowTest extends TestCase
             'reason' => 'Lobi gedung terkunci saat pengantaran.',
         ])->assertCreated();
     }
+
+    public function test_out_of_radius_delivery_requires_a_reasoned_exception(): void
+    {
+        $this->actingAs($this->courier());
+
+        $tracking = $this->getJson('/api/v1/courier/tasks')->json('data.0.tracking');
+        $task = $this->getJson("/api/v1/courier/tasks/{$tracking}")->json('data');
+
+        $far = [
+            'latitude' => $task['destination']['latitude'] + 0.02,
+            'longitude' => $task['destination']['longitude'],
+        ];
+
+        // Finishing outside the radius without an approved exception fails.
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", $far)
+            ->assertStatus(422);
+
+        // The reason is mandatory …
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/exception", $far)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('reason', 'error.errors');
+
+        // … and a reasoned request is surfaced back on the courier's task.
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/exception", [
+            ...$far,
+            'reason' => 'Lobi gedung dikunci satpam.',
+        ])->assertCreated();
+
+        $this->getJson("/api/v1/courier/tasks/{$tracking}")
+            ->assertOk()
+            ->assertJsonPath('data.exception.status', 'pending')
+            ->assertJsonPath('data.exception.reason', 'Lobi gedung dikunci satpam.');
+    }
 }

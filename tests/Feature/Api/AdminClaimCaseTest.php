@@ -109,4 +109,29 @@ class AdminClaimCaseTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
     }
+
+    public function test_shipment_detail_exposes_the_closed_case_and_pin_status(): void
+    {
+        $this->actingAs($this->admin());
+
+        $shipment = Shipment::where('tracking_number', 'AJ2509000013')->firstOrFail();
+
+        $this->postJson("/api/v1/admin/shipments/{$shipment->id}/close-case", [
+            'decision' => 'approved',
+            'note' => 'Deviasi wajar di lobi.',
+        ])->assertOk();
+
+        $this->getJson("/api/v1/shipments/{$shipment->id}")
+            ->assertOk()
+            ->assertJsonPath('data.detail.case.closed', true)
+            ->assertJsonPath('data.detail.case.investigating', false)
+            ->assertJsonPath('data.detail.case.resolution', 'Deviasi wajar di lobi.');
+
+        // The PIN chip reflects the actual challenge state.
+        $pending = Shipment::where('tracking_number', 'AJ2509000011')->firstOrFail();
+
+        $this->getJson("/api/v1/shipments/{$pending->id}")
+            ->assertOk()
+            ->assertJsonPath('data.detail.pod.pinStatus', 'pending');
+    }
 }

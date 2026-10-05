@@ -110,7 +110,7 @@ class Shipment extends Model
         return $query->with([
             'courier', 'recipient', 'serviceArea', 'activeGeofence',
             'pinChallenge', 'deliveryEvents', 'deliveryProofs',
-            'deliveryExceptions', 'anomalyFlags',
+            'deliveryExceptions', 'anomalyFlags', 'claimCases.findings',
         ]);
     }
 

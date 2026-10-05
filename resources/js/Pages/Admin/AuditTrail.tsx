@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar } from "../../Components/Avatar";
 import { AuditTrailMap } from "../../Components/admin/audit/AuditTrailMap";
 import { LoadingButton } from "../../Components/LoadingAction";
@@ -48,6 +48,35 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         : podStatus === "invalid"
           ? "Tidak Valid"
           : "Belum Ada POD";
+
+  const caseInfo = audit?.case ?? null;
+  const caseLocked = Boolean(
+    saved || caseInfo?.closed || caseInfo?.investigating,
+  );
+
+  const pinStatus = audit?.pod.pinStatus ?? null;
+  const pinVerified = pinStatus === "verified" || pinStatus === "override";
+  const pinLabel =
+    pinStatus === "verified"
+      ? `PIN: ${audit?.pod.pin ?? "••••"} Terverifikasi`
+      : pinStatus === "override"
+        ? "PIN: Override admin"
+        : pinStatus === "pending"
+          ? "PIN: Menunggu verifikasi"
+          : pinStatus === "locked"
+            ? "PIN: Terkunci (percobaan habis)"
+            : pinStatus === "expired"
+              ? "PIN: Kedaluwarsa"
+              : "PIN: Belum diterbitkan";
+
+  // A recorded case locks the decision form to what the server holds.
+  useEffect(() => {
+    if (!caseInfo) return;
+
+    setDecision(caseInfo.investigating ? "reject" : "approve");
+    setNotes(caseInfo.resolution ?? "");
+    setSaved(true);
+  }, [caseInfo]);
 
   async function reviewPod(decision: "invalid" | "valid") {
     const proofId = audit?.pod.id;
@@ -101,6 +130,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
         { decision: rejected ? "rejected" : "approved", note: notes || null },
       );
       setSaved(true);
+      detail.reload();
       toast(
         rejected
           ? "Kasus ditandai untuk investigasi."
@@ -348,16 +378,29 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                 ) : null}
               </p>
               <p className="text-xs leading-relaxed text-on-surface-variant">
-                PIN cocok pada percobaan pertama. Geotag foto serah terima
-                sinkron dengan koordinat titik lobi tujuan. Watermark:{" "}
+                {pinVerified
+                  ? `PIN terverifikasi${audit?.pod.pinVerifiedAt ? ` pada ${audit.pod.pinVerifiedAt}` : ""}. `
+                  : "PIN penerima belum terverifikasi. "}
+                {audit?.pod.id
+                  ? `Geotag POD tersimpan ${audit.pod.distanceMeters ?? 0} m dari titik tujuan. `
+                  : "Belum ada foto POD. "}
+                Watermark:{" "}
                 <code className="tabular-nums">
                   {audit?.pod.watermark ?? "—"}
                 </code>
                 .
               </p>
-              <mark className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container-lowest px-3 py-1.5 text-xs font-bold text-tertiary shadow-sm">
-                <MaterialIcon name="lock_open" className="text-[15px]" /> PIN:{" "}
-                {audit?.pod.pin ?? "—"} Terverifikasi
+              <mark
+                className={
+                  "inline-flex w-fit items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-container-lowest px-3 py-1.5 text-xs font-bold shadow-sm " +
+                  (pinVerified ? "text-tertiary" : "text-on-surface-variant")
+                }
+              >
+                <MaterialIcon
+                  name={pinVerified ? "lock_open" : "lock"}
+                  className="text-[15px]"
+                />{" "}
+                {pinLabel}
               </mark>
             </section>
           </section>
@@ -506,6 +549,24 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
               4. Putusan &amp; Resolusi Admin
             </h2>
           </header>
+          {caseInfo ? (
+            <p className="m-0 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+              <mark
+                className={
+                  "rounded-full px-2.5 py-0.5 text-[11px] font-bold " +
+                  (caseInfo.closed
+                    ? "bg-surface-container-high text-on-surface-variant"
+                    : "bg-amber-50 text-amber-700")
+                }
+              >
+                {caseInfo.closed ? "Kasus ditutup" : "Investigasi"}
+              </mark>
+              <span className="tabular-nums">{caseInfo.number}</span>
+              {caseInfo.closedAt ? (
+                <span>&bull; {caseInfo.closedAt}</span>
+              ) : null}
+            </p>
+          ) : null}
           <form
             className="space-y-4"
             id="audit-form"
@@ -522,6 +583,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                     type="radio"
                     value="approve"
                     checked={decision === "approve"}
+                    disabled={caseLocked}
                     onChange={() => setDecision("approve")}
                   />{" "}
                   <span>Sahkan Pengiriman</span>
@@ -534,6 +596,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                     type="radio"
                     value="reject"
                     checked={decision === "reject"}
+                    disabled={caseLocked}
                     onChange={() => setDecision("reject")}
                   />{" "}
                   <span>Tolak / Investigasi</span>
@@ -542,12 +605,12 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
               <p className="m-0 flex items-center gap-3">
                 <output
                   className={`items-center gap-1.5 text-xs font-bold text-tertiary ${
-                    saved ? "flex" : "hidden"
+                    caseLocked ? "flex" : "hidden"
                   }`}
                   id="save-status"
                 >
                   <MaterialIcon name="check" className="text-[16px]" />{" "}
-                  Tersimpan
+                  {caseInfo?.closed ? "Kasus terkunci" : "Tersimpan"}
                 </output>
                 <LoadingButton
                   variant="primary"
@@ -556,6 +619,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                   id="btn-save-case"
                   type="submit"
                   busyText="Menyimpan..."
+                  disabled={caseLocked}
                   onAction={save}
                 >
                   Simpan &amp; Tutup Kasus
@@ -571,6 +635,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                   notesError ? "is-error" : ""
                 }`}
                 id="audit-notes"
+                disabled={caseLocked}
                 placeholder="Catatan putusan admin (opsional, contoh: Deviasi wajar di area drop-off lobi kantor)..."
                 rows={2}
                 value={notes}

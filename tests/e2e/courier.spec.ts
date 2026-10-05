@@ -26,6 +26,29 @@ test("verification without a shipment returns to the task list", async ({
   await expect(page).toHaveURL(/\/courier\/tugas/);
 });
 
+test("courier is asked for a reason when outside the geofence", async ({
+  page,
+}) => {
+  await login(page, "budi.pratama@anteraja.example.com");
+
+  // Far away from the destination: the exception path must open.
+  await page.context().setGeolocation({ latitude: -6.3, longitude: 106.9 });
+  await page.goto("/courier/verifikasi?tracking=AJ2509000011");
+
+  await expect(page.locator("#exception-card")).toBeVisible({
+    timeout: 20_000,
+  });
+  await page.fill("#exception-reason", "Lobi gedung dikunci satpam.");
+  await page.locator("#btn-request-exception").click();
+
+  await expect(page.locator("#exception-card")).toContainText(
+    "Menunggu Admin",
+    {
+      timeout: 20_000,
+    },
+  );
+});
+
 test("courier completes a GPS-stamped in-app camera POD delivery", async ({
   page,
 }) => {

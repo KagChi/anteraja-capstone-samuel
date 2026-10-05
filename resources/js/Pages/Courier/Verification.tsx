@@ -84,20 +84,70 @@ export function VerificationPage() {
   const [resendSeconds, setResendSeconds] = useState(0);
   const [nextBusy, setNextBusy] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState<number | null>(null);
+  const [reason, setReason] = useState("");
+  const [submittingReason, setSubmittingReason] = useState(false);
 
   const code = digits.join("");
+  const exception = task?.exception ?? null;
+  const exceptionApproved = exception?.status === "approved";
+  const outsideWithoutApproval = inside === false && !exceptionApproved;
   const ready =
-    code.length === 6 && verified && !locked && !verifying && gpsReady;
+    code.length === 6 &&
+    verified &&
+    !locked &&
+    !verifying &&
+    gpsReady &&
+    !outsideWithoutApproval;
 
   const gateMessage = !gpsReady
     ? (geo.error ?? "Menunggu sinyal GPS…")
     : inside === false
-      ? "Posisi " +
-        formatMeters(liveDistance ?? 0) +
-        " dari tujuan (radius " +
-        (radius ?? "?") +
-        " m). Serah terima di luar radius butuh persetujuan Admin."
+      ? exceptionApproved
+        ? "Pengecualian radius disetujui Admin. Serah terima boleh dilanjutkan."
+        : "Posisi " +
+          formatMeters(liveDistance ?? 0) +
+          " dari tujuan (radius " +
+          (radius ?? "?") +
+          " m). Tuliskan alasan pengecualian untuk diteruskan ke Admin."
       : null;
+
+  async function submitException() {
+    if (!task) return;
+
+    if (geo.latitude === null || geo.longitude === null) {
+      toast("Menunggu sinyal GPS. Pastikan izin lokasi aktif.", "error");
+      return;
+    }
+
+    if (reason.trim().length < 5) {
+      toast("Tuliskan alasan pengecualian minimal 5 karakter.", "error");
+      return;
+    }
+
+    setSubmittingReason(true);
+
+    try {
+      await sendJson(
+        "POST",
+        `/api/v1/courier/tasks/${task.tracking}/exception`,
+        {
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+          reason: reason.trim(),
+        },
+      );
+      setReason("");
+      toast("Pengecualian dikirim. Menunggu keputusan Admin.");
+      taskResource.reload();
+    } catch (error) {
+      toast(
+        error instanceof Error ? error.message : "Gagal mengirim pengecualian.",
+        "error",
+      );
+    } finally {
+      setSubmittingReason(false);
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -515,6 +565,87 @@ export function VerificationPage() {
             )}
           </p>
         </section>
+
+        {inside === false ? (
+          <section
+            className="mb-4 rounded-md border border-amber-200 bg-amber-50/60 p-4"
+            aria-labelledby="judul-pengecualian"
+            id="exception-card"
+          >
+            <header className="mb-2 flex items-center justify-between gap-2">
+              <h3
+                id="judul-pengecualian"
+                className="m-0 flex items-center gap-1.5 text-[14px] font-bold text-on-surface"
+              >
+                <MaterialIcon
+                  name="wrong_location"
+                  className="text-[18px] text-amber-600"
+                />
+                Pengecualian Radius
+              </h3>
+              <mark
+                className={
+                  "rounded-full px-2 py-0.5 text-[11px] font-bold " +
+                  (exceptionApproved
+                    ? "bg-emerald-100 text-emerald-700"
+                    : exception?.status === "pending"
+                      ? "bg-amber-100 text-amber-700"
+                      : exception?.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-surface-container text-on-surface-variant")
+                }
+              >
+                {exceptionApproved
+                  ? "Disetujui"
+                  : exception?.status === "pending"
+                    ? "Menunggu Admin"
+                    : exception?.status === "rejected"
+                      ? "Ditolak"
+                      : "Belum diajukan"}
+              </mark>
+            </header>
+            <p className="mb-3 text-[12px] leading-relaxed text-on-surface-variant">
+              Posisi Anda di luar radius geofence.{" "}
+              {exceptionApproved
+                ? "Admin menyetujui pengecualian ini, serah terima boleh dilanjutkan."
+                : exception?.status === "pending"
+                  ? `Alasan terkirim ${exception.submittedTime}. Tunggu keputusan Admin sebelum melanjutkan.`
+                  : "Tuliskan alasan agar Admin dapat memutuskan."}
+            </p>
+            {exception?.reason && exception.status !== "rejected" ? (
+              <p className="mb-3 rounded-lg bg-white/70 px-3 py-2 text-[12px] text-on-surface">
+                &ldquo;{exception.reason}&rdquo;
+              </p>
+            ) : null}
+            {!exceptionApproved && exception?.status !== "pending" ? (
+              <>
+                <label className="sr-only" htmlFor="exception-reason">
+                  Alasan pengecualian
+                </label>
+                <textarea
+                  className="w-full resize-none rounded-xl border border-border-subtle bg-surface-container-lowest p-3 text-sm text-on-surface focus:bg-surface-card focus:outline-none"
+                  id="exception-reason"
+                  placeholder="Contoh: Lobi gedung dikunci satpam, paket dititipkan ke resepsionis..."
+                  rows={2}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                />
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="mt-3 w-full"
+                  id="btn-request-exception"
+                  busy={submittingReason}
+                  busyText="Mengirim..."
+                  disabled={submittingReason || reason.trim().length < 5}
+                  onClick={submitException}
+                >
+                  Ajukan Pengecualian ke Admin
+                </Button>
+              </>
+            ) : null}
+          </section>
+        ) : null}
 
         <form
           id="pin-form"
