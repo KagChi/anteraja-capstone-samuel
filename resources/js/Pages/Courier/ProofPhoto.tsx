@@ -11,6 +11,7 @@ import { useFetch } from "../../Hooks/useFetch";
 import { useGeolocation } from "../../Hooks/useGeolocation";
 import { useSeo } from "../../Hooks/useSeo";
 import { sendForm, sendJson } from "../../lib/api";
+import { type GpsReason, gpsBlockedReasons } from "../../lib/fakeGps";
 import { formatClock } from "../../lib/format";
 import { formatMeters, haversineMeters } from "../../lib/geo";
 import type {
@@ -58,6 +59,8 @@ export function ProofPhotoPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [_cameraToken, setCameraToken] = useState(0);
   const [capture, setCapture] = useState<Capture | null>(null);
+  const [gpsBlock, setGpsBlock] = useState<GpsReason[] | null>(null);
+  const [gpsNote, setGpsNote] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
@@ -79,6 +82,8 @@ export function ProofPhotoPage() {
       : null;
 
   const gpsReady = geo.status === "ready" && distance !== null;
+  const assessment = geo.assessment;
+  const gpsLock = task?.gpsLock ?? null;
   const gpsLabel =
     geo.status === "error"
       ? (geo.error ?? "Sinyal GPS tidak tersedia.")
@@ -229,6 +234,8 @@ export function ProofPhotoPage() {
       longitude: geo.longitude,
     };
 
+    const signals = gpsSignals();
+
     try {
       const form = new FormData();
       form.append("latitude", String(coordinates.latitude));
@@ -241,6 +248,24 @@ export function ProofPhotoPage() {
         capture.blob,
         `pod-${task.tracking}-${Date.now()}.jpg`,
       );
+      form.append("accuracy", String(signals.accuracy));
+      form.append("device_timestamp", signals.device_timestamp);
+      if (signals.speed !== null) form.append("speed", String(signals.speed));
+      if (signals.heading !== null)
+        form.append("heading", String(signals.heading));
+      if (signals.altitude !== null)
+        form.append("altitude", String(signals.altitude));
+      for (const code of signals.client_flags) {
+        form.append("client_flags[]", code);
+      }
+      signals.fixes.forEach((fix, index) => {
+        form.append(`fixes[${index}][latitude]`, String(fix.latitude));
+        form.append(`fixes[${index}][longitude]`, String(fix.longitude));
+        if (fix.accuracy !== null) {
+          form.append(`fixes[${index}][accuracy]`, String(fix.accuracy));
+        }
+        form.append(`fixes[${index}][timestamp]`, fix.timestamp);
+      });
 
       const proofResponse = await sendForm<{ data: DeliveryProofResult }>(
         "POST",
@@ -252,16 +277,93 @@ export function ProofPhotoPage() {
       const completion = await sendJson<{ data: DeliveryCompletionResult }>(
         "POST",
         `/api/v1/courier/tasks/${task.tracking}/complete`,
-        coordinates,
+        { ...coordinates, ...signals },
       );
       setCompletion(completion.data);
 
       router.visit(`/courier/sukses?tracking=${tracking}`);
     } catch (error) {
+      const reasons = gpsBlockedReasons(error);
+
+      if (reasons.length > 0) {
+        // FRD-06: the server blocked the capture; nothing was stored, so the
+        // courier either fixes the device or asks an admin to review it.
+        setGpsBlock(reasons);
+        setCapture(null);
+        toast(
+          "Lokasi terdeteksi tidak wajar. Bukti foto tidak disimpan.",
+          "error",
+        );
+        return;
+      }
+
       toast(
         error instanceof Error
           ? error.message
           : "Gagal menyelesaikan pengiriman.",
+        "error",
+      );
+    }
+  }
+
+  /**
+   * The fix-quality signals (FRD-06) attached to proof/complete/gps-lock
+   * calls: the raw fields plus the recent window the server re-derives from.
+   */
+  function gpsSignals() {
+    const fixes = geo.fixes.map((fix) => ({
+      latitude: fix.latitude,
+      longitude: fix.longitude,
+      accuracy: fix.accuracy,
+      timestamp: new Date(fix.timestamp).toISOString(),
+    }));
+
+    return {
+      accuracy: geo.accuracy ?? geo.fixes[geo.fixes.length - 1]?.accuracy ?? 0,
+      device_timestamp: new Date(
+        geo.deviceTimestamp ?? Date.now(),
+      ).toISOString(),
+      speed: geo.speed,
+      heading: geo.heading,
+      altitude: geo.altitude,
+      client_flags: assessment.reasons.map((reason) => reason.code),
+      fixes,
+    };
+  }
+
+  async function requestGpsReview() {
+    if (!task) return;
+
+    if (geo.latitude === null || geo.longitude === null) {
+      toast("Menunggu sinyal GPS. Pastikan izin lokasi aktif.", "error");
+      return;
+    }
+
+    if (gpsNote.trim().length < 5) {
+      toast("Tuliskan alasan peninjauan minimal 5 karakter.", "error");
+      return;
+    }
+
+    try {
+      await sendJson(
+        "POST",
+        `/api/v1/courier/tasks/${task.tracking}/gps-lock`,
+        {
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+          reason: gpsNote.trim(),
+          ...gpsSignals(),
+        },
+      );
+      setGpsNote("");
+      setGpsBlock(null);
+      toast("Permintaan peninjauan dikirim. Menunggu keputusan Admin.");
+      taskResource.reload();
+    } catch (error) {
+      toast(
+        error instanceof Error
+          ? error.message
+          : "Gagal mengirim permintaan peninjauan.",
         "error",
       );
     }
@@ -388,57 +490,199 @@ export function ProofPhotoPage() {
             />
             {gpsLabel}
           </p>
-          <header className="space-y-1 py-1 text-center">
-            <h2
-              id="judul-penerima-pod"
-              className="text-[14px] font-semibold tracking-tight text-white"
+          {gpsLock?.status === "approved" ? (
+            <section
+              className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3"
+              id="gps-lock-approved"
+              aria-live="polite"
             >
-              {recipient}
-            </h2>
-            <p className="text-[12px] text-white/50">
-              {RELATION_LABELS[relation] ?? "Penerima"}
-            </p>
-          </header>
-          <p className="m-0 flex flex-col items-center gap-3 pt-1">
-            {capture ? (
-              <LoadingButton
-                variant="primary"
-                size="lg"
-                className="w-full"
-                id="btn-confirm-pod"
-                delay={200}
-                busyText="Mengunggah bukti..."
-                disabled={!task || !gpsReady}
-                onAction={confirmDelivery}
+              <p className="m-0 flex items-start gap-1.5 text-[12px] font-semibold text-emerald-100">
+                <MaterialIcon name="lock_open" className="text-[16px]" />
+                Blokir GPS dibuka Admin - ambil ulang foto lalu selesaikan
+                pengiriman.
+              </p>
+            </section>
+          ) : null}
+
+          {gpsLock?.status === "rejected" ? (
+            <section
+              className="rounded-xl border border-red-400/25 bg-red-400/10 p-3"
+              id="gps-lock-rejected"
+            >
+              <p className="m-0 flex items-start gap-1.5 text-[12px] font-semibold text-red-100">
+                <MaterialIcon name="block" className="text-[16px]" />
+                Permintaan peninjauan ditolak
+                {gpsLock.note ? `: ${gpsLock.note}` : ""}. Matikan aplikasi
+                lokasi palsu lalu coba lagi.
+              </p>
+            </section>
+          ) : null}
+
+          {gpsBlock !== null ? (
+            <section
+              className="rounded-2xl border border-red-400/30 bg-red-500/10 p-4"
+              id="gps-blocked-panel"
+              aria-labelledby="judul-blokir-gps"
+            >
+              <h2
+                id="judul-blokir-gps"
+                className="m-0 flex items-center gap-1.5 text-[14px] font-bold text-red-100"
               >
-                <MaterialIcon name="check_circle" className="text-[20px]" />{" "}
-                Konfirmasi &amp; Selesaikan
-              </LoadingButton>
-            ) : (
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-full"
-                id="btn-capture-photo"
-                disabled={camera !== "live"}
-                onClick={takePhoto}
-              >
-                <MaterialIcon name="photo_camera" className="text-[20px]" />{" "}
-                Ambil Foto Bukti
-              </Button>
-            )}
-            {capture ? (
+                <MaterialIcon name="location_off" className="text-[18px]" />{" "}
+                Lokasi Terdeteksi Tidak Wajar
+              </h2>
+              <p className="mb-3 mt-2 text-[12px] leading-relaxed text-red-100/90">
+                Bukti foto tidak dapat disimpan. Matikan aplikasi lokasi palsu
+                lalu ambil ulang foto, atau minta peninjauan Admin.
+              </p>
+              <ul className="m-0 mb-3 list-none space-y-1.5 p-0">
+                {gpsBlock.map((reason) => (
+                  <li className="text-[12px] text-red-100/90" key={reason.code}>
+                    <strong className="font-semibold text-red-100">
+                      {reason.label}
+                    </strong>{" "}
+                    {reason.detail}
+                  </li>
+                ))}
+              </ul>
+              <label className="block">
+                <span className="sr-only">Alasan permintaan peninjauan</span>
+                <textarea
+                  className="w-full resize-none rounded-xl border border-white/15 bg-black/30 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
+                  id="gps-lock-reason"
+                  placeholder="Contoh: perangkat melaporkan akurasi 0 m; minta peninjauan..."
+                  rows={2}
+                  value={gpsNote}
+                  onChange={(event) => setGpsNote(event.target.value)}
+                />
+              </label>
+              <div className="mt-3 flex flex-col gap-2">
+                <LoadingButton
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  id="btn-request-gps-review"
+                  delay={200}
+                  busyText="Mengirim..."
+                  disabled={gpsNote.trim().length < 5}
+                  onAction={requestGpsReview}
+                >
+                  <MaterialIcon name="support_agent" className="text-[20px]" />{" "}
+                  Minta Peninjauan Admin
+                </LoadingButton>
+                <Button
+                  variant="textInverse"
+                  className="py-1 text-[13px]"
+                  id="btn-gps-retry"
+                  onClick={() => setGpsBlock(null)}
+                >
+                  <MaterialIcon name="replay" className="text-[18px]" /> Coba
+                  Lagi
+                </Button>
+              </div>
+            </section>
+          ) : null}
+
+          {gpsBlock === null && gpsLock?.status === "pending" ? (
+            <section
+              className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4"
+              id="gps-lock-pending"
+              aria-live="polite"
+            >
+              <h2 className="m-0 flex items-center gap-1.5 text-[14px] font-bold text-amber-100">
+                <MaterialIcon name="hourglass_top" className="text-[18px]" />{" "}
+                Menunggu Keputusan Admin
+              </h2>
+              <p className="mb-0 mt-2 text-[12px] leading-relaxed text-amber-100/90">
+                Permintaan peninjauan terkirim {gpsLock.requestedTime}. Setelah
+                disetujui, ambil ulang foto lalu selesaikan pengiriman.
+              </p>
               <Button
                 variant="textInverse"
-                className="py-1 text-[13px]"
-                id="btn-retake-photo"
-                onClick={retakePhoto}
+                className="mt-2 py-1 text-[13px]"
+                id="btn-gps-refresh"
+                onClick={() => taskResource.reload()}
               >
-                <MaterialIcon name="replay" className="text-[18px]" /> Ambil
-                Ulang Foto
+                <MaterialIcon name="refresh" className="text-[18px]" /> Perbarui
+                Status
               </Button>
-            ) : null}
-          </p>
+            </section>
+          ) : null}
+
+          {gpsBlock === null &&
+          gpsLock === null &&
+          assessment.level !== "clean" ? (
+            <section
+              className="rounded-xl border border-amber-400/25 bg-amber-400/10 p-3"
+              id="gps-warning"
+            >
+              <p className="m-0 flex items-start gap-1.5 text-[12px] text-amber-100/90">
+                <MaterialIcon name="warning" className="text-[16px]" />
+                <span>
+                  <strong className="font-semibold text-amber-100">
+                    Peringatan integritas GPS:
+                  </strong>{" "}
+                  {assessment.reasons.map((reason) => reason.label).join(" • ")}
+                </span>
+              </p>
+            </section>
+          ) : null}
+
+          {gpsBlock === null && gpsLock?.status !== "pending" ? (
+            <>
+              <header className="space-y-1 py-1 text-center">
+                <h2
+                  id="judul-penerima-pod"
+                  className="text-[14px] font-semibold tracking-tight text-white"
+                >
+                  {recipient}
+                </h2>
+                <p className="text-[12px] text-white/50">
+                  {RELATION_LABELS[relation] ?? "Penerima"}
+                </p>
+              </header>
+              <p className="m-0 flex flex-col items-center gap-3 pt-1">
+                {capture ? (
+                  <LoadingButton
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    id="btn-confirm-pod"
+                    delay={200}
+                    busyText="Mengunggah bukti..."
+                    disabled={!task || !gpsReady}
+                    onAction={confirmDelivery}
+                  >
+                    <MaterialIcon name="check_circle" className="text-[20px]" />{" "}
+                    Konfirmasi &amp; Selesaikan
+                  </LoadingButton>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    id="btn-capture-photo"
+                    disabled={camera !== "live"}
+                    onClick={takePhoto}
+                  >
+                    <MaterialIcon name="photo_camera" className="text-[20px]" />{" "}
+                    Ambil Foto Bukti
+                  </Button>
+                )}
+                {capture ? (
+                  <Button
+                    variant="textInverse"
+                    className="py-1 text-[13px]"
+                    id="btn-retake-photo"
+                    onClick={retakePhoto}
+                  >
+                    <MaterialIcon name="replay" className="text-[18px]" /> Ambil
+                    Ulang Foto
+                  </Button>
+                ) : null}
+              </p>
+            </>
+          ) : null}
         </section>
       </main>
     </div>

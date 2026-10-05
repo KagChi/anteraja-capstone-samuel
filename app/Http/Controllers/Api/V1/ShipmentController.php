@@ -22,12 +22,14 @@ class ShipmentController extends Controller
     public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
         $perPage = $this->perPage($request);
+        $courier = Auth::getCurrentCourier();
 
         $page = $shipments->page($perPage, $request->query('cursor'), [
             'search' => $request->query('search'),
             'status' => $request->query('status'),
             'service' => $request->query('service'),
             'region' => $request->query('region'),
+            'courier_id' => $courier['id'] ?? null,
         ]);
 
         return $this->ok($page['rows'], 200, [
@@ -54,6 +56,13 @@ class ShipmentController extends Controller
         $admin = Auth::getCurrentAdmin();
         $courier = Auth::getCurrentCourier();
         $actor = $admin ?? $courier;
+
+        // FR-05-10: a courier can only read the audit trail of shipments
+        // assigned to them; other ids answer 404 instead of leaking existence.
+        if (! $admin && $courier !== null
+            && Shipment::whereKey($shipmentId)->where('courier_id', $courier['id'])->doesntExist()) {
+            throw (new ModelNotFoundException)->setModel(Shipment::class, [$key]);
+        }
 
         if ($actor) {
             $audit->log(

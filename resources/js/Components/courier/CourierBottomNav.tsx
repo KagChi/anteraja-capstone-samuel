@@ -1,4 +1,3 @@
-import { useToast } from "../../Contexts/ToastContext";
 import { COURIER_NAV_ITEMS } from "../../data/nav";
 import { MaterialIcon } from "../MaterialIcon";
 import { Button } from "../ui/Button";
@@ -12,8 +11,6 @@ export function CourierBottomNav({
   variant = "default",
   activeLabel,
 }: CourierBottomNavProps) {
-  const toast = useToast();
-
   const navClass =
     variant === "sukses"
       ? "fixed bottom-0 z-50 w-full border-t border-border-subtle bg-surface/90 pb-safe backdrop-blur-md"
@@ -31,31 +28,6 @@ export function CourierBottomNav({
       <p className={innerClass}>
         {COURIER_NAV_ITEMS.map((item) => {
           const isActive = item.label === activeLabel;
-
-          if (item.stub) {
-            return (
-              <Button
-                key={item.label}
-                variant="nav"
-                active={isActive}
-                className={itemClass}
-                onClick={() => {
-                  toast("Fitur ini belum tersedia pada purwarupa.", "error");
-                }}
-              >
-                <MaterialIcon name={item.icon} className="text-[22px]" />
-                <span
-                  className={
-                    variant === "sukses"
-                      ? "text-[10px]"
-                      : `mt-0.5 text-[10px] ${isActive ? "font-semibold" : "font-medium"}`
-                  }
-                >
-                  {item.label}
-                </span>
-              </Button>
-            );
-          }
 
           return (
             <Button

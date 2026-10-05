@@ -1,3 +1,7 @@
+export type { GpsFixWindow, GpsReason } from "./lib/fakeGps";
+
+import type { GpsFixWindow, GpsReason } from "./lib/fakeGps";
+
 export type Role = "courier" | "admin";
 
 export interface AuthUser {
@@ -58,6 +62,28 @@ export interface TaskGeofence {
   deviationMeters: number;
   radiusMeters: number;
   point: string;
+  center?: [number, number];
+  source?: "destination" | "meeting_point";
+}
+
+export interface TaskMeetingPoint {
+  status: "final" | "proposed" | "rejected" | "expired";
+  final: boolean;
+  adminSet?: boolean;
+  setBy?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceToDestinationM: number;
+  buyerLatitude?: number | null;
+  buyerLongitude?: number | null;
+  distanceFromBuyerM?: number | null;
+  needsMeetingPoint?: boolean;
+  thresholdM: number;
+  expiryMinutes: number;
+  requestedTime: string;
+  resolvedTime?: string | null;
+  expiresTime?: string | null;
+  expiresAtIso?: string | null;
 }
 
 export interface DeliveryTask {
@@ -73,6 +99,30 @@ export interface DeliveryTask {
   destination?: DestinationPoint;
   geofence?: TaskGeofence;
   exception?: TaskException | null;
+  gpsLock?: GpsLockInfo | null;
+  pin?: TaskPin | null;
+  meetingPoint?: TaskMeetingPoint | null;
+}
+
+export interface TaskPin {
+  status: string;
+  attempts: number;
+  maxAttempts: number;
+  locked: boolean;
+  verified: boolean;
+  override: boolean;
+  overrideReason?: string | null;
+  lockedAt?: string | null;
+  resendCount: number;
+  resendLimit: number;
+}
+
+export interface GpsLockInfo {
+  status: string;
+  reason: string;
+  requestedTime: string;
+  decidedTime?: string | null;
+  note?: string | null;
 }
 
 export interface TaskException {
@@ -93,6 +143,9 @@ export interface PinIssue {
   attempts: number;
   max_attempts: number;
   debug_code?: string;
+  resend_count?: number;
+  resend_limit?: number;
+  can_resend?: boolean;
 }
 
 export interface PinVerifyResult {
@@ -238,6 +291,137 @@ export interface ShipmentDetail {
   reason: string;
   completedLabel: string;
   case?: ShipmentCase | null;
+  gps?: ShipmentGps | null;
+  meetingPoint?: TaskMeetingPoint | null;
+}
+
+export interface MeetingPointRow {
+  id: string;
+  tracking?: string | null;
+  courierName: string;
+  courierCode: string;
+  service: ServiceSegment;
+  status: string;
+  proposedBy: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceToDestinationM: number;
+  distanceFromBuyerM?: number | null;
+  requestedAt: string;
+  requestedTime: string;
+  resolvedAt: string;
+  expiresAt: string;
+}
+
+export interface MeetingPointEvent {
+  type: string;
+  actor: string;
+  note?: string | null;
+  at: string;
+}
+
+export interface MeetingPointDetail extends MeetingPointRow {
+  target?: [number, number] | null;
+  courierPoint?: [number, number] | null;
+  buyerPoint?: [number, number] | null;
+  point?: [number, number] | null;
+  radiusMeters: number;
+  geofenceSource?: string | null;
+  events: MeetingPointEvent[];
+}
+
+export interface ShipmentGps {
+  status: "clean" | "suspected" | "blocked" | "overridden";
+  level?: "clean" | "suspected" | "blocked" | null;
+  accuracyM?: number | null;
+  reasons: GpsReason[];
+  impliedSpeedKmh?: number | null;
+  fixWindow?: GpsFixWindow | null;
+  clockSkewSeconds?: number | null;
+  overrideUsed: boolean;
+  lock?: GpsLockInfo | null;
+}
+
+export interface GpsLockRow {
+  id: string;
+  courierName: string;
+  courierCode: string;
+  tracking?: string | null;
+  service: ServiceSegment;
+  reason: string;
+  reasonLabels: string[];
+  level: string;
+  accuracyM?: number | null;
+  status: string;
+  requestedAt: string;
+  requestedTime: string;
+  note?: string | null;
+}
+
+export interface GpsLockDetail extends GpsLockRow {
+  reasons: GpsReason[];
+  impliedSpeedKmh?: number | null;
+  fixWindow?: GpsFixWindow | null;
+  clockSkewSeconds?: number | null;
+  point?: [number, number] | null;
+  pointLabel: string;
+  target?: [number, number] | null;
+  decidedAt?: string | null;
+}
+
+export interface PinLockRow {
+  id: string;
+  tracking?: string | null;
+  courierName: string;
+  courierCode: string;
+  service: ServiceSegment;
+  recipientName: string;
+  status: string;
+  attempts: number;
+  maxAttempts: number;
+  lockedAt: string;
+  lockedTime: string;
+  expiresAt: string;
+  overrideReason?: string | null;
+}
+
+export interface PinLockEvent {
+  result: string;
+  attempt?: number | null;
+  reason?: string | null;
+  actor: string;
+  at: string;
+}
+
+export interface PinLockDetail extends PinLockRow {
+  events: PinLockEvent[];
+}
+
+export interface CourierHistoryRow {
+  id: string;
+  tracking: string;
+  service: ServiceSegment;
+  recipient: string;
+  address?: string | null;
+  status: string;
+  statusLabel: string;
+  dateLabel: string;
+  distanceMeters?: number | null;
+  reviewStatus?: string | null;
+}
+
+export interface CourierProfile {
+  name: string;
+  code: string;
+  phone?: string | null;
+  email?: string | null;
+  active: boolean;
+  serviceArea: { code?: string | null; label: string; region: string };
+  stats: {
+    activeTasks: number;
+    deliveredToday: number;
+    deliveredTotal: number;
+  };
 }
 
 export interface ShipmentCase {

@@ -40,6 +40,16 @@ export const SEO: Record<string, SeoConfig> = {
     description:
       "Konfirmasi pengiriman tuntas dengan ringkasan integritas audit: geofence, PIN, stempel waktu NTP, dan kode hash audit.",
   },
+  "/courier/riwayat": {
+    title: "Riwayat Pengiriman — Satria | Anteraja Instant",
+    description:
+      "Riwayat stop kurir Satria: pengiriman selesai, jarak serah terima, dan status tinjauan POD.",
+  },
+  "/courier/profil": {
+    title: "Profil Kurir — Satria | Anteraja Instant",
+    description:
+      "Identitas kurir Satria, area tugas, dan statistik shift: stop aktif, selesai hari ini, dan total pengiriman.",
+  },
   "/admin/dashboard": {
     title: "Dashboard Pengiriman — Admin Hub | Anteraja Instant",
     description:
@@ -54,6 +64,11 @@ export const SEO: Record<string, SeoConfig> = {
     title: "Antrian Pengecualian Geofence — Admin Hub | Anteraja Instant",
     description:
       "Antrian persetujuan dispensasi lokasi kurir di luar radius geofence resmi, dengan deviasi, alasan, dan aksi tinjau.",
+  },
+  "/admin/pin-terkunci": {
+    title: "PIN Terkunci — Dashboard Admin Hub | Anteraja Instant",
+    description:
+      "Dashboard Admin/Hub untuk membuka blokir PIN penerima atau melakukan override dengan alasan yang tercatat pada jejak audit.",
   },
   "/admin/pengaturan-radius": {
     title: "Pengaturan Radius Layanan — Admin Hub | Anteraja Instant",

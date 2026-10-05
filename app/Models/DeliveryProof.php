@@ -16,6 +16,7 @@ class DeliveryProof extends Model
         'distance_to_destination_m', 'captured_at', 'device_captured_at',
         'watermark_hash', 'watermark_address', 'recipient_name',
         'relation',
+        'gps_accuracy_m', 'gps_evidence',
         'review_status', 'review_note', 'reviewed_by', 'reviewed_at',
     ];
 
@@ -24,6 +25,8 @@ class DeliveryProof extends Model
         return [
             'captured_at' => 'datetime',
             'device_captured_at' => 'datetime',
+            'gps_evidence' => 'array',
+            'gps_accuracy_m' => 'integer',
             'reviewed_at' => 'datetime',
             'created_at' => 'datetime',
         ];

@@ -60,6 +60,10 @@ class ProofDeliveryTest extends TestCase
     private function submitProof(array $overrides = []): DeliveryProof
     {
         $task = $this->task();
+        $latitude = $overrides['latitude'] ?? $task['destination']['latitude'];
+        $longitude = $overrides['longitude'] ?? $task['destination']['longitude'];
+        $accuracy = $overrides['accuracy'] ?? 12;
+        $at = Date::now()->toIso8601String();
 
         $this->post("/api/v1/courier/tasks/{$task['tracking']}/proof", [
             'latitude' => $task['destination']['latitude'],
@@ -67,6 +71,16 @@ class ProofDeliveryTest extends TestCase
             'recipient_name' => $task['recipient'],
             'relation' => 'langsung',
             'device_captured_at' => Date::now()->toIso8601String(),
+            // FRD-06: a clean fix with realistic accuracy and a small window.
+            'accuracy' => $accuracy,
+            'device_timestamp' => $at,
+            'client_flags' => [],
+            'fixes' => [[
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'accuracy' => $accuracy,
+                'timestamp' => $at,
+            ]],
             'photo' => UploadedFile::fake()->image('pod.jpg', 720, 960),
             ...$overrides,
         ])->assertCreated();

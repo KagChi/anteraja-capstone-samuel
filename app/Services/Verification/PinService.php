@@ -3,6 +3,7 @@
 namespace App\Services\Verification;
 
 use App\Models\Admin;
+use App\Models\AdminAction;
 use App\Models\AnomalyFlag;
 use App\Models\Courier;
 use App\Models\DeliveryEvent;
@@ -32,32 +33,66 @@ class PinService
     }
 
     /**
+     * FR-03-04: how many explicit resends the segment policy allows.
+     */
+    public static function resendLimit(Shipment $shipment): int
+    {
+        return (int) (GeofencePolicy::query()
+            ->where('service_type', $shipment->service_type)
+            ->value('pin_max_resends') ?? 3);
+    }
+
+    /**
      * Issue (or re-issue) a PIN challenge.
+     *
+     * A lock is only cleared by an admin decision (FR-03-08): re-issuing the
+     * PIN - which the courier app does on every page load - must never reset
+     * the attempt counter, otherwise reloading would silently bypass the
+     * lock that the failed attempts were supposed to enforce.
      *
      * @return array{challenge: PinChallenge, code: string}
      */
-    public function issue(Shipment $shipment): array
+    public function issue(Shipment $shipment, bool $resend = false): array
     {
         $policy = $this->policyFor($shipment);
         $length = $policy->pin_length ?? 6;
         $ttl = $policy->pin_ttl_minutes ?? 15;
         $maxAttempts = $policy->pin_max_attempts ?? 3;
+        $maxResends = self::resendLimit($shipment);
 
         $code = str_pad(substr(self::DEMO_PIN, 0, $length), $length, '0', STR_PAD_LEFT);
 
-        $challenge = PinChallenge::updateOrCreate(
-            ['shipment_id' => $shipment->id],
-            [
+        $challenge = PinChallenge::where('shipment_id', $shipment->id)->first();
+
+        if ($challenge !== null && in_array($challenge->status, ['locked', 'verified', 'override'], true)) {
+            return ['challenge' => $challenge, 'code' => $code];
+        }
+
+        // FR-03-04: the explicit resend is capped; the app's page-load refresh
+        // is not counted but also never clears a lock or the attempts.
+        if ($resend && $challenge !== null && $challenge->resend_count >= $maxResends) {
+            abort(422, 'Batas kirim ulang PIN tercapai. Minta Admin membuka blokir PIN dari dashboard.');
+        }
+
+        if ($challenge === null) {
+            $challenge = PinChallenge::create([
+                'shipment_id' => $shipment->id,
                 'recipient_id' => $shipment->recipient_id,
                 'code_hash' => $this->hash($code),
                 'attempts' => 0,
                 'max_attempts' => $maxAttempts,
                 'status' => 'pending',
-                'expires_at' => Date::now()->addMinutes($ttl),
-                'verified_at' => null,
+                'expires_at' => Date::now()->addMinutes($ttl)->utc(),
+            ]);
+        } else {
+            $challenge->update([
+                'max_attempts' => $maxAttempts,
+                'status' => 'pending',
+                'expires_at' => Date::now()->addMinutes($ttl)->utc(),
                 'locked_at' => null,
-            ],
-        );
+                ...($resend ? ['resend_count' => (int) $challenge->resend_count + 1] : []),
+            ]);
+        }
 
         if ($shipment->recipient) {
             PinDelivery::create([
@@ -69,7 +104,71 @@ class PinService
             ]);
         }
 
+        // A re-issue changes the visible PIN state (expiry, resend count), so
+        // the cached task/list payloads are invalidated.
+        Cache::forget(DashboardService::CACHE_KEY);
+        ShipmentCache::bump();
+
         return ['challenge' => $challenge, 'code' => $code];
+    }
+
+    /**
+     * FR-03-08: an admin/CS clears the lock (the courier gets a fresh set of
+     * attempts) or overrides the PIN entirely. Both decisions carry a reason,
+     * are written to the audit trail and resolve the repeated-failure flag.
+     *
+     * @param  'unlock'|'override'  $decision
+     */
+    public function decide(PinChallenge $challenge, Admin $admin, string $decision, string $reason): PinChallenge
+    {
+        if ($decision === 'unlock') {
+            $policy = $this->policyFor($challenge->shipment);
+            $ttl = $policy->pin_ttl_minutes ?? 15;
+
+            $challenge->update([
+                'status' => 'pending',
+                'attempts' => 0,
+                'locked_at' => null,
+                'expires_at' => Date::now()->addMinutes($ttl)->utc(),
+                'override_by' => null,
+                'override_reason' => null,
+                'override_at' => null,
+            ]);
+        } else {
+            $challenge->update([
+                'status' => 'override',
+                'override_by' => $admin->id,
+                'override_reason' => $reason,
+                'override_at' => Date::now(),
+            ]);
+        }
+
+        $shipment = $challenge->shipment;
+
+        $this->record($shipment, $shipment->courier, [
+            'result' => $decision === 'unlock' ? 'unlocked' : 'override',
+            'by' => $admin->id,
+            'reason' => $reason,
+        ], 'admin');
+
+        // The admin reviewed the incident; a further lock re-raises the flag.
+        AnomalyFlag::query()
+            ->where('shipment_id', $challenge->shipment_id)
+            ->where('flag_type', 'repeated_pin_failure')
+            ->update(['is_resolved' => true]);
+
+        AdminAction::create([
+            'admin_id' => $admin->id,
+            'action_type' => $decision === 'unlock' ? 'unlock_pin' : 'override_pin',
+            'target_type' => 'pin_challenge',
+            'target_id' => $challenge->id,
+            'reason' => $reason,
+        ]);
+
+        Cache::forget(DashboardService::CACHE_KEY);
+        ShipmentCache::bump();
+
+        return $challenge->refresh();
     }
 
     /**
@@ -148,20 +247,6 @@ class PinService
         ];
     }
 
-    public function override(Shipment $shipment, Admin $admin, string $reason): PinChallenge
-    {
-        $challenge = $shipment->pinChallenge()->firstOrFail();
-
-        $challenge->update([
-            'status' => 'override',
-            'override_by' => $admin->id,
-            'override_reason' => $reason,
-            'override_at' => Date::now(),
-        ]);
-
-        return $challenge;
-    }
-
     private function hash(string $code): string
     {
         return hash('sha256', 'pin:'.$code);
@@ -170,13 +255,13 @@ class PinService
     /**
      * @param  array<string, mixed>  $metadata
      */
-    private function record(Shipment $shipment, ?Courier $courier, array $metadata): void
+    private function record(Shipment $shipment, ?Courier $courier, array $metadata, string $actorType = 'courier'): void
     {
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
             'courier_id' => $courier?->id,
             'event_type' => 'pin_verification',
-            'actor_type' => 'courier',
+            'actor_type' => $actorType,
             'metadata' => $metadata,
         ]);
     }

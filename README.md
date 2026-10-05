@@ -20,14 +20,23 @@ backed by PostgreSQL/PostGIS.
 ## Domain
 
 - **Geofence** — server-side `ST_Distance` against the destination point.
-- **PIN** — hashed recipient challenge with attempt limits and lock-out.
+- **PIN** — hashed recipient challenge with attempt limits, lock-out, and an
+  admin dashboard to unlock or override with a recorded reason.
 - **POD** — in-app camera photo watermarked server-side (coordinates, address,
   recipient name, server time) and stored as a private object on the `pod`
   disk — S3 when `POD_DISK=s3` — reachable only through short-lived signed
   URLs.
 - **Anomaly scoring** — weighted flags surface shipments needing review.
+- **Fake-GPS detection** — the courier app ships fix-quality signals and the
+  server blocks POD + completion on strong evidence (mock-provider accuracy,
+  frozen coordinates, impossible travel); a blocked courier can request an
+  admin review that unlocks the shipment while the incident stays flagged.
 - **Exception queue** — couriers can request an out-of-radius exception that
   an admin approves or rejects; decisions are written to the audit trail.
+- **Matchmaking** — when the recipient is not at the drop-off address the
+  courier proposes a meeting point (with the buyer's reported position); the
+  admin approves it in the queue and the completion geofence moves to the
+  final point.
 
 Requirements live in `docs/` (PRD and FRDs); the canonical schema and seed
 data live in `docs/db/`.
@@ -131,6 +140,9 @@ Key routes:
 - `POST /api/v1/courier/tasks/{tracking}/pin` and `.../pin/verify`
 - `POST /api/v1/courier/tasks/{tracking}/proof`
 - `POST /api/v1/courier/tasks/{tracking}/exception`
+- `POST /api/v1/courier/tasks/{tracking}/gps-lock`
+- `POST /api/v1/courier/tasks/{tracking}/meeting-point`
+- `GET  /api/v1/courier/history`, `GET /api/v1/courier/profile`
 - `POST /api/v1/courier/tasks/{tracking}/complete`
 - `GET  /api/v1/shipments`, `GET /api/v1/shipments/{id}`
 - `GET  /api/v1/shipping/quote?weight=&distance=`
@@ -140,6 +152,10 @@ Key routes:
 - `GET  /api/v1/admin/dashboard`
 - `POST /api/v1/admin/shipments/{id}/close-case`
 - `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`
+- `GET  /api/v1/admin/gps-locks`, `POST /api/v1/admin/gps-locks/{id}/decision`
+- `GET  /api/v1/admin/pin-locks`, `POST /api/v1/admin/pin-locks/{id}/decision`
+- `GET  /api/v1/admin/meeting-points`, `POST /api/v1/admin/meeting-points/{id}/decision`
+- `GET  /api/v1/admin/shipments/{id}/audit-export` (CSV, access logged)
 - `GET  /api/v1/admin/radius-segments`, `PUT /api/v1/admin/radius-segments`
 - `POST /api/v1/admin/proofs/{id}/review` (FR-02-09 invalidate/restore a POD)
 - `GET  /api/v1/admin/proofs/{id}/photo` (signed, admin-only POD object)

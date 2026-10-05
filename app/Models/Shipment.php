@@ -87,9 +87,14 @@ class Shipment extends Model
         return $this->hasMany(DeliveryException::class);
     }
 
+    public function gpsLockRequests()
+    {
+        return $this->hasMany(GpsLockRequest::class);
+    }
+
     public function meetingPoints()
     {
-        return $this->hasMany(MeetingPoint::class);
+        return $this->hasMany(MeetingPoint::class)->withPointProjections();
     }
 
     public function claimCases()
@@ -117,7 +122,8 @@ class Shipment extends Model
         return $query->with([
             'courier', 'recipient', 'serviceArea', 'activeGeofence',
             'pinChallenge', 'deliveryEvents', 'deliveryProofs',
-            'deliveryExceptions', 'anomalyFlags', 'claimCases.findings',
+            'deliveryExceptions', 'gpsLockRequests', 'meetingPoints',
+            'anomalyFlags', 'claimCases.findings',
         ]);
     }
 
@@ -169,6 +175,12 @@ class Shipment extends Model
      */
     public function scopeForListFilters($query, array $filters)
     {
+        $courierId = $filters['courier_id'] ?? null;
+
+        if (is_string($courierId) && $courierId !== '') {
+            $query->where('shipments.courier_id', $courierId);
+        }
+
         $search = trim((string) ($filters['search'] ?? ''));
 
         if ($search !== '') {

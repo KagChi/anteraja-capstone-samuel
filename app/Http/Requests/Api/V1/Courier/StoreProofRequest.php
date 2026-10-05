@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Api\V1\Courier;
 
+use App\Http\Requests\Api\V1\Courier\Concerns\ValidatesGpsSignals;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProofRequest extends FormRequest
 {
+    use ValidatesGpsSignals;
+
     public function authorize(): bool
     {
         return true;
@@ -25,6 +28,7 @@ class StoreProofRequest extends FormRequest
             // FR-02-01/02: the POD photo is mandatory and must come from the
             // in-app camera capture (the client offers no gallery path).
             'photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            ...$this->gpsSignalRules(),
         ];
     }
 }

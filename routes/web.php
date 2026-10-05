@@ -17,6 +17,8 @@ Route::middleware(['auth', 'role:courier'])->prefix('courier')->name('courier.')
     Route::get('verifikasi', fn () => Inertia::render('Courier/Verification'))->name('verification');
     Route::get('bukti-foto', fn () => Inertia::render('Courier/ProofPhoto'))->name('proof-photo');
     Route::get('sukses', fn () => Inertia::render('Courier/Success'))->name('success');
+    Route::get('riwayat', fn () => Inertia::render('Courier/History'))->name('history');
+    Route::get('profil', fn () => Inertia::render('Courier/Profile'))->name('profile');
 });
 
 Route::middleware('auth')->group(function () {
@@ -33,6 +35,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         'id' => $id,
     ]))->name('audit-trail');
     Route::get('antrian-pengecualian', fn () => Inertia::render('Admin/ExceptionQueue'))->name('exception-queue');
+    Route::get('pin-terkunci', fn () => Inertia::render('Admin/PinLocks'))->name('pin-locks');
     Route::get('pengecualian-detail/{id}', fn (string $id) => redirect('/admin/antrian-pengecualian?open='.urlencode($id)))
         ->name('exception-detail');
     Route::get('pengaturan-radius', fn () => Inertia::render('Admin/RadiusSettings'))->name('radius-settings');

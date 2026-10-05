@@ -29,6 +29,7 @@ class ProofService
     public function __construct(
         private readonly GeofenceService $geofence,
         private readonly ProofWatermark $watermark,
+        private readonly FakeGpsDetector $fakeGps,
     ) {}
 
     /**
@@ -46,8 +47,19 @@ class ProofService
 
         $latitude = (float) $data['latitude'];
         $longitude = (float) $data['longitude'];
+
+        // FRD-06: strong fake-GPS evidence rejects the capture before any POD
+        // object or row is written; an approved review unlocks the gate.
+        $gps = $this->fakeGps->guard($shipment, $courier, $latitude, $longitude, $data);
+        $gpsFlagged = $gps['assessment']['level'] !== 'clean';
+
         $distance = $this->geofence->distanceToDestination($shipment, $latitude, $longitude);
         $radius = $shipment->activeGeofence?->radius_m;
+
+        // FR-04-07: the radius decision follows the active geofence centre,
+        // which moves to an approved meeting point; the distance column still
+        // reports the master destination for the audit trail.
+        $evaluation = $this->geofence->evaluate($shipment, $latitude, $longitude);
 
         $capturedAt = Date::now();
         $capturedAtUtc = $capturedAt->copy()->utc();
@@ -57,11 +69,11 @@ class ProofService
             : null;
         $deviceCapturedAtUtc = $deviceCapturedAt?->copy()->utc();
 
-        $outOfRadius = $radius !== null && $distance > $radius;
+        $outOfRadius = ! $evaluation['inside'];
         $deviceMismatch = $deviceCapturedAtUtc !== null
             && abs($deviceCapturedAtUtc->diffInMinutes($capturedAtUtc)) > 15;
 
-        $reviewStatus = $outOfRadius || $deviceMismatch ? 'needs_review' : 'valid';
+        $reviewStatus = $outOfRadius || $deviceMismatch || $gpsFlagged ? 'needs_review' : 'valid';
         $address = (string) ($shipment->destination_address ?? '');
         $recipient = (string) $data['recipient_name'];
         $relation = isset($data['relation']) && $data['relation'] !== ''
@@ -103,6 +115,8 @@ class ProofService
             $reviewStatus,
             $outOfRadius,
             $deviceMismatch,
+            $gps,
+            $evaluation,
         ): DeliveryProof {
             // FRD-02 business rule: several attempts may exist, but only one
             // proof per shipment stays valid (a partial unique index enforces
@@ -138,10 +152,10 @@ class ProofService
                 'watermark_address' => $address,
                 'recipient_name' => $recipient,
                 'relation' => $relation,
+                'gps_accuracy_m' => $gps['assessment']['accuracy_m'],
+                'gps_evidence' => [...$gps['assessment'], 'override_id' => $gps['override_id']],
                 'review_status' => $reviewStatus,
-                'review_note' => $outOfRadius
-                    ? 'POD di luar radius geofence'
-                    : ($deviceMismatch ? 'Selisih waktu server/perangkat' : null),
+                'review_note' => self::reviewNote($outOfRadius, $deviceMismatch, $gps['assessment']['reasons'] ?? []),
             ]);
 
             DeliveryEvent::create([
@@ -158,7 +172,11 @@ class ProofService
                     ['shipment_id' => $shipment->id, 'flag_type' => 'out_of_radius'],
                     [
                         'weight' => 2.00,
-                        'details' => ['distance_m' => $distance, 'radius_m' => $radius],
+                        'details' => [
+                            'distance_m' => $distance,
+                            'radius_m' => $radius,
+                            'geofence_distance_m' => $evaluation['distance_m'],
+                        ],
                         'detected_at' => Date::now(),
                         'is_resolved' => false,
                     ],
@@ -199,5 +217,32 @@ class ProofService
         ShipmentCache::bump();
 
         return $proof;
+    }
+
+    /**
+     * @param  list<array{label?: string}>  $gpsReasons
+     */
+    private static function reviewNote(bool $outOfRadius, bool $deviceMismatch, array $gpsReasons): ?string
+    {
+        $notes = [];
+
+        if ($outOfRadius) {
+            $notes[] = 'POD di luar radius geofence';
+        }
+
+        if ($deviceMismatch) {
+            $notes[] = 'Selisih waktu server/perangkat';
+        }
+
+        if ($gpsReasons !== []) {
+            $labels = implode(', ', array_filter(array_map(
+                static fn ($reason) => is_array($reason) ? ($reason['label'] ?? null) : null,
+                $gpsReasons,
+            )));
+
+            $notes[] = $labels !== '' ? 'Indikasi GPS tidak wajar: '.$labels : 'Indikasi GPS tidak wajar';
+        }
+
+        return $notes === [] ? null : implode('; ', $notes).'.';
     }
 }

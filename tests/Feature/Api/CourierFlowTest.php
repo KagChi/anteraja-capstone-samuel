@@ -29,6 +29,28 @@ class CourierFlowTest extends TestCase
         return User::where('role', User::ROLE_COURIER)->firstOrFail();
     }
 
+    /**
+     * FRD-06 fix-quality signals for a clean device fix.
+     *
+     * @return array<string, mixed>
+     */
+    private function gpsSignals(float $latitude, float $longitude, string|int|float $accuracy = 12): array
+    {
+        $at = now()->toIso8601String();
+
+        return [
+            'accuracy' => $accuracy,
+            'device_timestamp' => $at,
+            'client_flags' => [],
+            'fixes' => [[
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'accuracy' => $accuracy,
+                'timestamp' => $at,
+            ]],
+        ];
+    }
+
     public function test_guests_receive_an_unauthenticated_envelope(): void
     {
         $this->getJson('/api/v1/courier/tasks')
@@ -102,11 +124,13 @@ class CourierFlowTest extends TestCase
             'relation' => 'langsung',
             'device_captured_at' => now()->toIso8601String(),
             'photo' => UploadedFile::fake()->image('pod.jpg', 480, 640),
+            ...$this->gpsSignals($task['destination']['latitude'], $task['destination']['longitude']),
         ])->assertCreated();
 
         $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", [
             'latitude' => $task['destination']['latitude'],
             'longitude' => $task['destination']['longitude'],
+            ...$this->gpsSignals($task['destination']['latitude'], $task['destination']['longitude']),
         ])->assertOk()->assertJsonPath('data.status', 'delivered');
 
         $this->assertSame(
@@ -152,10 +176,11 @@ class CourierFlowTest extends TestCase
             'relation' => 'langsung',
             'device_captured_at' => now()->toIso8601String(),
             'photo' => UploadedFile::fake()->image('pod.jpg', 480, 640),
+            ...$this->gpsSignals($far['latitude'], $far['longitude']),
         ])->assertCreated();
 
         // Without a recorded reason the handover is refused …
-        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", $far)
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", [...$far, ...$this->gpsSignals($far['latitude'], $far['longitude'])])
             ->assertStatus(422);
 
         // The reason is mandatory …
@@ -176,7 +201,7 @@ class CourierFlowTest extends TestCase
 
         // Once recorded, the courier may finish without waiting for the
         // admin's decision.
-        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", $far)
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", [...$far, ...$this->gpsSignals($far['latitude'], $far['longitude'])])
             ->assertOk()
             ->assertJsonPath('data.status', 'delivered');
     }

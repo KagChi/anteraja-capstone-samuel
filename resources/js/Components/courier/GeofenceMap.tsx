@@ -2,36 +2,13 @@ import "leaflet/dist/leaflet.css";
 import * as L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { createMapPin } from "./mapPins";
 
 interface GeofenceMapProps {
   target: [number, number];
   courier: [number, number] | null;
   radiusMeters: number;
   distanceMeters: number | null;
-}
-
-function pinHtml(
-  kind: "target" | "courier",
-  icon: string,
-  label: string,
-): string {
-  const tone =
-    kind === "target" ? "bg-brand-magenta text-white" : "bg-sky-600 text-white";
-  return `
-    <div class="relative">
-      <span class="absolute left-1/2 top-1/2 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white ${tone} shadow-lg">
-        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">${icon}</span>
-      </span>
-      <span class="absolute left-1/2 top-1/2 mt-4 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/75 px-2 py-0.5 text-[10px] font-semibold text-white">${label}</span>
-    </div>`;
-}
-
-function createPin(kind: "target" | "courier", icon: string, label: string) {
-  return L.divIcon({
-    className: "",
-    iconSize: [0, 0],
-    html: pinHtml(kind, icon, label),
-  });
 }
 
 function FitBounds({
@@ -78,12 +55,12 @@ export function GeofenceMap({
   const courierLng = courier?.[1] ?? null;
 
   const targetIcon = useMemo(
-    () => createPin("target", "flag", "Titik tujuan"),
+    () => createMapPin("target", "flag", "Titik tujuan"),
     [],
   );
   const courierIcon = useMemo(
     () =>
-      createPin(
+      createMapPin(
         "courier",
         "two_wheeler",
         distanceMeters !== null ? `Anda +${distanceMeters} m` : "Anda",

@@ -7,6 +7,7 @@ use App\Models\Courier;
 use App\Models\DeliveryEvent;
 use App\Models\Shipment;
 use App\Services\Geofence\GeofenceService;
+use App\Services\Verification\FakeGpsDetector;
 use App\Support\Date;
 use App\Support\Geo\Point;
 use Illuminate\Support\Facades\Cache;
@@ -18,13 +19,22 @@ use Illuminate\Support\Facades\DB;
  */
 class DeliveryCompletionService
 {
-    public function __construct(private readonly GeofenceService $geofence) {}
+    public function __construct(
+        private readonly GeofenceService $geofence,
+        private readonly FakeGpsDetector $fakeGps,
+    ) {}
 
     /**
      * @return array{status: string, distance_m: int, inside: bool, exception_used: bool, pin_required: bool}
      */
-    public function complete(Shipment $shipment, Courier $courier, float $latitude, float $longitude): array
+    public function complete(Shipment $shipment, Courier $courier, float $latitude, float $longitude, array $signals = []): array
     {
+        // FRD-06: the completion gate runs before anything is recorded, so a
+        // blocked attempt never produces an `arrived` event; an approved
+        // review request lets the delivery through and stays on the audit
+        // trail as the override.
+        $gps = $this->fakeGps->guard($shipment, $courier, $latitude, $longitude, $signals);
+
         $evaluation = $this->geofence->evaluate($shipment, $latitude, $longitude);
         $this->geofence->record($shipment, $courier, $latitude, $longitude, $evaluation, 'arrived');
 
@@ -87,6 +97,9 @@ class DeliveryCompletionService
                 'checks' => $outside
                     ? ['exception', 'pod']
                     : array_values(array_filter(['geofence', $shipment->pin_required ? 'pin' : null, 'pod'])),
+                ...($gps['assessment']['level'] !== 'clean'
+                    ? ['gps' => ['level' => $gps['assessment']['level'], 'override_id' => $gps['override_id']]]
+                    : []),
             ],
         ]);
 

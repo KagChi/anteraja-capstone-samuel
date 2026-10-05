@@ -62,6 +62,14 @@ class ApiExceptionRenderer
                 'Sesi tidak valid atau telah berakhir.',
                 [],
             ],
+            // FRD-06: the fake-GPS gate reports its reasons so the courier app
+            // can show what tripped the block and offer an admin review.
+            $exception instanceof FakeGpsSuspectedException => [
+                422,
+                'FAKE_GPS_SUSPECTED',
+                $exception->getMessage(),
+                $exception->reasons(),
+            ],
             $exception instanceof AuthorizationException => [
                 403,
                 'FORBIDDEN',

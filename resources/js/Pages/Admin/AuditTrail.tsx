@@ -50,6 +50,27 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
           : "Belum Ada POD";
 
   const caseInfo = audit?.case ?? null;
+  const gps = audit?.gps ?? null;
+  const gpsStatusLabel =
+    gps?.status === "clean"
+      ? "Bersih"
+      : gps?.status === "suspected"
+        ? "Terduga"
+        : gps?.status === "blocked"
+          ? "Diblokir"
+          : gps?.status === "overridden"
+            ? "Override Admin"
+            : "Belum Ada Data";
+  const gpsStatusClass =
+    gps?.status === "clean"
+      ? "bg-emerald-50 text-emerald-700"
+      : gps?.status === "overridden"
+        ? "bg-sky-50 text-sky-700"
+        : gps?.status === "suspected"
+          ? "bg-amber-50 text-amber-700"
+          : gps?.status === "blocked"
+            ? "bg-red-50 text-red-700"
+            : "bg-surface-container text-on-surface-variant";
   const caseLocked = Boolean(
     saved || caseInfo?.closed || caseInfo?.investigating,
   );
@@ -185,23 +206,39 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
           />{" "}
           Kembali ke Daftar Pengiriman
         </Button>
-        <LoadingButton
-          variant="secondary"
-          size="sm"
-          className="px-4"
-          id="btn-export-audit"
-          busyText="Menyiapkan PDF..."
-          onAction={() => {
-            toast("Menyiapkan berkas audit untuk diunduh.");
-            window.print();
-          }}
-        >
-          <MaterialIcon
-            name="picture_as_pdf"
-            className="text-[18px] text-on-surface-variant"
-          />{" "}
-          Ekspor Audit (PDF)
-        </LoadingButton>
+        <div className="flex items-center gap-2">
+          <Button
+            as="a"
+            href={`/api/v1/admin/shipments/${encodeURIComponent(id)}/audit-export`}
+            variant="outline"
+            size="sm"
+            className="px-4"
+            id="btn-export-audit-csv"
+          >
+            <MaterialIcon
+              name="download"
+              className="text-[18px] text-on-surface-variant"
+            />{" "}
+            Ekspor Data (CSV)
+          </Button>
+          <LoadingButton
+            variant="secondary"
+            size="sm"
+            className="px-4"
+            id="btn-export-audit"
+            busyText="Menyiapkan PDF..."
+            onAction={() => {
+              toast("Menyiapkan berkas audit untuk diunduh.");
+              window.print();
+            }}
+          >
+            <MaterialIcon
+              name="picture_as_pdf"
+              className="text-[18px] text-on-surface-variant"
+            />{" "}
+            Ekspor Audit (PDF)
+          </LoadingButton>
+        </div>
       </nav>
 
       <article className="mb-6 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card">
@@ -335,6 +372,30 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
               <dd className="ml-0 mt-0 text-xs leading-relaxed text-on-surface-variant">
                 {geofence?.analysis ?? "—"}
               </dd>
+              {audit?.meetingPoint ? (
+                <>
+                  <dt className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                    Titik Temu (FRD-04)
+                  </dt>
+                  <dd
+                    className="ml-0 mt-0 text-xs leading-relaxed text-on-surface-variant"
+                    id="audit-meeting-point"
+                  >
+                    {audit.meetingPoint.final
+                      ? `Final ${audit.meetingPoint.adminSet ? "ditetapkan Admin" : "disetujui"}${
+                          audit.meetingPoint.resolvedTime
+                            ? ` ${audit.meetingPoint.resolvedTime}`
+                            : ""
+                        } - ${audit.meetingPoint.distanceToDestinationM} m dari alamat tujuan.`
+                      : audit.meetingPoint.status === "proposed"
+                        ? `Usulan menunggu keputusan (${audit.meetingPoint.requestedTime}).`
+                        : `Usulan terakhir: ${audit.meetingPoint.status} (${audit.meetingPoint.resolvedTime ?? "—"}).`}
+                    {audit.meetingPoint.distanceFromBuyerM != null
+                      ? ` Jarak tujuan ke pembeli ${audit.meetingPoint.distanceFromBuyerM} m.`
+                      : ""}
+                  </dd>
+                </>
+              ) : null}
             </dl>
           </section>
         </article>
@@ -482,6 +543,134 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                     Kembalikan Valid
                   </LoadingButton>
                 ) : null}
+              </p>
+            </section>
+          ) : null}
+        </article>
+
+        <article
+          className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"
+          aria-labelledby="sec-gps"
+          id="gps-integrity"
+        >
+          <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-4">
+            <h2
+              id="sec-gps"
+              className="flex items-center gap-2.5 text-base font-bold text-on-surface"
+            >
+              <MaterialIcon
+                name="location_off"
+                className="text-[22px] text-brand-magenta"
+              />{" "}
+              Integritas GPS
+            </h2>
+            <mark
+              className={
+                "rounded-full px-2.5 py-0.5 text-[11px] font-bold " +
+                gpsStatusClass
+              }
+              id="gps-status-pill"
+            >
+              {gpsStatusLabel}
+            </mark>
+          </header>
+
+          {gps && gps.reasons.length > 0 ? (
+            <ul className="m-0 list-none space-y-1.5 p-0">
+              {gps.reasons.map((reason) => (
+                <li
+                  className="text-xs leading-relaxed text-on-surface-variant"
+                  key={reason.code}
+                >
+                  <strong className="font-semibold text-on-surface">
+                    {reason.label}.
+                  </strong>{" "}
+                  {reason.detail}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="m-0 text-xs leading-relaxed text-on-surface-variant">
+              Tidak ada indikasi lokasi palsu pada pengiriman ini.
+            </p>
+          )}
+
+          {gps && gps.status !== "clean" ? (
+            <dl className="m-0 grid grid-cols-2 gap-3 text-[12px] sm:grid-cols-4">
+              <div className="rounded-lg border border-border-subtle bg-surface-container-low/60 p-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                  Akurasi
+                </dt>
+                <dd className="tabular-nums m-0 mt-0.5 font-bold text-on-surface">
+                  {gps.accuracyM !== null && gps.accuracyM !== undefined
+                    ? `± ${gps.accuracyM} m`
+                    : "—"}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-border-subtle bg-surface-container-low/60 p-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                  Kecepatan Implisit
+                </dt>
+                <dd className="tabular-nums m-0 mt-0.5 font-bold text-on-surface">
+                  {gps.impliedSpeedKmh !== null &&
+                  gps.impliedSpeedKmh !== undefined
+                    ? `${Math.round(gps.impliedSpeedKmh)} km/j`
+                    : "—"}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-border-subtle bg-surface-container-low/60 p-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                  Jendela Fix
+                </dt>
+                <dd className="tabular-nums m-0 mt-0.5 font-bold text-on-surface">
+                  {gps.fixWindow
+                    ? gps.fixWindow.count +
+                      " titik / " +
+                      gps.fixWindow.spanSeconds +
+                      " dtk"
+                    : "—"}
+                </dd>
+              </div>
+              <div className="rounded-lg border border-border-subtle bg-surface-container-low/60 p-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                  Selisih Jam
+                </dt>
+                <dd className="tabular-nums m-0 mt-0.5 font-bold text-on-surface">
+                  {gps.clockSkewSeconds !== null &&
+                  gps.clockSkewSeconds !== undefined
+                    ? `${Math.round(Math.abs(gps.clockSkewSeconds) / 60)} mnt`
+                    : "—"}
+                </dd>
+              </div>
+            </dl>
+          ) : null}
+
+          {gps?.lock ? (
+            <section
+              className="rounded-xl border border-border-subtle bg-surface-container-low/60 p-4"
+              aria-labelledby="judul-keputusan-gps"
+            >
+              <h3
+                id="judul-keputusan-gps"
+                className="mb-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+              >
+                Permintaan Peninjauan Kurir
+              </h3>
+              <p className="m-0 text-xs leading-relaxed text-on-surface-variant">
+                Status:{" "}
+                <strong className="font-semibold text-on-surface">
+                  {gps.lock.status === "approved"
+                    ? "Disetujui"
+                    : gps.lock.status === "rejected"
+                      ? "Ditolak"
+                      : "Menunggu keputusan"}
+                </strong>{" "}
+                ({gps.lock.requestedTime}
+                {gps.lock.decidedTime
+                  ? `, diputuskan ${gps.lock.decidedTime}`
+                  : ""}
+                ). Alasan: <em>{gps.lock.reason}</em>
+                {gps.lock.note ? ` — Catatan admin: ${gps.lock.note}` : ""}
               </p>
             </section>
           ) : null}

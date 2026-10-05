@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchJson, sendJson } from "./api";
+import { ApiError, fetchJson, sendJson } from "./api";
 
 function mockFetch(status: number, body: unknown) {
   const fn = vi.fn(
@@ -36,6 +36,27 @@ describe("fetchJson", () => {
     });
 
     await expect(fetchJson("/api/v1/x")).rejects.toThrow("Data tidak valid.");
+  });
+
+  it("carries the machine code and details for branching", async () => {
+    mockFetch(422, {
+      success: false,
+      data: null,
+      error: {
+        code: "FAKE_GPS_SUSPECTED",
+        message: "Lokasi perangkat terdeteksi tidak wajar.",
+        errors: [{ code: "accuracy_invalid" }],
+      },
+    });
+
+    const error = await fetchJson("/api/v1/x").catch((caught) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe("FAKE_GPS_SUSPECTED");
+    expect((error as ApiError).status).toBe(422);
+    expect((error as ApiError).details?.errors).toEqual([
+      { code: "accuracy_invalid" },
+    ]);
   });
 });
 

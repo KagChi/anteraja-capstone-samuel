@@ -150,6 +150,9 @@ class ShipmentReadService
             'status' => is_string($filters['status'] ?? null) ? $filters['status'] : null,
             'service' => is_string($filters['service'] ?? null) ? $filters['service'] : null,
             'region' => is_string($filters['region'] ?? null) ? $filters['region'] : null,
+            // PRD §9 / FR-05-10: a courier's reads are scoped to their own
+            // shipments; the controller injects the id for courier actors.
+            'courier_id' => is_string($filters['courier_id'] ?? null) ? $filters['courier_id'] : null,
         ], static fn ($value) => $value !== null && $value !== '');
 
         /** @var array<string, string> $normalized */

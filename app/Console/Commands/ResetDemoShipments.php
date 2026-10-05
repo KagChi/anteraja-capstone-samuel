@@ -6,6 +6,8 @@ use App\Models\AnomalyFlag;
 use App\Models\DeliveryEvent;
 use App\Models\DeliveryException;
 use App\Models\DeliveryProof;
+use App\Models\GpsLockRequest;
+use App\Models\MeetingPoint;
 use App\Models\PinChallenge;
 use App\Models\Shipment;
 use App\Services\Delivery\DashboardService;
@@ -45,6 +47,9 @@ class ResetDemoShipments extends Command
     private const FLOW_EVENTS = [
         'pin_verification', 'pod_captured', 'delivered',
         'exception_requested', 'exception_decided', 'delivery_attempt',
+        'gps_blocked', 'gps_lock_requested', 'gps_lock_decided',
+        'meeting_point_proposed', 'meeting_point_approved',
+        'meeting_point_rejected', 'meeting_point_expired',
     ];
 
     public function handle(): int
@@ -67,6 +72,8 @@ class ResetDemoShipments extends Command
 
             DeliveryProof::query()->where('shipment_id', $shipment->id)->delete();
             DeliveryException::query()->where('shipment_id', $shipment->id)->delete();
+            GpsLockRequest::query()->where('shipment_id', $shipment->id)->delete();
+            MeetingPoint::query()->where('shipment_id', $shipment->id)->delete();
 
             $seeded = self::SEEDED_EVENTS[$shipment->tracking_number] ?? null;
             $events = DeliveryEvent::query()->where('shipment_id', $shipment->id);
@@ -81,7 +88,10 @@ class ResetDemoShipments extends Command
 
             AnomalyFlag::query()
                 ->where('shipment_id', $shipment->id)
-                ->whereIn('flag_type', ['pod_invalid', 'pod_needs_review', 'device_time_mismatch'])
+                ->whereIn('flag_type', [
+                    'pod_invalid', 'pod_needs_review', 'device_time_mismatch',
+                    'mock_gps_suspected', 'repeated_pin_failure',
+                ])
                 ->delete();
 
             PinChallenge::query()->where('shipment_id', $shipment->id)->update([

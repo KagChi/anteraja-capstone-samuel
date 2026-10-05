@@ -14,7 +14,13 @@ export default defineConfig({
     // Tests run with a mocked position at the demo destination and Chromium's
     // fake media device standing in for the phone camera.
     permissions: ["geolocation"],
-    geolocation: { latitude: -6.175392, longitude: 106.827153 },
+    // A realistic accuracy keeps the FRD-06 fake-GPS gate clean; the blocked
+    // spec overrides it with 0 (Playwright's default) on purpose.
+    geolocation: {
+      latitude: -6.175392,
+      longitude: 106.827153,
+      accuracy: 12,
+    },
     launchOptions: {
       args: [
         "--use-fake-device-for-media-stream",

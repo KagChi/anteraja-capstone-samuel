@@ -17,6 +17,7 @@ class DeliveryController extends CourierController
             $this->courier(),
             (float) $request->input('latitude'),
             (float) $request->input('longitude'),
+            $request->validated(),
         );
 
         return $this->ok($result);

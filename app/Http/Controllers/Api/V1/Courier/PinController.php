@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Api\V1\Courier;
 use App\Http\Requests\Api\V1\Courier\VerifyPinRequest;
 use App\Services\Verification\PinService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PinController extends CourierController
 {
-    public function store(string $tracking, PinService $pins): JsonResponse
+    public function store(string $tracking, Request $request, PinService $pins): JsonResponse
     {
         $shipment = $this->shipment($tracking);
 
-        $result = $pins->issue($shipment);
+        $result = $pins->issue($shipment, $request->boolean('resend'));
+
+        $resendLimit = PinService::resendLimit($shipment);
+        $resendCount = (int) $result['challenge']->resend_count;
 
         $payload = [
             'status' => $result['challenge']->status,
@@ -21,6 +25,9 @@ class PinController extends CourierController
             'destination' => $shipment->recipient?->email,
             'attempts' => $result['challenge']->attempts,
             'max_attempts' => $result['challenge']->max_attempts,
+            'resend_count' => $resendCount,
+            'resend_limit' => $resendLimit,
+            'can_resend' => $resendCount < $resendLimit,
         ];
 
         // Demo prototype: the PIN is a fixed, published code (see PinService),

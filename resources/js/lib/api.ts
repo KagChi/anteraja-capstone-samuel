@@ -5,6 +5,28 @@ function readCookie(name: string): string | null {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
+export interface ApiErrorPayload {
+  code?: string;
+  message?: string;
+  errors?: unknown;
+}
+
+/**
+ * Structured API failure: the PRD envelope carries a machine code and, for
+ * the fake-GPS gate (FRD-06), the list of reasons behind the block.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly code: string | null = null,
+    readonly status: number = 0,
+    readonly details: ApiErrorPayload | null = null,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 function jsonHeaders(): Record<string, string> {
   const token = readCookie("XSRF-TOKEN");
 
@@ -26,7 +48,7 @@ export async function fetchJson<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await errorMessage(response));
+    throw await apiError(response);
   }
 
   return (await response.json()) as T;
@@ -45,7 +67,7 @@ export async function sendJson<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await errorMessage(response));
+    throw await apiError(response);
   }
 
   if (response.status === 204) {
@@ -72,7 +94,7 @@ export async function sendForm<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await errorMessage(response));
+    throw await apiError(response);
   }
 
   if (response.status === 204) {
@@ -82,18 +104,28 @@ export async function sendForm<T>(
   return (await response.json()) as T;
 }
 
-async function errorMessage(response: Response): Promise<string> {
+async function apiError(response: Response): Promise<ApiError> {
   try {
     const payload = (await response.json()) as {
-      error?: { message?: string };
+      error?: ApiErrorPayload;
       message?: string;
     };
-    return (
+    const message =
       payload.error?.message ??
       payload.message ??
-      `Permintaan gagal (${response.status} ${response.statusText})`
+      `Permintaan gagal (${response.status} ${response.statusText})`;
+
+    return new ApiError(
+      message,
+      payload.error?.code ?? null,
+      response.status,
+      payload.error ?? null,
     );
   } catch {
-    return `Permintaan gagal (${response.status} ${response.statusText})`;
+    return new ApiError(
+      `Permintaan gagal (${response.status} ${response.statusText})`,
+      null,
+      response.status,
+    );
   }
 }

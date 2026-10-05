@@ -4,6 +4,7 @@ namespace App\Support\Presentation;
 
 use App\Models\DeliveryProof;
 use App\Models\Shipment;
+use App\Services\Verification\PinService;
 use App\Support\Date;
 use App\Support\Geo\Distance;
 use App\Support\Geo\ServiceAreas;
@@ -85,6 +86,17 @@ class DeliveryPresenter
         $exception = $shipment->deliveryExceptions
             ->sortByDesc('created_at')
             ->first();
+        $gpsLock = $shipment->gpsLockRequests
+            ->sortByDesc('created_at')
+            ->first();
+        $pin = $shipment->pinChallenge;
+        $meetingPoint = MeetingPointPresenter::task($shipment);
+        $finalMeetingPoint = $shipment->meetingPoints->first(
+            fn ($point) => in_array($point->status, MeetingPointPresenter::FINAL_STATUSES, true),
+        );
+        $geofenceCenter = $finalMeetingPoint !== null && $finalMeetingPoint->point_lat !== null
+            ? [(float) $finalMeetingPoint->point_lat, (float) $finalMeetingPoint->point_lng]
+            : [(float) ($shipment->destination_lat ?? 0.0), (float) ($shipment->destination_lng ?? 0.0)];
 
         $category = $shipment->service_type === 'instant' ? 'instant' : 'sameday';
 
@@ -121,11 +133,33 @@ class DeliveryPresenter
                 'deviationMeters' => $deviation,
                 'radiusMeters' => $radius,
                 'point' => $shipment->destination_address,
+                'center' => $geofenceCenter,
+                'source' => $finalMeetingPoint !== null ? 'meeting_point' : 'destination',
             ] : null,
+            'meetingPoint' => $meetingPoint,
             'exception' => $exception ? [
                 'status' => $exception->status,
                 'reason' => $exception->reason,
                 'submittedTime' => Date::timeLabel($exception->created_at),
+            ] : null,
+            'gpsLock' => $gpsLock ? [
+                'status' => $gpsLock->status,
+                'reason' => $gpsLock->reason,
+                'requestedTime' => Date::timeLabel($gpsLock->created_at),
+                'decidedTime' => $gpsLock->reviewed_at ? Date::timeLabel($gpsLock->reviewed_at) : null,
+                'note' => $gpsLock->review_note,
+            ] : null,
+            'pin' => $pin ? [
+                'status' => $pin->status,
+                'attempts' => (int) $pin->attempts,
+                'maxAttempts' => (int) $pin->max_attempts,
+                'locked' => $pin->status === 'locked',
+                'verified' => in_array($pin->status, ['verified', 'override'], true),
+                'override' => $pin->status === 'override',
+                'overrideReason' => $pin->override_reason,
+                'lockedAt' => $pin->locked_at ? Date::timeLabel($pin->locked_at) : null,
+                'resendCount' => (int) $pin->resend_count,
+                'resendLimit' => PinService::resendLimit($shipment),
             ] : null,
         ], static fn ($value) => $value !== null);
     }
@@ -202,6 +236,8 @@ class DeliveryPresenter
             ] : null,
             'deviationMeters' => $deviation,
             'maxToleranceMeters' => $radius,
+            'gps' => self::gps($shipment),
+            'meetingPoint' => MeetingPointPresenter::task($shipment),
             'reason' => $shipment->deliveryExceptions
                 ->firstWhere('status', 'approved')?->reason
                 ?? 'Tidak ada pengecualian radius yang disetujui.',
@@ -227,6 +263,35 @@ class DeliveryPresenter
         return 'review';
     }
 
+    /**
+     * Courier history row: the completed stop as the courier sees it after the
+     * handover (status, review outcome and handover distance).
+     */
+    public static function historyRow(Shipment $shipment): array
+    {
+        $proof = $shipment->deliveryProofs
+            ->sortByDesc('captured_at')
+            ->first();
+        $flagged = self::needsReview($shipment);
+
+        return [
+            'id' => $shipment->id,
+            'tracking' => $shipment->tracking_number,
+            'service' => self::serviceSegment($shipment->service_type),
+            'recipient' => $shipment->recipient?->name ?? 'Penerima',
+            'address' => $shipment->destination_address,
+            'status' => $shipment->status,
+            'statusLabel' => match (true) {
+                $shipment->status === 'failed' => 'Gagal',
+                $flagged => 'Perlu Tinjauan',
+                default => 'Terverifikasi',
+            },
+            'dateLabel' => Date::dateTimeLabel($shipment->delivered_at ?? $shipment->created_at),
+            'distanceMeters' => $proof?->distance_to_destination_m,
+            'reviewStatus' => $proof?->review_status,
+        ];
+    }
+
     public static function needsReview(Shipment $shipment): bool
     {
         $score = $shipment->anomalyFlags
@@ -239,6 +304,52 @@ class DeliveryPresenter
 
         return $shipment->deliveryProofs
             ->contains(fn ($proof) => $proof->review_status === 'needs_review');
+    }
+
+    /**
+     * GPS integrity summary for the audit trail: the detector evidence stored
+     * on the latest POD, the anomaly flag and the review decision (FRD-06).
+     *
+     * @return array<string, mixed>
+     */
+    private static function gps(Shipment $shipment): array
+    {
+        $proof = $shipment->deliveryProofs
+            ->filter(fn ($item) => $item->gps_evidence !== null)
+            ->sortByDesc('captured_at')
+            ->first();
+        $evidence = is_array($proof?->gps_evidence) ? $proof->gps_evidence : [];
+        $flag = $shipment->anomalyFlags->firstWhere('flag_type', 'mock_gps_suspected');
+        $flagDetails = is_array($flag?->details) ? $flag->details : [];
+        $lock = $shipment->gpsLockRequests->sortByDesc('created_at')->first();
+
+        $level = $evidence['level'] ?? $flagDetails['level'] ?? null;
+        $overrideId = $evidence['override_id'] ?? null;
+        $reasons = $evidence['reasons'] ?? ($flagDetails['reasons'] ?? []);
+
+        return [
+            'status' => match (true) {
+                $overrideId !== null => 'overridden',
+                $level === 'blocked' => 'blocked',
+                $level === 'suspected' => 'suspected',
+                $flag !== null => 'suspected',
+                default => 'clean',
+            },
+            'level' => $level,
+            'accuracyM' => $proof?->gps_accuracy_m ?? ($flagDetails['accuracy_m'] ?? null),
+            'reasons' => GpsEvidence::reasons($reasons),
+            'impliedSpeedKmh' => $evidence['implied_speed_kmh'] ?? ($flagDetails['implied_speed_kmh'] ?? null),
+            'fixWindow' => GpsEvidence::fixWindow($evidence['fix_window'] ?? ($flagDetails['fix_window'] ?? null)),
+            'clockSkewSeconds' => $evidence['clock_skew_seconds'] ?? ($flagDetails['clock_skew_seconds'] ?? null),
+            'overrideUsed' => $overrideId !== null,
+            'lock' => $lock ? [
+                'status' => $lock->status,
+                'reason' => $lock->reason,
+                'requestedTime' => Date::timeLabel($lock->created_at),
+                'decidedTime' => $lock->reviewed_at ? Date::timeLabel($lock->reviewed_at) : null,
+                'note' => $lock->review_note,
+            ] : null,
+        ];
     }
 
     public static function deviation(Shipment $shipment): int
@@ -445,14 +556,21 @@ class DeliveryPresenter
                 'verified' => 'PIN terverifikasi oleh penerima',
                 'failed' => 'PIN salah (percobaan '.($metadata['attempt'] ?? 1).')',
                 'expired' => 'PIN kedaluwarsa',
+                'unlocked' => 'Blokir PIN dibuka Admin',
+                'override' => 'PIN dilewati atas persetujuan Admin',
                 default => 'Verifikasi PIN diproses',
             },
             'pod_captured' => 'Bukti foto (POD) diambil',
+            'gps_blocked' => 'Lokasi tidak wajar - POD diblokir sistem',
+            'gps_lock_requested' => 'Kurir meminta peninjauan blokir GPS',
+            'gps_lock_decided' => 'Blokir GPS diputuskan Admin',
             'delivery_attempt' => 'Upaya serah terima dicatat',
             'exception_requested' => 'Pengecualian radius diajukan kurir',
             'exception_decided' => 'Pengecualian diputuskan admin',
-            'meeting_point_proposed' => 'Titik temu diusulkan',
-            'meeting_point_approved' => 'Titik temu disetujui',
+            'meeting_point_proposed' => 'Titik temu diusulkan kurir',
+            'meeting_point_approved' => 'Titik temu final ditetapkan',
+            'meeting_point_rejected' => 'Usulan titik temu ditolak Admin',
+            'meeting_point_expired' => 'Usulan titik temu kedaluwarsa',
             'delivered' => 'Pengiriman dituntaskan',
             'failed' => 'Pengiriman gagal',
             default => ucfirst(str_replace('_', ' ', $type)),
@@ -463,7 +581,8 @@ class DeliveryPresenter
     {
         return match ($type) {
             'pin_verification' => 'tertiary',
-            'delivered', 'exception_decided', 'meeting_point_approved' => 'magenta',
+            'delivered', 'exception_decided', 'meeting_point_approved',
+            'gps_blocked', 'gps_lock_decided' => 'magenta',
             default => null,
         };
     }
