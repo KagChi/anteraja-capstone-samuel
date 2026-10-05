@@ -23,9 +23,9 @@ class PinController extends CourierController
             'max_attempts' => $result['challenge']->max_attempts,
         ];
 
-        if (config('app.debug')) {
-            $payload['debug_code'] = $result['code'];
-        }
+        // Demo prototype: the PIN is a fixed, published code (123456), so the
+        // courier hint can always show it. Production would drop this line.
+        $payload['debug_code'] = $result['code'];
 
         return $this->ok($payload, 201);
     }
