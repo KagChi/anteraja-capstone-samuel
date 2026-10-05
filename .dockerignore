@@ -7,8 +7,9 @@ node_modules
 vendor
 public/build
 public/storage
+bootstrap/cache/*.php
 storage/app/private
-storage/framework/cache/data
+storage/framework
 storage/logs/*.log
 tests
 test-results
