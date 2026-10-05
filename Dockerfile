@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
+# Every stage stays on a Debian/glibc base: the Bun, PHP and FrankenPHP images
+# all publish a musl (-alpine) variant, and this app is not built for musl.
+
 # --- Frontend assets -------------------------------------------------------
-FROM oven/bun:1 AS assets
+FROM oven/bun:1-debian AS assets
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
@@ -11,7 +14,22 @@ COPY public ./public
 RUN bun run build
 
 # --- Composer dependencies -------------------------------------------------
-FROM composer:2 AS vendor
+FROM php:8.4-cli-bookworm AS vendor
+
+ARG COMPOSER_VERSION=2.10.3
+ARG COMPOSER_SHA256=7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+
+# The official composer image resolves to Alpine on this registry, so the
+# pinned phar is installed on the same glibc base (and PHP minor) as the
+# runtime instead of mixing libcs.
+RUN apt-get update && apt-get install -y --no-install-recommends unzip git \
+    && curl -fsSL "https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer \
+    && echo "${COMPOSER_SHA256}  /usr/local/bin/composer" | sha256sum -c - \
+    && chmod +x /usr/local/bin/composer \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress
@@ -26,6 +44,7 @@ COPY artisan composer.json composer.lock ./
 RUN composer dump-autoload --no-dev --optimize --no-interaction --no-scripts
 
 # --- Runtime: FrankenPHP (Caddy) in Octane worker mode ----------------------
+# The -bookworm tag is the Debian/glibc variant of the FrankenPHP image.
 FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
 
 # Same extension set as before (GD with FreeType/JPEG renders the POD

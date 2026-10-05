@@ -95,6 +95,10 @@ The `app` service sits behind the `app` profile, so a plain
 `public/build` and the rest of the static files, and only application routes
 reach PHP.
 
+Every build stage stays on a Debian/glibc base (`oven/bun:1-debian`,
+`php:8.4-cli-bookworm`, `dunglas/frankenphp:1-php8.4-bookworm`). Bun, PHP and
+FrankenPHP each publish a musl variant, and the app does not target musl.
+
 ## Serving in production (FrankenPHP + Octane)
 
 The container starts `php artisan octane:frankenphp`, which keeps a booted
