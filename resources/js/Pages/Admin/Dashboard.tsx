@@ -54,13 +54,13 @@ export function DashboardPage() {
         description="Pantau status integritas pengiriman kurir Satria hari ini."
       />
 
-      {list.isLoading && (
+      {list.isLoading && rows.length === 0 && (
         <StatusPanel spinning>
           Memuat data pengiriman dari server...
         </StatusPanel>
       )}
 
-      {list.isError && (
+      {list.isError && rows.length === 0 && (
         <StatusPanel
           icon="cloud_off"
           tone="error"
@@ -78,9 +78,10 @@ export function DashboardPage() {
         </StatusPanel>
       )}
 
-      {!list.isLoading && !list.isError && (
+      {rows.length > 0 || (!list.isLoading && !list.isError) ? (
         <ShipmentList
           shipments={rows}
+          isRefreshing={list.isRefreshing}
           toolbar={
             <ShipmentFilters
               status={status}
@@ -104,7 +105,7 @@ export function DashboardPage() {
             onNext: list.next,
           }}
         />
-      )}
+      ) : null}
     </>
   );
 }

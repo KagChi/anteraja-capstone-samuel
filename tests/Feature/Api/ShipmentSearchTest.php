@@ -118,4 +118,20 @@ class ShipmentSearchTest extends TestCase
         $response->assertOk();
         $this->assertNotEmpty($response->json('data'));
     }
+
+    public function test_courier_tasks_share_the_same_filters(): void
+    {
+        $courier = User::where('role', User::ROLE_COURIER)->firstOrFail();
+        $this->actingAs($courier);
+
+        $byTracking = $this->getJson('/api/v1/courier/tasks?search=AJ2509001001')->json('data');
+        $this->assertCount(1, $byTracking);
+        $this->assertSame('AJ2509001001', $byTracking[0]['tracking']);
+
+        $instant = $this->getJson('/api/v1/courier/tasks?service=instant&per_page=25')->json('data');
+        $this->assertNotEmpty($instant);
+        foreach ($instant as $task) {
+            $this->assertSame('instant', $task['category']);
+        }
+    }
 }

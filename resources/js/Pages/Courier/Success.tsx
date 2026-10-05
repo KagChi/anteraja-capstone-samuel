@@ -7,6 +7,7 @@ import { Button } from "../../Components/ui/Button";
 import { useSession } from "../../Contexts/SessionContext";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useActiveTracking } from "../../Hooks/useActiveTracking";
+import { useCourierAvatar } from "../../Hooks/useCourierAvatar";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { formatStamp, randomDigits } from "../../lib/format";
@@ -15,7 +16,8 @@ import type { DeliveryTask } from "../../types";
 export function SuccessPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
-  const { courierAvatar, proof } = useShipmentContext();
+  const { proof } = useShipmentContext();
+  const courierAvatar = useCourierAvatar();
   const activeTracking = useActiveTracking();
   const name = session?.name ?? "Kurir";
 

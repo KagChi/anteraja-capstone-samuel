@@ -1,15 +1,8 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useState } from "react";
-import { useAvatar } from "../Hooks/useAvatar";
-import type {
-  AsyncResource,
-  DeliveryCompletionResult,
-  DeliveryProofResult,
-} from "../types";
-import { useSession } from "./SessionContext";
+import type { DeliveryCompletionResult, DeliveryProofResult } from "../types";
 
 interface ShipmentContextValue {
-  courierAvatar: AsyncResource<string>;
   relation: string;
   setRelation: (relation: string) => void;
   pinVerified: boolean;
@@ -23,10 +16,6 @@ interface ShipmentContextValue {
 const ShipmentContext = createContext<ShipmentContextValue | null>(null);
 
 export function ShipmentProvider({ children }: { children: ReactNode }) {
-  const { session } = useSession();
-
-  const courierAvatar = useAvatar(session?.name);
-
   const [relation, setRelation] = useState("langsung");
   const [pinVerified, setPinVerified] = useState(false);
   const [proof, setProof] = useState<DeliveryProofResult | null>(null);
@@ -37,7 +26,6 @@ export function ShipmentProvider({ children }: { children: ReactNode }) {
   return (
     <ShipmentContext.Provider
       value={{
-        courierAvatar,
         relation,
         setRelation,
         pinVerified,

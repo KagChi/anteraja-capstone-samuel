@@ -9,12 +9,14 @@ interface ShipmentListProps {
   shipments: DeliveryRow[];
   toolbar?: ReactNode;
   pagination?: PaginationProps;
+  isRefreshing?: boolean;
 }
 
 export function ShipmentList({
   shipments,
   toolbar,
   pagination,
+  isRefreshing = false,
 }: ShipmentListProps) {
   return (
     <DataTable
@@ -66,8 +68,12 @@ export function ShipmentList({
         </tr>
       </thead>
       <tbody
-        className="divide-y divide-border-subtle/70"
+        className={
+          "divide-y divide-border-subtle/70 transition-opacity " +
+          (isRefreshing ? "opacity-60" : "")
+        }
         id="delivery-table-body"
+        aria-busy={isRefreshing}
       >
         {shipments.map((shipment) => (
           <ShipmentItem key={shipment.id} shipment={shipment} />

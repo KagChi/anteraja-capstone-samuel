@@ -37,12 +37,7 @@ class ShipmentReadService
      */
     public function page(int $perPage, ?string $cursor, array $filters = []): array
     {
-        $filters = array_filter([
-            'search' => is_string($filters['search'] ?? null) ? trim($filters['search']) : null,
-            'status' => is_string($filters['status'] ?? null) ? $filters['status'] : null,
-            'service' => is_string($filters['service'] ?? null) ? $filters['service'] : null,
-            'region' => is_string($filters['region'] ?? null) ? $filters['region'] : null,
-        ], static fn ($value) => $value !== null && $value !== '');
+        $filters = $this->normalizeFilters($filters);
 
         $decoded = Cursor::decode($cursor);
         $key = sprintf(
@@ -115,16 +110,24 @@ class ShipmentReadService
      *
      * @return array{rows: array<int, array<string, mixed>>, next_cursor: string|null}
      */
-    public function tasksPage(string $courierId, int $perPage, ?string $cursor): array
+    public function tasksPage(string $courierId, int $perPage, ?string $cursor, array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
         $decoded = Cursor::decode($cursor);
-        $key = sprintf('tasks.%s.%d.%s', $courierId, $perPage, $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first');
+        $key = sprintf(
+            'tasks.%s.%d.%s.%s',
+            $courierId,
+            $perPage,
+            $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first',
+            $filters === [] ? 'all' : substr(sha1(json_encode($filters)), 0, 12),
+        );
 
         return ShipmentCache::remember($key, fn (): array => CursorPage::get(
             Shipment::withPresentation()
                 ->withDestinationCoordinates()
                 ->where('courier_id', $courierId)
                 ->whereIn('status', ['pending', 'picked_up', 'in_transit'])
+                ->forListFilters($filters)
                 ->orderBy('created_at')
                 ->orderBy('id'),
             $perPage,
@@ -134,6 +137,23 @@ class ShipmentReadService
             'asc',
             fn (Shipment $shipment) => DeliveryPresenter::task($shipment),
         ));
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<string, string>
+     */
+    private function normalizeFilters(array $filters): array
+    {
+        $normalized = array_filter([
+            'search' => is_string($filters['search'] ?? null) ? trim($filters['search']) : null,
+            'status' => is_string($filters['status'] ?? null) ? $filters['status'] : null,
+            'service' => is_string($filters['service'] ?? null) ? $filters['service'] : null,
+            'region' => is_string($filters['region'] ?? null) ? $filters['region'] : null,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        /** @var array<string, string> $normalized */
+        return $normalized;
     }
 
     /**

@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar } from "../../Components/Avatar";
 import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
@@ -8,8 +8,8 @@ import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Pagination } from "../../Components/ui/Pagination";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useSession } from "../../Contexts/SessionContext";
-import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
+import { useCourierAvatar } from "../../Hooks/useCourierAvatar";
 import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
 import { useFlashToast } from "../../Hooks/useFlashToast";
 import { useSeo } from "../../Hooks/useSeo";
@@ -66,38 +66,51 @@ function Badge({ badge }: { badge: TaskBadge }) {
 export function TasksPage() {
   useSeo("/courier/tugas");
   const { session } = useSession();
-  const { courierAvatar } = useShipmentContext();
+  const courierAvatar = useCourierAvatar();
   const toast = useToast();
   const name = session?.name ?? "Kurir";
   useFlashToast();
 
   const [filter, setFilter] = useState<Filter>("all");
+  const [search, setSearch] = useState("");
   const [flash, setFlash] = useState<string | null>(null);
   const cardRefs = useRef(new Map<string, HTMLElement>());
+  const pendingScan = useRef<string | null>(null);
 
+  // Filtering and the resi scan run on the server, sharing the same query
+  // pipeline as the admin console.
   const tasksResource = useCursorPagination<DeliveryTask>(
     "/api/v1/courier/tasks",
     PER_PAGE,
+    {
+      service: filter === "all" ? undefined : filter,
+      search: search.trim() || undefined,
+    },
   );
   const tasks = tasksResource.items;
 
-  const visibleTasks = tasks.filter(
-    (task) => filter === "all" || task.category === filter,
-  );
-
   function scan() {
     const code = window.prompt("Masukkan nomor resi yang ingin dipindai:");
-    if (!code) return;
-    const query = code.trim().toLowerCase();
+    const query = code?.trim() ?? "";
     if (!query) return;
-    const found = tasks.find((task) =>
-      task.tracking.toLowerCase().includes(query),
-    );
-    if (!found) {
-      toast(`Resi tidak ditemukan: ${code.trim()}`, "error");
+    setFilter("all");
+    setSearch(query);
+    pendingScan.current = query.toLowerCase();
+  }
+
+  useEffect(() => {
+    const pending = pendingScan.current;
+    if (!pending || tasksResource.isLoading || tasksResource.isRefreshing) {
       return;
     }
-    setFilter("all");
+    pendingScan.current = null;
+    const found = tasks.find((task) =>
+      task.tracking.toLowerCase().includes(pending),
+    );
+    if (!found) {
+      toast(`Resi tidak ada di daftar tugas aktif: ${pending}`, "error");
+      return;
+    }
     setFlash(found.tracking);
     window.setTimeout(() => {
       cardRefs.current
@@ -106,7 +119,7 @@ export function TasksPage() {
     }, 0);
     window.setTimeout(() => setFlash(null), 900);
     toast(`Resi ditemukan: ${found.tracking}`);
-  }
+  }, [tasks, tasksResource.isLoading, tasksResource.isRefreshing, toast]);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
@@ -147,7 +160,7 @@ export function TasksPage() {
             Pengiriman
           </h1>
           <p className="text-[13px] text-on-surface-variant">
-            <span>{visibleTasks.length}</span> tersisa
+            <span>{tasks.length}</span> tersisa
           </p>
         </section>
 
@@ -166,11 +179,15 @@ export function TasksPage() {
         </FilterTabs>
 
         <ul
-          className="m-0 flex list-none flex-col gap-3 p-0"
+          className={
+            "m-0 flex list-none flex-col gap-3 p-0 transition-opacity " +
+            (tasksResource.isRefreshing ? "opacity-60" : "")
+          }
           id="task-container"
           aria-label="Daftar stop aktif"
+          aria-busy={tasksResource.isRefreshing}
         >
-          {tasksResource.isLoading ? (
+          {tasksResource.isLoading && tasks.length === 0 ? (
             <StatusPanel as="li" spinning>
               Memuat tugas dari server...
             </StatusPanel>
@@ -191,7 +208,7 @@ export function TasksPage() {
               Gagal memuat tugas dari server.
             </StatusPanel>
           ) : (
-            visibleTasks.map((task) => (
+            tasks.map((task) => (
               <li key={task.tracking}>
                 <article
                   ref={(element) => {

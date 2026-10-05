@@ -17,6 +17,7 @@ export interface CursorPagination<T> {
   meta: CursorMeta | null;
   page: number;
   isLoading: boolean;
+  isRefreshing: boolean;
   isError: boolean;
   hasNext: boolean;
   hasPrev: boolean;
@@ -41,9 +42,11 @@ export function useCursorPagination<T>(
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const [isLoading, setIsLoading] = useState(Boolean(url));
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isError, setIsError] = useState(false);
   const [nonce, setNonce] = useState(0);
   const requestId = useRef(0);
+  const hasItems = useRef(false);
 
   const paramsKey = useMemo(
     () =>
@@ -55,7 +58,6 @@ export function useCursorPagination<T>(
     [params],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: paramsKey captures the filters that matter
   const activeParams = useMemo(
     () => JSON.parse(paramsKey) as [string, string][],
     [paramsKey],
@@ -82,13 +84,17 @@ export function useCursorPagination<T>(
       const id = requestId.current + 1;
       requestId.current = id;
 
-      setIsLoading(true);
+      // Keep the current rows on screen while the next page loads; only the
+      // very first load blanks the table.
+      setIsLoading(!hasItems.current);
+      setIsRefreshing(hasItems.current);
       setIsError(false);
 
       fetchJson<CursorResponse<T>>(buildUrl(cursor))
         .then((response) => {
           if (id !== requestId.current) return;
           setItems(response.data ?? []);
+          hasItems.current = (response.data ?? []).length > 0;
           setMeta(response.meta ?? null);
           setPage(targetPage);
           setCursors((previous) => {
@@ -97,11 +103,13 @@ export function useCursorPagination<T>(
             return next;
           });
           setIsLoading(false);
+          setIsRefreshing(false);
         })
         .catch(() => {
           if (id !== requestId.current) return;
           setIsError(true);
           setIsLoading(false);
+          setIsRefreshing(false);
         });
     },
     [url, buildUrl],
@@ -111,10 +119,12 @@ export function useCursorPagination<T>(
   useEffect(() => {
     if (!url) {
       setItems([]);
+      hasItems.current = false;
       setMeta(null);
       setPage(1);
       setCursors([null]);
       setIsLoading(false);
+      setIsRefreshing(false);
       setIsError(false);
       return;
     }
@@ -140,6 +150,7 @@ export function useCursorPagination<T>(
     meta,
     page,
     isLoading,
+    isRefreshing,
     isError,
     hasNext: Boolean(meta?.next_cursor),
     hasPrev: page > 1,

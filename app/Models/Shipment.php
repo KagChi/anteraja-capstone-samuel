@@ -169,9 +169,19 @@ class Shipment extends Model
 
             $query->where(function ($query) use ($like): void {
                 $query->where('shipments.tracking_number', 'ilike', $like)
-                    ->orWhere('list_courier.name', 'ilike', $like)
-                    ->orWhere('list_courier.code', 'ilike', $like)
-                    ->orWhere('list_recipient.name', 'ilike', $like)
+                    ->orWhereExists(function ($query) use ($like): void {
+                        $query->selectRaw('1')->from('couriers as search_courier')
+                            ->whereColumn('search_courier.id', 'shipments.courier_id')
+                            ->where(function ($query) use ($like): void {
+                                $query->where('search_courier.name', 'ilike', $like)
+                                    ->orWhere('search_courier.code', 'ilike', $like);
+                            });
+                    })
+                    ->orWhereExists(function ($query) use ($like): void {
+                        $query->selectRaw('1')->from('recipients as search_recipient')
+                            ->whereColumn('search_recipient.id', 'shipments.recipient_id')
+                            ->where('search_recipient.name', 'ilike', $like);
+                    })
                     ->orWhere('shipments.destination_address', 'ilike', $like);
             });
         }
@@ -198,7 +208,11 @@ class Shipment extends Model
         $areaCode = ServiceAreas::codeForRegency(is_string($region) ? $region : null);
 
         if ($areaCode !== null) {
-            $query->where('list_area.code', $areaCode);
+            $query->whereExists(function ($query) use ($areaCode): void {
+                $query->selectRaw('1')->from('service_areas as search_area')
+                    ->whereColumn('search_area.id', 'shipments.service_area_id')
+                    ->where('search_area.code', $areaCode);
+            });
         }
 
         return $query;

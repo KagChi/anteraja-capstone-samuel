@@ -5,8 +5,8 @@ import { Avatar } from "../Components/Avatar";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { Button } from "../Components/ui/Button";
 import { useSession } from "../Contexts/SessionContext";
-import { useShipmentContext } from "../Contexts/ShipmentContext";
 import { ADMIN_NAV_GROUPS } from "../data/nav";
+import { useCourierAvatar } from "../Hooks/useCourierAvatar";
 import { useFlashToast } from "../Hooks/useFlashToast";
 
 interface Crumb {
@@ -51,7 +51,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const pendingExceptions =
     (props as { pendingExceptions?: number }).pendingExceptions ?? 0;
   const { session, logout } = useSession();
-  const { courierAvatar } = useShipmentContext();
+  const courierAvatar = useCourierAvatar();
   const [open, setOpen] = useState(false);
 
   useFlashToast();

@@ -15,7 +15,10 @@ class TaskController extends CourierController
         $courierId = $this->courier()->id;
         $perPage = $this->perPage($request);
 
-        $page = $shipments->tasksPage($courierId, $perPage, $request->query('cursor'));
+        $page = $shipments->tasksPage($courierId, $perPage, $request->query('cursor'), [
+            'search' => $request->query('search'),
+            'service' => $request->query('service'),
+        ]);
 
         return $this->ok($page['rows'], 200, [
             'per_page' => $perPage,

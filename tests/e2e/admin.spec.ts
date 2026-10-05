@@ -5,6 +5,11 @@ test("admin lands on the dashboard", async ({ page }) => {
   await login(page, "windy.kusuma@anteraja.example.com");
 
   await expect(page).toHaveURL(/\/admin\/dashboard/);
+  // The client-side swap after login must render the console, not a blank
+  // page: the session comes from the current page props.
+  await expect(
+    page.getByRole("heading", { name: "Daftar Pengiriman" }),
+  ).toBeVisible();
 });
 
 test("admin can open the exception queue", async ({ page }) => {

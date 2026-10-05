@@ -3,10 +3,8 @@ import { createInertiaApp, router } from "@inertiajs/react";
 import type { ComponentType } from "react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AuthProvider } from "./Contexts/SessionContext";
 import { ShipmentProvider } from "./Contexts/ShipmentContext";
 import { ToastProvider } from "./Contexts/ToastContext";
-import type { AuthUser } from "./types";
 
 const appName = "Satria Rapid Field Dispatch";
 
@@ -28,18 +26,13 @@ createInertiaApp({
     return module.default ?? (module as unknown as ComponentType);
   },
   setup({ el, App, props }) {
-    const authUser =
-      (props.initialPage.props as { auth?: { user: AuthUser | null } }).auth
-        ?.user ?? null;
     createRoot(el).render(
       <StrictMode>
-        <AuthProvider initialUser={authUser}>
-          <ToastProvider>
-            <ShipmentProvider>
-              <App {...props} />
-            </ShipmentProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <ShipmentProvider>
+            <App {...props} />
+          </ShipmentProvider>
+        </ToastProvider>
       </StrictMode>,
     );
   },

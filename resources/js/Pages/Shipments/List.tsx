@@ -86,7 +86,7 @@ export function ShipmentListPage() {
         ))}
       </FilterTabs>
 
-      {list.isLoading ? (
+      {list.isLoading && rows.length === 0 ? (
         <StatusPanel spinning>Memuat resi dari server...</StatusPanel>
       ) : list.isError ? (
         <StatusPanel
@@ -108,7 +108,13 @@ export function ShipmentListPage() {
           Tidak ada resi yang cocok. Coba kata kunci lain.
         </StatusPanel>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-3 p-0 md:grid md:grid-cols-2">
+        <ul
+          className={
+            "m-0 flex list-none flex-col gap-3 p-0 transition-opacity md:grid md:grid-cols-2 " +
+            (list.isRefreshing ? "opacity-60" : "")
+          }
+          aria-busy={list.isRefreshing}
+        >
           {rows.map((row) => (
             <li key={row.id}>
               <ShipmentCard shipment={row} />
