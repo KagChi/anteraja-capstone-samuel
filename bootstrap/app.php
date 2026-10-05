@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:warm-cache')->everyFiveMinutes()->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        // Cloudflare and ingress-nginx terminate TLS in front of the app, so
+        // X-Forwarded-* headers must be trusted for correct URL generation.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
