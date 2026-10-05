@@ -24,7 +24,7 @@ import { useSession } from "./SessionContext";
 
 export const ACTIVE_TRACKING = "AJ2509001001";
 export const JAKARTA_PROVINCE_ID = "31";
-export const DESTINATION_DISTRICT = "Kuningan";
+export const DESTINATION_DISTRICT = "Kuningan Jakarta Selatan";
 
 interface ShipmentContextValue {
   courierAvatar: AsyncResource<string>;
