@@ -9,7 +9,7 @@
 > FRD ini menjelaskan apa yang harus dibangun. Kondisi khusus yang tidak ditulis di sini, kamu yang putuskan dan catat di `decisions.md`.
 
 ## 1. Ringkasan
-Admin/CS dapat membuka satu pengiriman dan melihat seluruh jejak audit dalam satu tampilan: seluruh `delivery_events`, POD beserta metadata, riwayat PIN, hasil geofence, dan titik temu. Sistem juga menandai anomali agar investigasi klaim tidak perlu menelusuri banyak sistem.
+Admin/CS dapat membuka satu pengiriman dan melihat seluruh jejak audit dalam satu tampilan: seluruh `delivery_events`, POD beserta metadata, riwayat PIN, dan hasil geofence. Sistem juga menandai anomali agar investigasi klaim tidak perlu menelusuri banyak sistem.
 
 ## 2. User Story
 > Sebagai tim Customer Service, saya ingin melihat seluruh bukti satu pengiriman dalam satu halaman, supaya saya dapat menjawab klaim pelanggan dalam hitungan menit, bukan hari.

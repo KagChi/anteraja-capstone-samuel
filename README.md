@@ -33,10 +33,6 @@ backed by PostgreSQL/PostGIS.
   admin review that unlocks the shipment while the incident stays flagged.
 - **Exception queue** — couriers can request an out-of-radius exception that
   an admin approves or rejects; decisions are written to the audit trail.
-- **Matchmaking** — when the recipient is not at the drop-off address the
-  courier proposes a meeting point (with the buyer's reported position); the
-  admin approves it in the queue and the completion geofence moves to the
-  final point.
 
 Requirements live in `docs/` (PRD and FRDs); the canonical schema and seed
 data live in `docs/db/`.
@@ -141,7 +137,6 @@ Key routes:
 - `POST /api/v1/courier/tasks/{tracking}/proof`
 - `POST /api/v1/courier/tasks/{tracking}/exception`
 - `POST /api/v1/courier/tasks/{tracking}/gps-lock`
-- `POST /api/v1/courier/tasks/{tracking}/meeting-point`
 - `GET  /api/v1/courier/history`, `GET /api/v1/courier/profile`
 - `POST /api/v1/courier/tasks/{tracking}/complete`
 - `GET  /api/v1/shipments`, `GET /api/v1/shipments/{id}`
@@ -154,7 +149,6 @@ Key routes:
 - `GET  /api/v1/admin/exceptions`, `POST /api/v1/admin/exceptions/{id}/decision`
 - `GET  /api/v1/admin/gps-locks`, `POST /api/v1/admin/gps-locks/{id}/decision`
 - `GET  /api/v1/admin/pin-locks`, `POST /api/v1/admin/pin-locks/{id}/decision`
-- `GET  /api/v1/admin/meeting-points`, `POST /api/v1/admin/meeting-points/{id}/decision`
 - `GET  /api/v1/admin/shipments/{id}/audit-export` (CSV, access logged)
 - `GET  /api/v1/admin/radius-segments`, `PUT /api/v1/admin/radius-segments`
 - `POST /api/v1/admin/proofs/{id}/review` (FR-02-09 invalidate/restore a POD)

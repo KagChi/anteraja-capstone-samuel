@@ -234,51 +234,6 @@ test("courier is locked out after three wrong PIN attempts", async ({
   await expect(page.locator("#btn-resend-pin")).toBeDisabled();
 });
 
-test("courier can propose a meeting point from the verification step", async ({
-  page,
-}) => {
-  await login(page, "budi.pratama@anteraja.example.com");
-
-  const tasksResponse = await page.request.get(
-    "/api/v1/courier/tasks?per_page=100",
-  );
-  const tasks = (await tasksResponse.json()) as {
-    data: Array<{
-      tracking: string;
-      destination?: { latitude: number; longitude: number };
-      meetingPoint?: { status: string; final: boolean } | null;
-    }>;
-  };
-  const task = tasks.data.find((item) => item.tracking === "AJ2509000011");
-
-  test.skip(!task?.destination, "Seed data AJ2509000011 is not available.");
-  test.skip(
-    task?.meetingPoint?.status === "proposed" || task?.meetingPoint?.final,
-    "AJ2509000011 already has a meeting point (run demo:reset-shipments to replay).",
-  );
-
-  await page.context().setGeolocation({
-    latitude: task.destination.latitude,
-    longitude: task.destination.longitude,
-    accuracy: 12,
-  });
-
-  await page.goto("/courier/verifikasi?tracking=AJ2509000011");
-  await expect(page.locator("#meeting-point-card")).toBeVisible();
-
-  const useMyLocation = page.locator("#btn-use-my-location");
-  await expect(useMyLocation).toBeEnabled({ timeout: 20_000 });
-  await useMyLocation.click();
-  await page.locator("#btn-propose-meeting-point").click();
-
-  await expect(page.locator("#meeting-point-pending")).toBeVisible({
-    timeout: 20_000,
-  });
-  await expect(page.locator("#meeting-point-status")).toContainText(
-    "Menunggu persetujuan",
-  );
-});
-
 test("courier can open riwayat and profil", async ({ page }) => {
   await login(page, "budi.pratama@anteraja.example.com");
 

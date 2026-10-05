@@ -129,7 +129,6 @@ class AuditExportController extends Controller
         $targetIds = $shipment->deliveryProofs->pluck('id')
             ->merge($shipment->deliveryExceptions->pluck('id'))
             ->merge($shipment->gpsLockRequests->pluck('id'))
-            ->merge($shipment->meetingPoints->pluck('id'))
             ->merge($shipment->claimCases->pluck('id'))
             ->push($shipment->pinChallenge?->id)
             ->filter()

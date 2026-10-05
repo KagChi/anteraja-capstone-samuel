@@ -45,9 +45,9 @@ digraph erd {
     delivery_proofs; pin_challenges; pin_deliveries;
   }
   subgraph cluster_exc {
-    label = <<FONT COLOR="#7a4200" POINT-SIZE="11"><B>EXCEPTIONS &amp; MATCHMAKING</B></FONT>>;
+    label = <<FONT COLOR="#7a4200" POINT-SIZE="11"><B>EXCEPTIONS</B></FONT>>;
     style = "rounded,filled"; fillcolor = "#FFF3E0"; color = "#F59E0B";
-    delivery_exceptions; meeting_points;
+    delivery_exceptions;
   }
   subgraph cluster_audit {
     label = <<FONT COLOR="#1C1B1B" POINT-SIZE="11"><B>CLAIMS &amp; AUDIT</B></FONT>>;
@@ -191,18 +191,6 @@ digraph erd {
       <TR><TD ALIGN="LEFT">reviewed_by</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
     </TABLE>>];
 
-  meeting_points [label = <
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
-      <TR><TD COLSPAN="2" BGCOLOR="#B26A00"><FONT COLOR="white"><B>meeting_points</B></FONT></TD></TR>
-      <TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT"><FONT COLOR="#E00065"><B>PK</B></FONT></TD></TR>
-      <TR><TD ALIGN="LEFT">shipment_id</TD><TD ALIGN="LEFT"><FONT COLOR="#00834B">FK</FONT></TD></TR>
-      <TR><TD ALIGN="LEFT">proposed_by_type / id</TD><TD ALIGN="LEFT"></TD></TR>
-      <TR><TD ALIGN="LEFT">proposed_point</TD><TD ALIGN="LEFT"><FONT COLOR="#5b3f45">geography</FONT></TD></TR>
-      <TR><TD ALIGN="LEFT">dist_destination_m</TD><TD ALIGN="LEFT"></TD></TR>
-      <TR><TD ALIGN="LEFT">status / expires_at</TD><TD ALIGN="LEFT"></TD></TR>
-      <TR><TD ALIGN="LEFT">approved_by_type / id</TD><TD ALIGN="LEFT"></TD></TR>
-    </TABLE>>];
-
   claim_cases [label = <
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="3">
       <TR><TD COLSPAN="2" BGCOLOR="#1C1B1B"><FONT COLOR="white"><B>claim_cases</B></FONT></TD></TR>
@@ -282,7 +270,6 @@ digraph erd {
   shipments      -> pin_challenges      [dir = both, arrowtail = tee, arrowhead = tee];
   pin_challenges -> pin_deliveries      [dir = both, arrowtail = tee, arrowhead = crow];
   shipments      -> delivery_exceptions [dir = both, arrowtail = tee, arrowhead = crow];
-  shipments      -> meeting_points      [dir = both, arrowtail = tee, arrowhead = crow];
   shipments      -> claim_cases         [dir = both, arrowtail = tee, arrowhead = crow];
   claim_cases    -> claim_findings      [dir = both, arrowtail = tee, arrowhead = crow];
   shipments      -> anomaly_flags       [dir = both, arrowtail = tee, arrowhead = crow];

@@ -33,7 +33,7 @@ app/Http/Controllers/   # controller Inertia (web) + API
 app/Http/Middleware/    # guard peran (kurir/admin)
 app/Http/Requests/      # Form Request (validasi)
 app/Models/             # model Eloquent
-app/Services/           # logika domain (geofence, PIN, POD, matchmaking, audit)
+app/Services/           # logika domain (geofence, PIN, POD, audit)
 app/Support/Geo/        # helper geospasial (haversine, geofence, geohash)
 app/Support/Date.php    # zona waktu aplikasi (Asia/Jakarta)
 app/Integrations/<name>/# klien layanan pihak ketiga

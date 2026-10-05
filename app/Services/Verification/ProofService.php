@@ -56,9 +56,8 @@ class ProofService
         $distance = $this->geofence->distanceToDestination($shipment, $latitude, $longitude);
         $radius = $shipment->activeGeofence?->radius_m;
 
-        // FR-04-07: the radius decision follows the active geofence centre,
-        // which moves to an approved meeting point; the distance column still
-        // reports the master destination for the audit trail.
+        // The radius decision follows the active geofence centre; the distance
+        // column still reports the master destination for the audit trail.
         $evaluation = $this->geofence->evaluate($shipment, $latitude, $longitude);
 
         $capturedAt = Date::now();

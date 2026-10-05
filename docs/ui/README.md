@@ -24,8 +24,8 @@ Daftar layar:
 
 | # | Layar | Berkas | Menjawab FRD |
 |---|---|---|---|
-| 1 | Daftar Tugas Pengiriman | [`mobile-01-daftar-tugas-pengiriman.webp`](./mobile-01-daftar-tugas-pengiriman.webp) | FRD-03, FRD-04 |
-| 2 | Verifikasi Lokasi (PIN) | [`mobile-02-verifikasi-lokasi-pin.webp`](./mobile-02-verifikasi-lokasi-pin.webp) | FRD-01, FRD-03, FRD-04 |
+| 1 | Daftar Tugas Pengiriman | [`mobile-01-daftar-tugas-pengiriman.webp`](./mobile-01-daftar-tugas-pengiriman.webp) | FRD-03 |
+| 2 | Verifikasi Lokasi (PIN) | [`mobile-02-verifikasi-lokasi-pin.webp`](./mobile-02-verifikasi-lokasi-pin.webp) | FRD-01, FRD-03 |
 | 3 | Ambil Bukti Foto | [`mobile-03-ambil-bukti-foto.webp`](./mobile-03-ambil-bukti-foto.webp) | FRD-02 |
 | 4 | Konfirmasi Sukses | [`mobile-04-konfirmasi-sukses.webp`](./mobile-04-konfirmasi-sukses.webp) | FRD-01, FRD-02, FRD-03, FRD-05 |
 
@@ -40,7 +40,6 @@ wajib PIN. Aksi bawah: tombol **Pindai Resi**, navigasi Tugas / Verifikasi / Riw
 
 **Kebutuhan FRD yang ditangani**
 - FRD-03: badge **Perlu PIN** menandai paket Instant/Same-Day yang wajib verifikasi PIN.
-- FRD-04: jarak kurir ↔ titik tujuan (`250 m • 4 mnt`) mendukung kesepakatan titik temu.
 
 ### 2. Verifikasi Lokasi (PIN)
 
@@ -54,7 +53,6 @@ Percobaan PIN dibatasi (`1 dari 3`).
 **Kebutuhan FRD yang ditangani**
 - FRD-01: indikator jarak + status radius mengunci/alirkan tombol selesai.
 - FRD-03: input PIN otorisasi penerima sebelum pengiriman dapat ditutup.
-- FRD-04: konteks titik temu kurir ↔ pembeli ditampilkan sebelum serah terima.
 
 ### 3. Ambil Bukti Foto
 
@@ -88,7 +86,7 @@ Daftar layar:
 
 | # | Layar | Berkas | Menjawab FRD |
 |---|---|---|---|
-| 1 | Dashboard Pengiriman | [`desktop-01-dashboard-pengiriman.webp`](./desktop-01-dashboard-pengiriman.webp) | FRD-01, FRD-04 |
+| 1 | Dashboard Pengiriman | [`desktop-01-dashboard-pengiriman.webp`](./desktop-01-dashboard-pengiriman.webp) | FRD-01 |
 | 2 | Detail Audit Trail | [`desktop-02-detail-audit-trail.webp`](./desktop-02-detail-audit-trail.webp) | FRD-05 |
 | 3 | Antrian Pengecualian | [`desktop-03-antrian-pengecualian.webp`](./desktop-03-antrian-pengecualian.webp) | FRD-01 |
 | 3b | Modal Detail Pengecualian | [`desktop-03b-modal-detail-pengecualian.webp`](./desktop-03b-modal-detail-pengecualian.webp) | FRD-01, FRD-05 |
@@ -109,7 +107,6 @@ layanan, status, dan integritas.
 
 **Kebutuhan FRD yang ditangani**
 - FRD-01: menandai pengiriman yang perlu tinjauan geofence.
-- FRD-04: konteks wilayah/koordinat per pengiriman.
 
 ### 2. Detail Audit Trail
 
@@ -120,7 +117,7 @@ rute, validasi geofence, visual peta titik tujuan vs posisi kurir (+12 m, radius
 riwayat event, POD, dan status PIN. Menyediakan **Ekspor Audit (PDF)**.
 
 **Kebutuhan FRD yang ditangani**
-- FRD-05: seluruh jejak audit (event, POD, PIN, geofence, titik temu) dalam satu tampilan.
+- FRD-05: seluruh jejak audit (event, POD, PIN, dan geofence) dalam satu tampilan.
 
 ### 3. Antrian Pengecualian
 

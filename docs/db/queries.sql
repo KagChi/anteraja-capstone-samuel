@@ -81,31 +81,13 @@ WHERE s.status = 'delivered' AND pc.status NOT IN ('verified', 'override');
 
 
 -- ----------------------------------------------------------------------------
---  FRD-04 — Location matchmaking (courier <-> buyer)
--- ----------------------------------------------------------------------------
-SELECT s.tracking_number, m.status, m.proposed_by_type, m.approved_by_type,
-       m.distance_from_destination_m AS dist_to_destination_m,
-       m.distance_from_buyer_m       AS dist_to_buyer_m,
-       m.expires_at, m.resolved_at
-FROM meeting_points m
-JOIN shipments s ON s.id = m.shipment_id
-ORDER BY s.tracking_number, m.created_at;
-
--- Geofence centered on the approved meeting point (FR-04-07)
-SELECT s.tracking_number, g.source, g.radius_m
-FROM geofences g
-JOIN shipments s ON s.id = g.shipment_id
-WHERE g.is_active AND g.source = 'meeting_point';
-
-
--- ----------------------------------------------------------------------------
 --  FRD-05 — Audit trail & claim investigation
 -- ----------------------------------------------------------------------------
 -- a) One-row audit summary per shipment
 SELECT tracking_number, courier_name, status, geofence_radius_m,
        event_count, proof_count, has_valid_proof, pod_needs_review,
        pin_status, exception_count, has_approved_exception,
-       has_final_meeting_point, claim_status
+       claim_status
 FROM v_shipment_audit_trail
 ORDER BY tracking_number;
 
@@ -152,7 +134,6 @@ UNION ALL SELECT 'delivery_proofs', count(*) FROM delivery_proofs
 UNION ALL SELECT 'pin_challenges', count(*) FROM pin_challenges
 UNION ALL SELECT 'pin_deliveries', count(*) FROM pin_deliveries
 UNION ALL SELECT 'delivery_exceptions', count(*) FROM delivery_exceptions
-UNION ALL SELECT 'meeting_points', count(*) FROM meeting_points
 UNION ALL SELECT 'claim_cases', count(*) FROM claim_cases
 UNION ALL SELECT 'claim_findings', count(*) FROM claim_findings
 UNION ALL SELECT 'anomaly_flags', count(*) FROM anomaly_flags
@@ -167,8 +148,4 @@ FROM (SELECT shipment_id FROM geofences WHERE is_active
 UNION ALL
 SELECT 'valid PODs', count(*)
 FROM (SELECT shipment_id FROM delivery_proofs WHERE review_status = 'valid'
-      GROUP BY shipment_id HAVING count(*) > 1) t
-UNION ALL
-SELECT 'final meeting points', count(*)
-FROM (SELECT shipment_id FROM meeting_points WHERE status IN ('approved', 'admin_set')
       GROUP BY shipment_id HAVING count(*) > 1) t;

@@ -63,27 +63,6 @@ export interface TaskGeofence {
   radiusMeters: number;
   point: string;
   center?: [number, number];
-  source?: "destination" | "meeting_point";
-}
-
-export interface TaskMeetingPoint {
-  status: "final" | "proposed" | "rejected" | "expired";
-  final: boolean;
-  adminSet?: boolean;
-  setBy?: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  distanceToDestinationM: number;
-  buyerLatitude?: number | null;
-  buyerLongitude?: number | null;
-  distanceFromBuyerM?: number | null;
-  needsMeetingPoint?: boolean;
-  thresholdM: number;
-  expiryMinutes: number;
-  requestedTime: string;
-  resolvedTime?: string | null;
-  expiresTime?: string | null;
-  expiresAtIso?: string | null;
 }
 
 export interface DeliveryTask {
@@ -101,7 +80,6 @@ export interface DeliveryTask {
   exception?: TaskException | null;
   gpsLock?: GpsLockInfo | null;
   pin?: TaskPin | null;
-  meetingPoint?: TaskMeetingPoint | null;
 }
 
 export interface TaskPin {
@@ -292,42 +270,6 @@ export interface ShipmentDetail {
   completedLabel: string;
   case?: ShipmentCase | null;
   gps?: ShipmentGps | null;
-  meetingPoint?: TaskMeetingPoint | null;
-}
-
-export interface MeetingPointRow {
-  id: string;
-  tracking?: string | null;
-  courierName: string;
-  courierCode: string;
-  service: ServiceSegment;
-  status: string;
-  proposedBy: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  distanceToDestinationM: number;
-  distanceFromBuyerM?: number | null;
-  requestedAt: string;
-  requestedTime: string;
-  resolvedAt: string;
-  expiresAt: string;
-}
-
-export interface MeetingPointEvent {
-  type: string;
-  actor: string;
-  note?: string | null;
-  at: string;
-}
-
-export interface MeetingPointDetail extends MeetingPointRow {
-  target?: [number, number] | null;
-  courierPoint?: [number, number] | null;
-  buyerPoint?: [number, number] | null;
-  point?: [number, number] | null;
-  radiusMeters: number;
-  geofenceSource?: string | null;
-  events: MeetingPointEvent[];
 }
 
 export interface ShipmentGps {

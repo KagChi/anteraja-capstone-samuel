@@ -6,6 +6,7 @@ import { LoadingButton } from "../../Components/LoadingAction";
 import { PageHeader } from "../../Components/layout/PageHeader";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
+import { ImageLightbox } from "../../Components/ui/ImageLightbox";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useToast } from "../../Contexts/ToastContext";
 import { useAvatar } from "../../Hooks/useAvatar";
@@ -38,6 +39,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
   const [saved, setSaved] = useState(false);
   const [podNote, setPodNote] = useState("");
   const [podBusy, setPodBusy] = useState<"invalid" | "valid" | null>(null);
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   const podStatus = audit?.pod.reviewStatus ?? null;
   const podStatusLabel =
@@ -372,30 +374,6 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
               <dd className="ml-0 mt-0 text-xs leading-relaxed text-on-surface-variant">
                 {geofence?.analysis ?? "—"}
               </dd>
-              {audit?.meetingPoint ? (
-                <>
-                  <dt className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
-                    Titik Temu (FRD-04)
-                  </dt>
-                  <dd
-                    className="ml-0 mt-0 text-xs leading-relaxed text-on-surface-variant"
-                    id="audit-meeting-point"
-                  >
-                    {audit.meetingPoint.final
-                      ? `Final ${audit.meetingPoint.adminSet ? "ditetapkan Admin" : "disetujui"}${
-                          audit.meetingPoint.resolvedTime
-                            ? ` ${audit.meetingPoint.resolvedTime}`
-                            : ""
-                        } - ${audit.meetingPoint.distanceToDestinationM} m dari alamat tujuan.`
-                      : audit.meetingPoint.status === "proposed"
-                        ? `Usulan menunggu keputusan (${audit.meetingPoint.requestedTime}).`
-                        : `Usulan terakhir: ${audit.meetingPoint.status} (${audit.meetingPoint.resolvedTime ?? "—"}).`}
-                    {audit.meetingPoint.distanceFromBuyerM != null
-                      ? ` Jarak tujuan ke pembeli ${audit.meetingPoint.distanceFromBuyerM} m.`
-                      : ""}
-                  </dd>
-                </>
-              ) : null}
             </dl>
           </section>
         </article>
@@ -417,20 +395,36 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
             </h2>
           </header>
           <section className="flex flex-col items-start gap-5 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4 sm:flex-row sm:items-center">
-            <figure className="relative m-0 grid h-28 w-40 shrink-0 place-items-center overflow-hidden rounded-lg border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
+            <figure className="group relative m-0 grid h-28 w-40 shrink-0 place-items-center overflow-hidden rounded-lg border border-border-subtle bg-gradient-to-br from-neutral-700 to-neutral-900">
               {audit?.pod.photoUrl ? (
-                <img
-                  src={audit.pod.photoUrl}
-                  alt="Foto bukti serah terima ber-watermark"
-                  className="absolute inset-0 size-full object-cover"
-                />
+                <>
+                  <img
+                    src={audit.pod.photoUrl}
+                    alt="Foto bukti serah terima ber-watermark"
+                    className="absolute inset-0 size-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <button
+                    type="button"
+                    id="btn-zoom-pod-photo"
+                    className="absolute inset-0 z-10 cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
+                    aria-label="Perbesar foto bukti serah terima"
+                    onClick={() => setPhotoOpen(true)}
+                  >
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/35">
+                      <MaterialIcon
+                        name="zoom_in"
+                        className="text-[26px] text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      />
+                    </span>
+                  </button>
+                </>
               ) : (
                 <MaterialIcon
                   name="photo_camera"
                   className="text-[28px] text-white/25"
                 />
               )}
-              <figcaption className="tabular-nums absolute bottom-1.5 right-1.5 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
+              <figcaption className="tabular-nums pointer-events-none absolute bottom-1.5 right-1.5 z-20 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
                 {audit?.pod.capturedTime ?? "—"}
               </figcaption>
             </figure>
@@ -547,6 +541,31 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
             </section>
           ) : null}
         </article>
+
+        {photoOpen && audit?.pod.photoUrl ? (
+          <ImageLightbox
+            src={audit.pod.photoUrl}
+            alt={`Foto bukti serah terima ${shipment?.recipient ?? audit.pod.recipientName ?? "penerima"}`}
+            onClose={() => setPhotoOpen(false)}
+            caption={
+              <>
+                <span className="block font-semibold text-white">
+                  {shipment?.recipient ?? audit.pod.recipientName ?? "Penerima"}
+                  {audit.pod.relation ? ` • ${audit.pod.relation}` : ""}
+                </span>
+                <span className="tabular-nums mt-1 block text-white/75">
+                  {audit.pod.capturedTime}
+                  {audit.pod.id
+                    ? ` • Geotag ${audit.pod.distanceMeters ?? 0} m dari titik tujuan`
+                    : ""}
+                </span>
+                <span className="tabular-nums mt-1 block text-white/75">
+                  Watermark: {audit.pod.watermark ?? "—"}
+                </span>
+              </>
+            }
+          />
+        ) : null}
 
         <article
           className="space-y-5 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card"

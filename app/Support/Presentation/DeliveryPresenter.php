@@ -90,13 +90,10 @@ class DeliveryPresenter
             ->sortByDesc('created_at')
             ->first();
         $pin = $shipment->pinChallenge;
-        $meetingPoint = MeetingPointPresenter::task($shipment);
-        $finalMeetingPoint = $shipment->meetingPoints->first(
-            fn ($point) => in_array($point->status, MeetingPointPresenter::FINAL_STATUSES, true),
-        );
-        $geofenceCenter = $finalMeetingPoint !== null && $finalMeetingPoint->point_lat !== null
-            ? [(float) $finalMeetingPoint->point_lat, (float) $finalMeetingPoint->point_lng]
-            : [(float) ($shipment->destination_lat ?? 0.0), (float) ($shipment->destination_lng ?? 0.0)];
+        $geofenceCenter = [
+            (float) ($shipment->destination_lat ?? 0.0),
+            (float) ($shipment->destination_lng ?? 0.0),
+        ];
 
         $category = $shipment->service_type === 'instant' ? 'instant' : 'sameday';
 
@@ -134,9 +131,7 @@ class DeliveryPresenter
                 'radiusMeters' => $radius,
                 'point' => $shipment->destination_address,
                 'center' => $geofenceCenter,
-                'source' => $finalMeetingPoint !== null ? 'meeting_point' : 'destination',
             ] : null,
-            'meetingPoint' => $meetingPoint,
             'exception' => $exception ? [
                 'status' => $exception->status,
                 'reason' => $exception->reason,
@@ -237,7 +232,6 @@ class DeliveryPresenter
             'deviationMeters' => $deviation,
             'maxToleranceMeters' => $radius,
             'gps' => self::gps($shipment),
-            'meetingPoint' => MeetingPointPresenter::task($shipment),
             'reason' => $shipment->deliveryExceptions
                 ->firstWhere('status', 'approved')?->reason
                 ?? 'Tidak ada pengecualian radius yang disetujui.',
@@ -431,10 +425,6 @@ class DeliveryPresenter
             return 'Belum ada bukti titik serah terima (POD) untuk pengiriman ini.';
         }
 
-        if ($shipment->activeGeofence?->source === 'meeting_point') {
-            return 'Titik pusat geofence mengikuti titik temu final.';
-        }
-
         return $deviation <= $radius
             ? 'Titik serah terima POD berada di dalam radius geofence.'
             : 'Titik serah terima POD berada di luar radius geofence.';
@@ -567,10 +557,6 @@ class DeliveryPresenter
             'delivery_attempt' => 'Upaya serah terima dicatat',
             'exception_requested' => 'Pengecualian radius diajukan kurir',
             'exception_decided' => 'Pengecualian diputuskan admin',
-            'meeting_point_proposed' => 'Titik temu diusulkan kurir',
-            'meeting_point_approved' => 'Titik temu final ditetapkan',
-            'meeting_point_rejected' => 'Usulan titik temu ditolak Admin',
-            'meeting_point_expired' => 'Usulan titik temu kedaluwarsa',
             'delivered' => 'Pengiriman dituntaskan',
             'failed' => 'Pengiriman gagal',
             default => ucfirst(str_replace('_', ' ', $type)),
@@ -581,7 +567,7 @@ class DeliveryPresenter
     {
         return match ($type) {
             'pin_verification' => 'tertiary',
-            'delivered', 'exception_decided', 'meeting_point_approved',
+            'delivered', 'exception_decided',
             'gps_blocked', 'gps_lock_decided' => 'magenta',
             default => null,
         };

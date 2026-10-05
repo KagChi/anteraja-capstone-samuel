@@ -92,11 +92,6 @@ class Shipment extends Model
         return $this->hasMany(GpsLockRequest::class);
     }
 
-    public function meetingPoints()
-    {
-        return $this->hasMany(MeetingPoint::class)->withPointProjections();
-    }
-
     public function claimCases()
     {
         return $this->hasMany(ClaimCase::class);
@@ -122,7 +117,7 @@ class Shipment extends Model
         return $query->with([
             'courier', 'recipient', 'serviceArea', 'activeGeofence',
             'pinChallenge', 'deliveryEvents', 'deliveryProofs',
-            'deliveryExceptions', 'gpsLockRequests', 'meetingPoints',
+            'deliveryExceptions', 'gpsLockRequests',
             'anomalyFlags', 'claimCases.findings',
         ]);
     }

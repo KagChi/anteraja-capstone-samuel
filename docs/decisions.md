@@ -142,33 +142,6 @@ diambil:
   default `locked` dengan filter `locked|expired|all`; modal tinjauan
   menampilkan percobaan terakhir dari event PIN sebelum admin memutuskan.
 
-## FRD-04 (tambahan) — Matchmaking lokasi kurir ↔ pembeli
-
-FRD-04 sudah punya tabel `meeting_points` + contoh seed, tetapi belum punya
-service, endpoint, maupun UI. Keputusan yang diambil:
-
-- **Posisi pembeli diinput kurir.** Purwarupa ini tidak punya sesi pembeli,
-  jadi kurir menandai posisi pembeli di peta (opsional) saat mengusulkan
-  titik temu; jarak tujuan → pembeli dihitung di server, disimpan di
-  `distance_from_buyer_m` plus kolom baru `buyer_point`, dan ambang "perlu
-  titik temu" 50 m (FR-04-03).
-- **Persetujuan oleh Admin/CS.** Karena penerima tidak punya sesi, Admin/CS
-  yang memutuskan di antrian persetujuan (tab "Titik Temu") — pola yang sama
-  dengan FR-04-09 — dengan `approved_by_type = admin`. Kurir dapat mengajukan
-  ulang setelah usulan ditolak atau kedaluwarsa.
-- **Kedaluwarsa 30 menit** (FR-04-08). Usulan yang lewat batas ditandai
-  `expired` secara lazy saat dibaca/ditulis bersama event
-  `meeting_point_expired`, sehingga slot usulan terbuka lagi.
-- **Geofence mengikuti titik final (FR-04-07).** Persetujuan memindahkan
-  pusat geofence aktif ke titik final (`source = meeting_point`); keputusan
-  radius POD kini memakai `fn_evaluate_geofence` (pusat aktif), bukan jarak
-  ke alamat master, sementara `distance_to_destination_m` tetap jarak ke
-  alamat master untuk audit. Admin juga dapat menetapkan titik lain
-  (FR-04-09) lewat peta pada modal tinjauan (action `set_meeting_point`).
-- **Jejak audit** memakai event `meeting_point_proposed/approved/rejected/
-  expired` dan `admin_actions` (`approve_meeting_point`, `set_meeting_point`,
-  `reject_meeting_point`), plus blok Titik Temu pada halaman audit trail.
-
 ## Celah FRD lain yang ikut ditutup
 
 - **FR-05-08 (ekspor audit).** Tombol "Ekspor Data (CSV)" memakai endpoint

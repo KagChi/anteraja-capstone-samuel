@@ -110,9 +110,9 @@
     #meta-table((
       ("Produk", "Anteraja — Satria Rapid Field Dispatch"),
       ("DBMS", "PostgreSQL 14+ dengan PostGIS & pgcrypto"),
-      ("Fokus", "Integritas pengiriman: geofence, POD, PIN, titik temu, audit klaim"),
-      ("Skala", [18 tabel · 2 view · 2 function · 1 trigger shared]),
-      ("Referensi", "docs/PRD-anteraja-instant.md & docs/frd/FRD-01..05"),
+      ("Fokus", "Integritas pengiriman: geofence, POD, PIN, audit klaim"),
+      ("Skala", [17 tabel · 2 view · 2 function · 1 trigger shared]),
+      ("Referensi", "docs/PRD-anteraja-instant.md & docs/frd/FRD-01..03, FRD-05..06"),
       ("Repositori", "branch 6-db · docs/db/"),
     ))
   ]
@@ -124,7 +124,7 @@
   Instant*. Skema diturunkan dari PRD dan lima FRD, lalu dinormalisasi menjadi
   tabel yang mendukung setiap kebutuhan verifikasi pengiriman *last-mile*: kunci
   geofence yang dihitung di server, bukti pengiriman ber-geotag, verifikasi PIN per
-  segmen, matchmaking titik temu, hingga audit trail investigasi klaim.
+  segmen, hingga audit trail investigasi klaim.
 
   #v(0.4em)
   Seluruh objek SQL tersedia pada berkas `schema.sql`, data contoh pada `seed.sql`,
@@ -201,7 +201,6 @@
 
   - satu geofence aktif per pengiriman (`ux_geofences_one_active`);
   - satu POD `valid` per pengiriman (`ux_proofs_one_valid`);
-  - satu titik temu final per pengiriman (`ux_meeting_points_one_final`);
   - satu pengajuan pengecualian `pending` per pengiriman (`ux_exceptions_one_pending`).
 ]
 
@@ -239,7 +238,7 @@
 
   #heading(level: 2)[3.3 Delivery Core]
   - `shipments` — inti pengiriman. `tracking_number UQ`, `service_type`, FK `courier_id`/`recipient_id`/`service_area_id`, `origin`/`destination` geography, `status`, `pin_required`, `cod_amount`, `delivered_at`.
-  - `geofences` — pusat & radius. `center` geography, `radius_m`, `source` (`destination`/`meeting_point`), `is_active`; index GiST.
+  - `geofences` — pusat & radius. `center` geography, `radius_m`, `source` (`destination`), `is_active`; index GiST.
   - `delivery_events` — log peristiwa. `event_type`, `point`, `distance_to_destination_m`, `actor_type`, `metadata` jsonb.
 
   #heading(level: 2)[3.4 Verification]
@@ -247,9 +246,8 @@
   - `pin_challenges` — satu per pengiriman. `code_hash` (hash, bukan PIN), `attempts`, `max_attempts`, `resend_count`, `status`, `expires_at`, `override_by FK`.
   - `pin_deliveries` — riwayat kirim PIN. `channel`, `destination`, `attempt_no`, `status`, `sent_at`.
 
-  #heading(level: 2)[3.5 Exceptions & Matchmaking]
+  #heading(level: 2)[3.5 Exceptions]
   - `delivery_exceptions` — penyelesaian di luar radius. `requested_point`, `distance_m`, `radius_m`, `reason`, `status`, `reviewed_by FK`.
-  - `meeting_points` — usulan & persetujuan titik temu. `proposed_by_type/id`, `proposed_point`, `status`, `approved_by_type/id`, `expires_at`.
 
   #heading(level: 2)[3.6 Claims & Audit]
   - `claim_cases` — kasus klaim. `case_number UQ`, `opened_by FK`, `status`, `resolution`, `closed_by FK`.
@@ -296,7 +294,7 @@
     center       geography(Point,4326) NOT NULL,
     radius_m     integer NOT NULL CHECK (radius_m > 0),
     source       text NOT NULL DEFAULT 'destination'
-                   CHECK (source IN ('destination','meeting_point')),
+                   CHECK (source IN ('destination')),
     is_active    boolean NOT NULL DEFAULT true,
     created_at   timestamptz NOT NULL DEFAULT now()
   );
@@ -368,7 +366,6 @@
   - POD `needs_review`: di luar geofence (`…0006`) & selisih waktu perangkat
     (`…0010`, ±170 menit).
   - Pengecualian: `pending` (`…0005`), `approved` (`…0006`, `…0014`).
-  - Titik temu: final `approved` (`…0006`), `proposed` (`…0005`).
   - Klaim: `investigating` (`…0006`) dan `closed` (`…0007`) + temuan.
   - Anomali: *4 pengiriman perlu tinjauan* (`…0005`, `…0006`, `…0007`, `…0010`) —
     cocok dengan dashboard UI.
@@ -426,16 +423,13 @@
 
   #heading(level: 2)[6.3 Invarian Basis Data]
   ```sql
-  -- tidak boleh ada > 1 geofence aktif / POD valid / titik temu final per pengiriman
+  -- tidak boleh ada > 1 geofence aktif / POD valid per pengiriman
   SELECT 'active geofences' AS invariant, count(*) AS violations
   FROM (SELECT shipment_id FROM geofences WHERE is_active
         GROUP BY shipment_id HAVING count(*) > 1) t
   UNION ALL
   SELECT 'valid PODs', count(*) FROM (SELECT shipment_id FROM delivery_proofs
-        WHERE review_status = 'valid' GROUP BY shipment_id HAVING count(*) > 1) t
-  UNION ALL
-  SELECT 'final meeting points', count(*) FROM (SELECT shipment_id FROM meeting_points
-        WHERE status IN ('approved','admin_set') GROUP BY shipment_id HAVING count(*) > 1) t;
+        WHERE review_status = 'valid' GROUP BY shipment_id HAVING count(*) > 1) t;
   ```
 ]
 
@@ -461,8 +455,6 @@
     [*02*], [delivery_proofs], [anomaly_flags (pod_needs_review)],
     [*03*], [pin_challenges],
       [pin_deliveries, geofence_policies, admin_actions],
-    [*04*], [meeting_points],
-      [delivery_events, geofences (source = meeting_point)],
     [*05*], [v_shipment_audit_trail, claim_cases, anomaly_flags],
       [claim_findings, audit_access_logs, v_shipment_anomaly_score],
   )

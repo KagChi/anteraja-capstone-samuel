@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\V1\Admin\ClaimCaseController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ExceptionController as AdminExceptionController;
 use App\Http\Controllers\Api\V1\Admin\GpsLockController as AdminGpsLockController;
-use App\Http\Controllers\Api\V1\Admin\MeetingPointController as AdminMeetingPointController;
 use App\Http\Controllers\Api\V1\Admin\PinLockController as AdminPinLockController;
 use App\Http\Controllers\Api\V1\Admin\ProofPhotoController;
 use App\Http\Controllers\Api\V1\Admin\ProofReviewController;
@@ -14,7 +13,6 @@ use App\Http\Controllers\Api\V1\Courier\DeliveryController;
 use App\Http\Controllers\Api\V1\Courier\ExceptionController as CourierExceptionController;
 use App\Http\Controllers\Api\V1\Courier\GpsLockController as CourierGpsLockController;
 use App\Http\Controllers\Api\V1\Courier\HistoryController;
-use App\Http\Controllers\Api\V1\Courier\MeetingPointController as CourierMeetingPointController;
 use App\Http\Controllers\Api\V1\Courier\PinController;
 use App\Http\Controllers\Api\V1\Courier\ProfileController;
 use App\Http\Controllers\Api\V1\Courier\ProofController;
@@ -39,7 +37,6 @@ Route::prefix('v1')->middleware('web')->group(function () {
         Route::post('tasks/{tracking}/proof', [ProofController::class, 'store'])->name('proof.store');
         Route::post('tasks/{tracking}/exception', [CourierExceptionController::class, 'store'])->name('exception.store');
         Route::post('tasks/{tracking}/gps-lock', [CourierGpsLockController::class, 'store'])->name('gps-lock.store');
-        Route::post('tasks/{tracking}/meeting-point', [CourierMeetingPointController::class, 'store'])->name('meeting-point.store');
         Route::post('tasks/{tracking}/complete', [DeliveryController::class, 'complete'])->name('complete');
     });
 
@@ -70,9 +67,6 @@ Route::prefix('v1')->middleware('web')->group(function () {
         Route::get('pin-locks', [AdminPinLockController::class, 'index'])->name('pin-locks.index');
         Route::get('pin-locks/{id}', [AdminPinLockController::class, 'show'])->name('pin-locks.show');
         Route::post('pin-locks/{id}/decision', [AdminPinLockController::class, 'decide'])->name('pin-locks.decide');
-        Route::get('meeting-points', [AdminMeetingPointController::class, 'index'])->name('meeting-points.index');
-        Route::get('meeting-points/{id}', [AdminMeetingPointController::class, 'show'])->name('meeting-points.show');
-        Route::post('meeting-points/{id}/decision', [AdminMeetingPointController::class, 'decide'])->name('meeting-points.decide');
         Route::get('radius-segments', [RadiusController::class, 'index'])->name('radius.index');
         Route::put('radius-segments', [RadiusController::class, 'update'])->name('radius.update');
 

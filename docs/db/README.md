@@ -109,8 +109,7 @@ Kurir SATRIA (`getCurrentCourier`): `id, code, name, phone, service_area_id, is_
 `code` & `phone` unik. **FK** `service_area_id` → `service_areas`.
 
 #### `recipients`
-Penerima/pembeli: `id, name, phone, email`. Menjadi tujuan pengiriman PIN (FR-03)
-dan pihak pada matchmaking lokasi (FRD-04).
+Penerima/pembeli: `id, name, phone, email`. Menjadi tujuan pengiriman PIN (FR-03).
 
 ### 4.3 Delivery Core
 
@@ -133,15 +132,15 @@ Inti pengiriman.
 | `delivered_at` | timestamptz | |
 
 #### `geofences`
-Pusat & radius geofence per pengiriman (FRD-01). Dua partial unique index menjaga:
-**satu geofence aktif** per pengiriman, dan satu geofence valid per sumber.
-`source` = `destination` atau `meeting_point` (FR-04-07). Index **GiST** pada `center`.
+Pusat & radius geofence per pengiriman (FRD-01). Partial unique index menjaga
+**satu geofence aktif** per pengiriman. `source` = `destination`.
+Index **GiST** pada `center`.
 
 #### `delivery_events`
-Log peristiwa tak-termutasi (PRD + FRD-04/05). `event_type` mencakup `pickup`,
+Log peristiwa tak-termutasi (PRD + FRD-05). `event_type` mencakup `pickup`,
 `arrived`, `delivery_attempt`, `delivered`, `failed`, `pin_verification`,
-`geofence_check`, `exception_requested/decided`, `meeting_point_proposed/approved`,
-`pod_captured`. Menyimpan `point` (geography), `distance_to_destination_m`,
+`geofence_check`, `exception_requested/decided`, `gps_blocked`,
+`gps_lock_requested/decided`, `pod_captured`. Menyimpan `point` (geography), `distance_to_destination_m`,
 `actor_type` (`courier`/`recipient`/`admin`/`system`), dan `metadata` jsonb.
 Index komposit `(shipment_id, created_at)` mempercepat audit trail kronologis.
 
@@ -164,7 +163,7 @@ override admin (`override_by`, `override_reason`, `override_at`).
 Riwayat pengiriman PIN (kanal `email`/`sms`/`whatsapp`, tujuan, `attempt_no`,
 `status`, `provider_message_id`, `sent_at`). Menopang batas kirim ulang FR-03-04.
 
-### 4.5 Exceptions & Matchmaking
+### 4.5 Exceptions
 
 #### `delivery_exceptions`
 Pengajuan penyelesaian **di luar radius** (FRD-01). Menyimpan `requested_point`,
@@ -172,12 +171,6 @@ Pengajuan penyelesaian **di luar radius** (FRD-01). Menyimpan `requested_point`,
 `cancelled`), dan keputusan admin (`reviewed_by`, `reviewed_at`, `review_note`).
 FK `event_id` menautkan ke `delivery_events` percobaan yang gagal. Partial unique
 index menjaga satu pengajuan `pending` per pengiriman.
-
-#### `meeting_points`
-Usulan & persetujuan titik temu kurir ↔ pembeli (FRD-04). Menyimpan pengusul
-(`proposed_by_type`/`proposed_by_id`), `proposed_point`, jarak ke tujuan & pembeli,
-`status`, dan penyetuju. Partial unique index menjaga **satu titik temu final**
-(`approved`/`admin_set`) dan satu usulan `proposed` per pengiriman.
 
 ### 4.6 Claims & Audit
 
@@ -209,7 +202,7 @@ Audit keputusan admin lintas fitur dengan target generik
 - `couriers` 1—* `shipments`, `delivery_events`, `delivery_proofs`, `delivery_exceptions`
 - `recipients` 1—* `shipments`, `pin_challenges`
 - `shipments` 1—* `geofences`, `delivery_events`, `delivery_proofs`,
-  `delivery_exceptions`, `meeting_points`, `claim_cases`, `anomaly_flags`,
+  `delivery_exceptions`, `claim_cases`, `anomaly_flags`,
   `audit_access_logs`
 - `shipments` 1—**1** `pin_challenges`
 - `pin_challenges` 1—* `pin_deliveries`
@@ -230,7 +223,7 @@ Skema berada pada **3NF**:
   `service_areas`, identitas admin/evaluator ke `admins`.
 - **Integritas** dijaga di lapisan DB: `CHECK` untuk status/tipe, FK dengan aksi
   `ON DELETE` eksplisit, serta **partial unique index** untuk aturan bisnis
-  ("satu geofence aktif", "satu POD valid", "satu titik temu final", "satu
+  ("satu geofence aktif", "satu POD valid", "satu
   pengajuan pending").
 - **Jejak audit** tidak dihapus saat kasus ditutup — konsisten dengan aturan
   read-only audit trail (FR-05).
@@ -242,7 +235,6 @@ Skema berada pada **3NF**:
 | FRD-01 Geofencing Lock | `geofences`, `delivery_events`, `shipments` | `delivery_exceptions`, `geofence_policies`, `fn_evaluate_geofence()` |
 | FRD-02 POD Geotag | `delivery_proofs` | `anomaly_flags` (pod_needs_review) |
 | FRD-03 PIN per Segmen | `pin_challenges` | `pin_deliveries`, `geofence_policies`, `admin_actions` |
-| FRD-04 Location Matchmaking | `meeting_points` | `delivery_events`, `geofences` (source `meeting_point`) |
 | FRD-05 Claim Audit Trail | `v_shipment_audit_trail`, `claim_cases`, `anomaly_flags` | `claim_findings`, `audit_access_logs`, `v_shipment_anomaly_score` |
 
 ## 8. View & Function
@@ -251,7 +243,7 @@ Skema berada pada **3NF**:
 |---|---|
 | `fn_distance_to_destination(shipment, lat, lng)` | Jarak meter ke titik tujuan (`ST_Distance`) |
 | `fn_evaluate_geofence(shipment, lat, lng)` | Keputusan server: `distance_m`, `radius_m`, `inside` |
-| `v_shipment_audit_trail` | Satu baris ringkas per pengiriman (event, POD, PIN, pengecualian, titik temu, klaim) |
+| `v_shipment_audit_trail` | Satu baris ringkas per pengiriman (event, POD, PIN, pengecualian, klaim) |
 | `v_shipment_anomaly_score` | Skor anomali per pengiriman; `>= 2.00` → **perlu tinjauan** |
 
 ## 9. Data Contoh
@@ -263,7 +255,6 @@ Skema berada pada **3NF**:
 - PIN: `verified`, `locked` (3× salah), `expired`, `pending`, dan override admin.
 - POD `needs_review`: di luar geofence (`…0006`) dan selisih waktu perangkat (`…0010`).
 - Pengecualian: satu `pending` (`…0005`), dua `approved` (`…0006`, `…0014`).
-- Titik temu: satu final `approved` (`…0006`), satu `proposed` (`…0005`).
 - Klaim: satu `investigating`, satu `closed` beserta temuan.
 - Anomali: 4 pengiriman **perlu tinjauan** (`…0005`, `…0006`, `…0007`, `…0010`) —
   cocok dengan angka `4 perlu tinjauan` pada dashboard UI.
@@ -275,10 +266,8 @@ Skema berada pada **3NF**:
 - evaluasi geofence di dalam & di luar radius (`fn_evaluate_geofence`);
 - daftar keputusan geofence per pengiriman (`inside` true/false);
 - status PIN & batas kirim ulang;
-- titik temu dan geofence berpusat titik temu;
 - audit trail lengkap & skor anomali;
-- jumlah baris per tabel dan pemeriksaan invarian (satu geofence aktif / satu POD valid /
-  satu titik temu final).
+- jumlah baris per tabel dan pemeriksaan invarian (satu geofence aktif / satu POD valid).
 
 Skema telah diuji end-to-end pada PostgreSQL 16 + PostGIS 3.4 (Docker): `schema.sql`,
 `seed.sql`, dan `queries.sql` berjalan tanpa error.

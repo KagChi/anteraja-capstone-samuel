@@ -10,13 +10,12 @@
 --    - PIN verified / locked (3x) / expired / pending
 --    - POD outside geofence & device-time mismatch (needs_review)
 --    - approved & pending geofence exception
---    - meeting point proposed & approved final
 --    - claim case open / closed + findings
 --    - anomaly flags producing 4 "perlu tinjauan" shipments
 -- ============================================================================
 
 TRUNCATE audit_access_logs, admin_actions, claim_findings, claim_cases,
-         anomaly_flags, meeting_points, delivery_exceptions, pin_deliveries,
+         anomaly_flags, delivery_exceptions, pin_deliveries,
          pin_challenges, delivery_proofs, delivery_events, geofences,
          shipments, recipients, couriers, geofence_policies, admins,
          service_areas RESTART IDENTITY CASCADE;
@@ -138,7 +137,7 @@ JOIN recipients r ON r.id = v.recipient_id::uuid;
 
 
 -- ----------------------------------------------------------------------------
---  geofences  (radius by service_type; shipment 6 uses final meeting point)
+--  geofences  (radius by service_type)
 -- ----------------------------------------------------------------------------
 INSERT INTO geofences (id, shipment_id, center, radius_m, source, created_by, created_at)
 SELECT g.id::uuid, s.id, ST_SetSRID(ST_MakePoint(g.lng, g.lat), 4326)::geography,
@@ -149,7 +148,7 @@ FROM (VALUES
  ('77777777-0000-0000-0000-000000000003','AJ2509000003',106.832000,-6.195000, 50,'destination'),
  ('77777777-0000-0000-0000-000000000004','AJ2509000004',106.813000,-6.260000,100,'destination'),
  ('77777777-0000-0000-0000-000000000005','AJ2509000005',106.854000,-6.229000, 30,'destination'),
- ('77777777-0000-0000-0000-000000000006','AJ2509000006',106.799300,-6.225200, 50,'meeting_point'),
+ ('77777777-0000-0000-0000-000000000006','AJ2509000006',106.799000,-6.225000, 50,'destination'),
  ('77777777-0000-0000-0000-000000000007','AJ2509000007',106.829000,-6.236000, 30,'destination'),
  ('77777777-0000-0000-0000-000000000008','AJ2509000008',106.742000,-6.109000, 30,'destination'),
  ('77777777-0000-0000-0000-000000000009','AJ2509000009',106.906000,-6.157000,100,'destination'),
@@ -206,11 +205,9 @@ FROM (VALUES
  ('AJ2509000005','geofence_check',  -6.236000,106.860000,912, 'courier','2026-09-22T14:06:00+07','{"inside":false,"radius_m":30}'),
  ('AJ2509000005','delivery_attempt',-6.236000,106.860000,912, 'courier','2026-09-22T14:07:00+07','{"blocked":"outside_geofence"}'),
  ('AJ2509000005','exception_requested',-6.236000,106.860000,912,'courier','2026-09-22T14:08:00+07',NULL),
- -- AJ2509000006 — same_day, meeting point + approved exception, POD outside
+ -- AJ2509000006 — same_day, approved exception, POD outside
  ('AJ2509000006','pickup',          -6.229000,106.854000,NULL,'courier','2026-09-22T14:20:00+07',NULL),
  ('AJ2509000006','arrived',         -6.230000,106.799000,556, 'courier','2026-09-22T14:55:00+07',NULL),
- ('AJ2509000006','meeting_point_proposed',-6.225200,106.799300,33,'courier','2026-09-22T14:57:00+07',NULL),
- ('AJ2509000006','meeting_point_approved',-6.225200,106.799300,33,'recipient','2026-09-22T15:05:00+07',NULL),
  ('AJ2509000006','geofence_check',  -6.230000,106.799000,556, 'courier','2026-09-22T15:06:00+07','{"inside":false,"radius_m":50}'),
  ('AJ2509000006','exception_requested',-6.230000,106.799000,556,'courier','2026-09-22T15:07:00+07',NULL),
  ('AJ2509000006','exception_decided',NULL,NULL,NULL,          'admin','2026-09-22T15:10:00+07','{"decision":"approved"}'),
@@ -375,31 +372,12 @@ SELECT e.id::uuid, s.id, s.courier_id, ev.id,
        e.created_at::timestamptz
 FROM (VALUES
  ('bbbbbbbb-0000-0000-0000-000000000001','AJ2509000005',106.860000,-6.236000,912,30,'Sinyal GPS lemah di area gedung, penerima tidak berada di titik tujuan','pending',NULL,NULL,NULL,'2026-09-22T14:08:00+07'),
- ('bbbbbbbb-0000-0000-0000-000000000002','AJ2509000006',106.799000,-6.230000,556,50,'Penerima meminta serah terima di lobi gedung berbeda','approved','22222222-0000-0000-0000-000000000001','2026-09-22T15:10:00+07','Disetujui setelah verifikasi titik temu & POD','2026-09-22T15:07:00+07'),
+ ('bbbbbbbb-0000-0000-0000-000000000002','AJ2509000006',106.799000,-6.230000,556,50,'Penerima meminta serah terima di lobi gedung berbeda','approved','22222222-0000-0000-0000-000000000001','2026-09-22T15:10:00+07','Disetujui setelah verifikasi POD & radius','2026-09-22T15:07:00+07'),
  ('bbbbbbbb-0000-0000-0000-000000000003','AJ2509000014',106.823000,-6.210000,260,30,'Akses jalan menuju titik tujuan ditutup','approved','22222222-0000-0000-0000-000000000003','2026-09-23T11:50:00+07','Disetujui, akses jalan ditutup sementara','2026-09-23T11:42:00+07')
 ) AS e(id, tracking, lng, lat, distance_m, radius_m, reason, status, reviewed_by, reviewed_at, review_note, created_at)
 JOIN shipments s ON s.tracking_number = e.tracking
 LEFT JOIN delivery_events ev
   ON ev.shipment_id = s.id AND ev.event_type = 'exception_requested';
-
-
--- ----------------------------------------------------------------------------
---  meeting_points  (shipment 6 final approved; shipment 5 still proposed)
--- ----------------------------------------------------------------------------
-INSERT INTO meeting_points
-  (id, shipment_id, proposed_by_type, proposed_by_id, proposed_point,
-   distance_from_destination_m, distance_from_buyer_m, status,
-   approved_by_type, approved_by_id, expires_at, resolved_at, created_at)
-SELECT m.id::uuid, s.id, m.proposed_by_type, m.proposed_by_id::uuid,
-       ST_SetSRID(ST_MakePoint(m.lng, m.lat), 4326)::geography,
-       m.dist_dest, m.dist_buyer, m.status, m.approved_by_type,
-       m.approved_by_id::uuid, m.expires_at::timestamptz, m.resolved_at::timestamptz,
-       m.created_at::timestamptz
-FROM (VALUES
- ('cccccccc-0000-0000-0000-000000000001','AJ2509000006','courier','33333333-0000-0000-0000-000000000006',106.799300,-6.225200,33,45,'approved','recipient','44444444-0000-0000-0000-000000000006','2026-09-22T15:30:00+07','2026-09-22T15:05:00+07','2026-09-22T14:57:00+07'),
- ('cccccccc-0000-0000-0000-000000000002','AJ2509000005','courier','33333333-0000-0000-0000-000000000005',106.858000,-6.235000,900,NULL,'proposed',NULL,NULL,'2026-09-22T14:40:00+07',NULL,'2026-09-22T14:10:00+07')
-) AS m(id, tracking, proposed_by_type, proposed_by_id, lng, lat, dist_dest, dist_buyer, status, approved_by_type, approved_by_id, expires_at, resolved_at, created_at)
-JOIN shipments s ON s.tracking_number = m.tracking;
 
 
 -- ----------------------------------------------------------------------------
@@ -417,7 +395,7 @@ JOIN shipments s ON s.tracking_number = c.tracking;
 
 INSERT INTO claim_findings (id, claim_case_id, admin_id, finding) VALUES
 ('eeeeeeee-0000-0000-0000-000000000001','dddddddd-0000-0000-0000-000000000001','22222222-0000-0000-0000-000000000001','POD menunjukkan lokasi 556 m dari tujuan, namun pengecualian disetujui admin.'),
-('eeeeeeee-0000-0000-0000-000000000002','dddddddd-0000-0000-0000-000000000001','22222222-0000-0000-0000-000000000002','Titik temu final disetujui penerima; pusat geofence dialihkan ke titik temu.'),
+('eeeeeeee-0000-0000-0000-000000000002','dddddddd-0000-0000-0000-000000000001','22222222-0000-0000-0000-000000000002','Penerima menerima paket di lokasi alternatif; pengecualian radius tercatat.'),
 ('eeeeeeee-0000-0000-0000-000000000003','dddddddd-0000-0000-0000-000000000002','22222222-0000-0000-0000-000000000001','Riwayat pengiriman PIN tercatat 3 kali ke email penerima tanpa bukti dibaca.');
 
 
@@ -449,7 +427,7 @@ INSERT INTO audit_access_logs (id, actor_type, actor_id, shipment_id, action, co
 --  admin_actions  (cross-cutting decision audit)
 -- ----------------------------------------------------------------------------
 INSERT INTO admin_actions (id, admin_id, action_type, target_type, target_id, reason) VALUES
-('13131313-0000-0000-0000-000000000001','22222222-0000-0000-0000-000000000001','approve_exception','delivery_exception','bbbbbbbb-0000-0000-0000-000000000002','Titik temu & POD terverifikasi'),
+('13131313-0000-0000-0000-000000000001','22222222-0000-0000-0000-000000000001','approve_exception','delivery_exception','bbbbbbbb-0000-0000-0000-000000000002','POD di luar radius terverifikasi'),
 ('13131313-0000-0000-0000-000000000002','22222222-0000-0000-0000-000000000003','approve_exception','delivery_exception','bbbbbbbb-0000-0000-0000-000000000003','Akses jalan ditutup sementara'),
 ('13131313-0000-0000-0000-000000000003','22222222-0000-0000-0000-000000000001','close_claim',      'claim_case',        'dddddddd-0000-0000-0000-000000000002','Pengiriman dijadwalkan ulang'),
 ('13131313-0000-0000-0000-000000000004','22222222-0000-0000-0000-000000000005','update_radius',    'geofence_policy',   '14141414-0000-0000-0000-000000000001','Sinkronisasi Fleet Safety Protocol v4.2'),

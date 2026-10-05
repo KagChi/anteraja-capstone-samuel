@@ -64,17 +64,6 @@ test("admin can open the PIN lock dashboard", async ({ page }) => {
   }
 });
 
-test("admin can open the meeting point queue", async ({ page }) => {
-  await login(page, "windy.kusuma@anteraja.example.com");
-
-  await page.goto("/admin/antrian-pengecualian");
-  await page.locator('[data-mode="meeting"]').click();
-
-  await expect(
-    page.getByRole("heading", { name: "Titik Temu Menunggu Keputusan" }),
-  ).toBeVisible();
-});
-
 test("admin can download the audit trail as CSV", async ({ page }) => {
   await login(page, "windy.kusuma@anteraja.example.com");
 

@@ -60,7 +60,7 @@ CREATE TABLE admins (
   updated_at       timestamptz NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE admins IS 'Aktor Admin/CS. Pembuat keputusan pengecualian, override PIN, titik temu, tutup klaim, ubah radius.';
+COMMENT ON TABLE admins IS 'Aktor Admin/CS. Pembuat keputusan pengecualian, override PIN, tutup klaim, ubah radius.';
 
 -- Geofence policy per service segment (FR-01-02 + UI "Pengaturan Radius").
 CREATE TABLE geofence_policies (
@@ -100,7 +100,7 @@ CREATE TABLE couriers (
 
 COMMENT ON TABLE couriers IS 'Kurir SATRIA. Satu kurir milik satu wilayah layanan.';
 
--- Recipients (buyers) — contact target for PIN and meeting-point party.
+-- Recipients (buyers) — contact target for PIN.
 CREATE TABLE recipients (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name        text NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE recipients (
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE recipients IS 'Penerima / pembeli. Tujuan pengiriman PIN (email) dan pihak dalam matchmaking lokasi (FRD-04).';
+COMMENT ON TABLE recipients IS 'Penerima / pembeli. Tujuan pengiriman PIN (email).';
 
 
 -- ============================================================================
@@ -146,19 +146,19 @@ CREATE TABLE geofences (
   shipment_id  uuid NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
   center       geography(Point, 4326) NOT NULL,
   radius_m     integer NOT NULL CHECK (radius_m > 0),
-  source       text NOT NULL DEFAULT 'destination' CHECK (source IN ('destination', 'meeting_point')),
+  source       text NOT NULL DEFAULT 'destination' CHECK (source IN ('destination')),
   is_active    boolean NOT NULL DEFAULT true,
   created_by   uuid REFERENCES admins(id) ON DELETE SET NULL,
   created_at   timestamptz NOT NULL DEFAULT now(),
   updated_at   timestamptz NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE geofences IS 'Pusat & radius geofence. Pusat dapat berasal dari titik tujuan ter-geocode atau titik temu final (FR-04-07).';
+COMMENT ON TABLE geofences IS 'Pusat & radius geofence per pengiriman (FRD-01).';
 CREATE UNIQUE INDEX ux_geofences_one_active
   ON geofences (shipment_id) WHERE is_active;
 CREATE INDEX ix_geofences_center_gist ON geofences USING gist (center);
 
--- Immutable event log per shipment (PRD §6 + FRD-04/FRD-05).
+-- Immutable event log per shipment (PRD §6 + FRD-05).
 CREATE TABLE delivery_events (
   id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   shipment_id               uuid NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
@@ -167,7 +167,6 @@ CREATE TABLE delivery_events (
                               'pickup', 'arrived', 'delivery_attempt', 'delivered', 'failed',
                               'pin_verification', 'geofence_check',
                               'exception_requested', 'exception_decided',
-                              'meeting_point_proposed', 'meeting_point_approved',
                               'pod_captured')),
   point                     geography(Point, 4326),
   distance_to_destination_m integer CHECK (distance_to_destination_m >= 0),
@@ -256,7 +255,7 @@ CREATE INDEX ix_pin_deliveries_challenge ON pin_deliveries (pin_challenge_id);
 
 
 -- ============================================================================
---  5. EXCEPTIONS & MATCHMAKING
+--  5. EXCEPTIONS
 -- ============================================================================
 
 -- Delivery exceptions outside geofence radius (FRD-01).
@@ -282,34 +281,6 @@ COMMENT ON TABLE delivery_exceptions IS 'Pengajuan penyelesaian di luar radius. 
 CREATE UNIQUE INDEX ux_exceptions_one_pending
   ON delivery_exceptions (shipment_id) WHERE status = 'pending';
 CREATE INDEX ix_delivery_exceptions_shipment ON delivery_exceptions (shipment_id);
-
--- Meeting points between courier and buyer (FRD-04).
-CREATE TABLE meeting_points (
-  id                         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shipment_id                uuid NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
-  proposed_by_type           text NOT NULL CHECK (proposed_by_type IN ('courier', 'recipient', 'admin')),
-  proposed_by_id             uuid NOT NULL,
-  proposed_point             geography(Point, 4326) NOT NULL,
-  distance_from_destination_m integer NOT NULL CHECK (distance_from_destination_m >= 0),
-  distance_from_buyer_m      integer CHECK (distance_from_buyer_m >= 0),
-  status                     text NOT NULL DEFAULT 'proposed'
-                               CHECK (status IN ('proposed', 'approved', 'rejected', 'expired', 'admin_set')),
-  approved_by_type           text CHECK (approved_by_type IN ('courier', 'recipient', 'admin')),
-  approved_by_id             uuid,
-  expires_at                 timestamptz NOT NULL,
-  resolved_at                timestamptz,
-  created_at                 timestamptz NOT NULL DEFAULT now(),
-  updated_at                 timestamptz NOT NULL DEFAULT now()
-);
-
-COMMENT ON TABLE meeting_points IS 'Usulan & persetujuan titik temu. Hanya satu titik temu final (approved/admin_set) per pengiriman; pusat geofence mengikuti titik final.';
-CREATE UNIQUE INDEX ux_meeting_points_one_final
-  ON meeting_points (shipment_id) WHERE status IN ('approved', 'admin_set');
-CREATE UNIQUE INDEX ux_meeting_points_one_proposed
-  ON meeting_points (shipment_id) WHERE status = 'proposed';
-CREATE INDEX ix_meeting_points_shipment ON meeting_points (shipment_id);
-CREATE INDEX ix_meeting_points_point_gist ON meeting_points USING gist (proposed_point);
-
 
 -- ============================================================================
 --  6. CLAIMS & AUDIT
@@ -382,9 +353,9 @@ CREATE TABLE admin_actions (
   admin_id     uuid NOT NULL REFERENCES admins(id) ON DELETE RESTRICT,
   action_type  text NOT NULL CHECK (action_type IN (
                  'approve_exception', 'reject_exception', 'unlock_pin', 'override_pin',
-                 'set_meeting_point', 'close_claim', 'update_radius', 'review_pod')),
+                 'close_claim', 'update_radius', 'review_pod')),
   target_type  text NOT NULL CHECK (target_type IN (
-                 'shipment', 'delivery_exception', 'pin_challenge', 'meeting_point',
+                 'shipment', 'delivery_exception', 'pin_challenge',
                  'claim_case', 'geofence_policy', 'delivery_proof')),
   target_id    uuid NOT NULL,
   reason       text,
@@ -405,7 +376,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'service_areas', 'admins', 'geofence_policies', 'couriers', 'recipients',
     'shipments', 'geofences', 'pin_challenges', 'delivery_exceptions',
-    'meeting_points', 'claim_cases'
+    'claim_cases'
   ] LOOP
     EXECUTE format('DROP TRIGGER IF EXISTS trg_touch_updated_at ON %I', t);
     EXECUTE format(
@@ -499,13 +470,6 @@ exc AS (
   FROM delivery_exceptions
   GROUP BY shipment_id
 ),
-mp AS (
-  SELECT shipment_id,
-         count(*)                                            AS meeting_point_count,
-         bool_or(status IN ('approved', 'admin_set'))        AS has_final_meeting_point
-  FROM meeting_points
-  GROUP BY shipment_id
-),
 cl AS (
   SELECT shipment_id,
          max(status)                                         AS claim_status
@@ -529,8 +493,6 @@ SELECT
   pin.pin_attempts,
   coalesce(exc.exception_count, 0)    AS exception_count,
   coalesce(exc.has_approved_exception, false) AS has_approved_exception,
-  coalesce(mp.meeting_point_count, 0) AS meeting_point_count,
-  coalesce(mp.has_final_meeting_point, false) AS has_final_meeting_point,
   cl.claim_status
 FROM shipments s
 LEFT JOIN couriers c ON c.id = s.courier_id
@@ -539,10 +501,9 @@ LEFT JOIN ev  ON ev.shipment_id  = s.id
 LEFT JOIN pod ON pod.shipment_id = s.id
 LEFT JOIN pin ON pin.shipment_id = s.id
 LEFT JOIN exc ON exc.shipment_id = s.id
-LEFT JOIN mp  ON mp.shipment_id  = s.id
 LEFT JOIN cl  ON cl.shipment_id  = s.id;
 
-COMMENT ON VIEW v_shipment_audit_trail IS 'Satu baris ringkas per pengiriman: event, POD, PIN, pengecualian, titik temu, klaim (FRD-05).';
+COMMENT ON VIEW v_shipment_audit_trail IS 'Satu baris ringkas per pengiriman: event, POD, PIN, pengecualian, klaim (FRD-05).';
 
 -- Anomaly score per shipment (FR-05-05/06). Threshold >= 2.00 => perlu tinjauan.
 CREATE OR REPLACE VIEW v_shipment_anomaly_score AS

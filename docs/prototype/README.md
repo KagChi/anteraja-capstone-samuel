@@ -74,11 +74,11 @@ src/
 | # | Halaman | Rute | FRD yang dijawab |
 |---|---|---|---|
 | — | Landing pemilih alur | `/` | PRD §11 (UI) |
-| K1 | Daftar Tugas Pengiriman | `/courier/tugas` | FRD-03, FRD-04 |
-| K2 | Verifikasi Lokasi & PIN | `/courier/verifikasi` | FRD-01, FRD-03, FRD-04 |
+| K1 | Daftar Tugas Pengiriman | `/courier/tugas` | FRD-03 |
+| K2 | Verifikasi Lokasi & PIN | `/courier/verifikasi` | FRD-01, FRD-03 |
 | K3 | Ambil Bukti Foto (POD) | `/courier/bukti-foto` | FRD-02 |
 | K4 | Konfirmasi Sukses | `/courier/sukses` | FRD-01, FRD-02, FRD-03, FRD-05 |
-| A1 | Dashboard Pengiriman | `/admin/dashboard` | FRD-01, FRD-04 |
+| A1 | Dashboard Pengiriman | `/admin/dashboard` | FRD-01 |
 | A2 | Detail Audit Trail | `/admin/audit-trail` | FRD-05 |
 | A3 | Antrian Pengecualian | `/admin/antrian-pengecualian` | FRD-01 |
 | A3b | Detail Pengecualian | `/admin/pengecualian-detail` | FRD-01, FRD-05 |

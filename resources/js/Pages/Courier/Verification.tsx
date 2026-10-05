@@ -2,8 +2,6 @@ import { router } from "@inertiajs/react";
 import type { ClipboardEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { GeofenceMap } from "../../Components/courier/GeofenceMap";
-import { MeetingPointMap } from "../../Components/courier/MeetingPointMap";
-import { LoadingButton } from "../../Components/LoadingAction";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
@@ -58,8 +56,8 @@ export function VerificationPage() {
   const geo = useGeolocation(true);
   const destination = task?.destination;
   const radius = geofence?.radiusMeters ?? null;
-  // FR-04-07: an approved meeting point moves the completion centre, so the
-  // live distance, radius readout and exception gate follow it.
+  // The completion centre is the destination on record; the live distance,
+  // radius readout and exception gate all measure against it.
   const geofenceTarget: [number, number] | null =
     geofence?.center ??
     (destination ? [destination.latitude, destination.longitude] : null);
@@ -95,53 +93,6 @@ export function VerificationPage() {
   const [canResend, setCanResend] = useState(true);
   const [reason, setReason] = useState("");
   const [submittingReason, setSubmittingReason] = useState(false);
-  const [meetingMode, setMeetingMode] = useState<"meeting" | "buyer">(
-    "meeting",
-  );
-  const [meetingDraft, setMeetingDraft] = useState<[number, number] | null>(
-    null,
-  );
-  const [buyerDraft, setBuyerDraft] = useState<[number, number] | null>(null);
-  const [meetingBusy, setMeetingBusy] = useState(false);
-
-  const meetingPoint = task?.meetingPoint ?? null;
-  const courierPoint: [number, number] | null =
-    geo.latitude !== null && geo.longitude !== null
-      ? [geo.latitude, geo.longitude]
-      : null;
-  const proposedPoint: [number, number] | null =
-    meetingPoint?.latitude != null && meetingPoint?.longitude != null
-      ? [meetingPoint.latitude, meetingPoint.longitude]
-      : null;
-  const buyerPoint: [number, number] | null =
-    meetingPoint?.buyerLatitude != null && meetingPoint?.buyerLongitude != null
-      ? [meetingPoint.buyerLatitude, meetingPoint.buyerLongitude]
-      : null;
-  const meetingThreshold = meetingPoint?.thresholdM ?? 50;
-  const draftBuyerDistance =
-    buyerDraft && geofenceTarget
-      ? haversineMeters(
-          geofenceTarget[0],
-          geofenceTarget[1],
-          buyerDraft[0],
-          buyerDraft[1],
-        )
-      : null;
-  const needsMeetingPoint =
-    !meetingPoint?.final &&
-    draftBuyerDistance !== null &&
-    draftBuyerDistance > meetingThreshold;
-  const meetingStatusLabel = meetingPoint?.final
-    ? meetingPoint.adminSet
-      ? "Ditetapkan Admin"
-      : "Disetujui"
-    : meetingPoint?.status === "proposed"
-      ? "Menunggu persetujuan"
-      : meetingPoint?.status === "rejected"
-        ? "Ditolak"
-        : meetingPoint?.status === "expired"
-          ? "Kedaluwarsa"
-          : "Belum ada";
 
   const code = digits.join("");
   const exception = task?.exception ?? null;
@@ -216,62 +167,6 @@ export function VerificationPage() {
       if (resendTimer.current) window.clearInterval(resendTimer.current);
     };
   }, []);
-
-  // Re-proposing starts from the last attempt so the courier only has to
-  // adjust the marker instead of marking everything again.
-  useEffect(() => {
-    const point = task?.meetingPoint;
-
-    if (!point || point.final) return;
-
-    if (point.buyerLatitude != null && point.buyerLongitude != null) {
-      setBuyerDraft([point.buyerLatitude, point.buyerLongitude]);
-    }
-
-    if (
-      point.status !== "proposed" &&
-      point.latitude != null &&
-      point.longitude != null
-    ) {
-      setMeetingDraft([point.latitude, point.longitude]);
-    }
-  }, [task]);
-
-  async function proposeMeetingPoint() {
-    if (!task) return;
-
-    if (!meetingDraft) {
-      toast("Tandai titik temu pada peta terlebih dahulu.", "error");
-      return;
-    }
-
-    setMeetingBusy(true);
-
-    try {
-      await sendJson(
-        "POST",
-        `/api/v1/courier/tasks/${task.tracking}/meeting-point`,
-        {
-          latitude: meetingDraft[0],
-          longitude: meetingDraft[1],
-          buyer_latitude: buyerDraft?.[0],
-          buyer_longitude: buyerDraft?.[1],
-        },
-      );
-      toast("Usulan titik temu dikirim. Menunggu keputusan Admin.");
-      setMeetingDraft(null);
-      taskResource.reload();
-    } catch (error) {
-      toast(
-        error instanceof Error
-          ? error.message
-          : "Gagal mengirim usulan titik temu.",
-        "error",
-      );
-    } finally {
-      setMeetingBusy(false);
-    }
-  }
 
   useEffect(() => {
     if (!task) return;
@@ -690,16 +585,6 @@ export function VerificationPage() {
                 {geo.accuracy !== null ? `± ${geo.accuracy} m` : "—"}
               </dd>
             </div>
-            <div>
-              <dt className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-                Tujuan &rarr; Pembeli
-              </dt>
-              <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
-                {meetingPoint?.distanceFromBuyerM != null
-                  ? `${meetingPoint.distanceFromBuyerM} m`
-                  : "—"}
-              </dd>
-            </div>
           </dl>
           <figure
             className="relative isolate m-0 mt-4 h-48 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
@@ -770,211 +655,6 @@ export function VerificationPage() {
               </span>
             )}
           </p>
-        </section>
-
-        <section
-          className="mb-4 rounded-md border border-border-subtle bg-surface-card p-4 shadow-card"
-          id="meeting-point-card"
-          aria-labelledby="judul-titik-temu"
-        >
-          <header className="mb-2 flex items-center justify-between gap-2">
-            <h3
-              id="judul-titik-temu"
-              className="m-0 flex items-center gap-1.5 text-[14px] font-bold text-on-surface"
-            >
-              <MaterialIcon
-                name="handshake"
-                className="text-[18px] text-brand-magenta"
-              />{" "}
-              Titik Temu
-            </h3>
-            <mark
-              className={
-                "rounded-full px-2 py-0.5 text-[11px] font-bold " +
-                (meetingPoint?.final
-                  ? "bg-emerald-100 text-emerald-700"
-                  : meetingPoint?.status === "proposed"
-                    ? "bg-amber-100 text-amber-700"
-                    : meetingPoint?.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-surface-container text-on-surface-variant")
-              }
-              id="meeting-point-status"
-            >
-              {meetingStatusLabel}
-            </mark>
-          </header>
-
-          {meetingPoint?.final ? (
-            <p
-              className="m-0 text-[12px] leading-relaxed text-on-surface-variant"
-              id="meeting-point-final"
-            >
-              Titik serah terima final
-              {meetingPoint.adminSet ? " ditetapkan Admin" : " disetujui"}
-              {meetingPoint.resolvedTime
-                ? ` pada ${meetingPoint.resolvedTime}`
-                : ""}
-              . Pusat radius penyelesaian mengikuti titik ini,{" "}
-              {meetingPoint.distanceToDestinationM} m dari alamat tujuan.
-            </p>
-          ) : meetingPoint?.status === "proposed" ? (
-            <>
-              <p
-                className="m-0 text-[12px] leading-relaxed text-on-surface-variant"
-                id="meeting-point-pending"
-              >
-                Usulan terkirim {meetingPoint.requestedTime}. Menunggu keputusan
-                Admin (berlaku sampai {meetingPoint.expiresTime ?? "—"}).
-              </p>
-              <figure
-                className="relative isolate m-0 mt-3 h-40 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
-                id="meeting-point-map"
-              >
-                {geofenceTarget && radius !== null ? (
-                  <MeetingPointMap
-                    target={geofenceTarget}
-                    radiusMeters={radius}
-                    courier={courierPoint}
-                    buyer={buyerPoint}
-                    point={proposedPoint}
-                  />
-                ) : null}
-              </figure>
-              <Button
-                variant="text"
-                className="mt-2 text-[12px]"
-                id="btn-refresh-meeting-point"
-                onClick={() => taskResource.reload()}
-              >
-                <MaterialIcon name="refresh" className="text-[16px]" /> Perbarui
-                Status
-              </Button>
-            </>
-          ) : (
-            <>
-              {meetingPoint &&
-              (meetingPoint.status === "rejected" ||
-                meetingPoint.status === "expired") ? (
-                <p
-                  className="m-0 mb-2 text-[12px] leading-relaxed text-amber-700"
-                  id="meeting-point-rejected"
-                >
-                  Usulan sebelumnya{" "}
-                  {meetingPoint.status === "rejected"
-                    ? "ditolak Admin"
-                    : "kedaluwarsa"}
-                  {meetingPoint.resolvedTime
-                    ? ` (${meetingPoint.resolvedTime})`
-                    : ""}
-                  . Anda dapat mengajukan titik temu baru.
-                </p>
-              ) : null}
-              <p className="m-0 text-[12px] leading-relaxed text-on-surface-variant">
-                Bila penerima tidak berada tepat di alamat tujuan, tandai posisi
-                pembeli lalu pilih titik temu. Titik yang disetujui menjadi
-                pusat radius penyelesaian.
-              </p>
-              <div className="mt-2">
-                <FilterTabs
-                  id="meeting-point-mode"
-                  label="Mode penanda peta"
-                  fill
-                >
-                  <FilterTab
-                    active={meetingMode === "meeting"}
-                    data-mode="meeting"
-                    grow
-                    onClick={() => setMeetingMode("meeting")}
-                  >
-                    Titik Temu
-                  </FilterTab>
-                  <FilterTab
-                    active={meetingMode === "buyer"}
-                    data-mode="buyer"
-                    grow
-                    onClick={() => setMeetingMode("buyer")}
-                  >
-                    Posisi Pembeli
-                  </FilterTab>
-                </FilterTabs>
-              </div>
-              <figure
-                className="relative isolate m-0 mt-2 h-44 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
-                id="meeting-point-map"
-              >
-                {geofenceTarget && radius !== null ? (
-                  <MeetingPointMap
-                    target={geofenceTarget}
-                    radiusMeters={radius}
-                    courier={courierPoint}
-                    buyer={buyerDraft}
-                    point={meetingDraft}
-                    onPick={(latitude, longitude) => {
-                      if (meetingMode === "buyer") {
-                        setBuyerDraft([latitude, longitude]);
-                      } else {
-                        setMeetingDraft([latitude, longitude]);
-                      }
-                    }}
-                  />
-                ) : null}
-              </figure>
-              <p
-                className="m-0 mt-2 text-[11px] text-on-surface-variant"
-                id="meeting-point-distances"
-              >
-                Jarak tujuan &rarr; pembeli:{" "}
-                <strong className="font-semibold text-on-surface">
-                  {draftBuyerDistance !== null
-                    ? `${draftBuyerDistance} m`
-                    : "belum ditandai"}
-                </strong>
-                {needsMeetingPoint
-                  ? ` • Perlu titik temu (ambang ${meetingThreshold} m)`
-                  : ""}
-              </p>
-              <p className="m-0 mt-3 flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  id="btn-use-my-location"
-                  disabled={geo.latitude === null || geo.longitude === null}
-                  onClick={() => {
-                    if (geo.latitude === null || geo.longitude === null) return;
-                    setMeetingMode("meeting");
-                    setMeetingDraft([geo.latitude, geo.longitude]);
-                  }}
-                >
-                  <MaterialIcon name="my_location" className="text-[16px]" />
-                  Gunakan Posisi Saya
-                </Button>
-                {buyerDraft ? (
-                  <Button
-                    variant="text"
-                    size="sm"
-                    id="btn-clear-buyer"
-                    onClick={() => setBuyerDraft(null)}
-                  >
-                    Hapus posisi pembeli
-                  </Button>
-                ) : null}
-                <LoadingButton
-                  variant="primary"
-                  size="md"
-                  className="w-full"
-                  id="btn-propose-meeting-point"
-                  delay={200}
-                  busyText="Mengirim..."
-                  disabled={!meetingDraft || meetingBusy}
-                  onAction={proposeMeetingPoint}
-                >
-                  <MaterialIcon name="handshake" className="text-[18px]" />
-                  Ajukan Titik Temu
-                </LoadingButton>
-              </p>
-            </>
-          )}
         </section>
 
         {inside === false ? (

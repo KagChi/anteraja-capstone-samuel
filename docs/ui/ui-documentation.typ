@@ -93,7 +93,7 @@
     tag: "Mobile",
     width: 30%,
     desc: "Daftar stop aktif untuk satu kurir (Satria #4821 • Jak-Sel), diurutkan berdasarkan jarak. Kartu paket menampilkan tujuan, jarak & estimasi waktu, AWB bergaya barcode-tracking, serta badge segmen (Instant / Same-Day) dan penanda COD atau wajib PIN. Aksi bawah: tombol Pindai Resi dengan navigasi Tugas / Verifikasi / Riwayat / Profil.",
-    frd: "FRD-03 (badge Perlu PIN menandai paket Instant/Same-Day), FRD-04 (jarak kurir ↔ titik tujuan 250 m • 4 mnt).",
+    frd: "FRD-03 (badge Perlu PIN menandai paket Instant/Same-Day).",
   ),
   (
     file: "mobile-02-verifikasi-lokasi-pin.webp",
@@ -101,7 +101,7 @@
     tag: "Mobile",
     width: 30%,
     desc: "Layar serah terima. Menampilkan status geofence (28 m — Di dalam radius (Aman), presisi GPS ±3 m, sinkronisasi PostGIS terverifikasi), input PIN otorisasi penerima, serta konfirmasi serah fisik (nama penerima, hubungan, pilihan Satpam/Keluarga/Langsung). Percobaan PIN dibatasi 1 dari 3.",
-    frd: "FRD-01 (indikator jarak + status radius), FRD-03 (input PIN otorisasi), FRD-04 (konteks titik temu).",
+    frd: "FRD-01 (indikator jarak + status radius), FRD-03 (input PIN otorisasi).",
   ),
   (
     file: "mobile-03-ambil-bukti-foto.webp",
@@ -125,7 +125,7 @@
     tag: "Desktop",
     width: 100%,
     desc: "Ringkasan operasional harian (142 pengiriman hari ini • 4 perlu tinjauan • 138 terverifikasi otomatis). Tabel pengiriman dengan filter status (Semua / Perlu Tinjauan / Terkirim / Pengecualian), layanan, dan wilayah; kolom kurir, nomor resi, layanan, status, dan integritas.",
-    frd: "FRD-01 (menandai pengiriman yang perlu tinjauan geofence), FRD-04 (konteks wilayah/koordinat per pengiriman).",
+    frd: "FRD-01 (menandai pengiriman yang perlu tinjauan geofence).",
   ),
   (
     file: "desktop-02-detail-audit-trail.webp",
@@ -133,7 +133,7 @@
     tag: "Desktop",
     width: 62%,
     desc: "Satu halaman audit lengkap untuk satu resi (ANT-INST-8829104): ringkasan layanan & rute, validasi geofence, visual peta titik tujuan vs posisi kurir (+12 m, radius 50 m), riwayat event, POD, dan status PIN. Menyediakan Ekspor Audit (PDF).",
-    frd: "FRD-05 (seluruh jejak audit: event, POD, PIN, geofence, dan titik temu dalam satu tampilan).",
+    frd: "FRD-05 (seluruh jejak audit: event, POD, PIN, dan geofence dalam satu tampilan).",
   ),
   (
     file: "desktop-03-antrian-pengecualian.webp",
@@ -352,8 +352,6 @@
       [Mobile Ambil Bukti Foto & Konfirmasi Sukses],
     [*03*], [Verifikasi PIN per segmen layanan (Instant/Same-Day)],
       [Mobile Daftar Tugas, Verifikasi Lokasi, Konfirmasi Sukses],
-    [*04*], [Matchmaking lokasi kurir ↔ pembeli],
-      [Mobile Daftar Tugas & Verifikasi Lokasi; Desktop Dashboard],
     [*05*], [Audit trail & investigasi klaim],
       [Mobile Konfirmasi Sukses; Desktop Detail Audit Trail & Modal Pengecualian],
   )

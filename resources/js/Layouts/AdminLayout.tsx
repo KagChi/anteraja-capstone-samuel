@@ -8,38 +8,7 @@ import { useSession } from "../Contexts/SessionContext";
 import { ADMIN_NAV_GROUPS } from "../data/nav";
 import { useCourierAvatar } from "../Hooks/useCourierAvatar";
 import { useFlashToast } from "../Hooks/useFlashToast";
-
-interface Crumb {
-  section: string;
-  sectionHref?: string;
-  current: string;
-  activeNav: string;
-}
-
-const CRUMBS: Record<string, Crumb> = {
-  "/admin/dashboard": {
-    section: "Operasional Harian",
-    current: "Daftar Pengiriman",
-    activeNav: "/admin/dashboard",
-  },
-  "/admin/audit-trail": {
-    section: "Operasional Harian",
-    sectionHref: "/admin/dashboard",
-    current: "Detail Audit Trail",
-    activeNav: "/admin/dashboard",
-  },
-  "/admin/antrian-pengecualian": {
-    section: "Operasional Harian",
-    sectionHref: "/admin/dashboard",
-    current: "Antrian Pengecualian",
-    activeNav: "/admin/antrian-pengecualian",
-  },
-  "/admin/pengaturan-radius": {
-    section: "Konfigurasi Sistem",
-    current: "Pengaturan Radius",
-    activeNav: "/admin/pengaturan-radius",
-  },
-};
+import { resolveAdminCrumb } from "../lib/adminNav";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -56,7 +25,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   useFlashToast();
 
-  const crumb = CRUMBS[pathname] ?? CRUMBS["/admin/dashboard"];
+  const crumb = resolveAdminCrumb(pathname);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the drawer on route change
   useEffect(() => {

@@ -1,17 +1,15 @@
 import * as L from "leaflet";
 
-export type MapPinKind = "target" | "courier" | "buyer" | "point";
+export type MapPinKind = "target" | "courier";
 
 const TONES: Record<MapPinKind, string> = {
   target: "bg-brand-magenta text-white",
   courier: "bg-sky-600 text-white",
-  buyer: "bg-amber-500 text-white",
-  point: "bg-emerald-600 text-white",
 };
 
 /**
- * Leaflet div-icon pin shared by the courier maps (geofence and matchmaking)
- * so every marker keeps the same shape and label treatment.
+ * Leaflet div-icon pin used by the courier geofence map so every marker keeps
+ * the same shape and label treatment.
  */
 export function createMapPin(kind: MapPinKind, icon: string, label: string) {
   const html = `
