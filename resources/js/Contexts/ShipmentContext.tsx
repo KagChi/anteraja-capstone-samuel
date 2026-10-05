@@ -22,9 +22,9 @@ import type {
 } from "../types";
 import { useSession } from "./SessionContext";
 
-export const ACTIVE_TRACKING = "AJ2509000011";
+export const ACTIVE_TRACKING = "AJ2509001001";
 export const JAKARTA_PROVINCE_ID = "31";
-export const DESTINATION_DISTRICT = "Kebayoran Baru";
+export const DESTINATION_DISTRICT = "Kuningan";
 
 interface ShipmentContextValue {
   courierAvatar: AsyncResource<string>;

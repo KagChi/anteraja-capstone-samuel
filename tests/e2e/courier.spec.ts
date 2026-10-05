@@ -32,11 +32,11 @@ test("courier completes a GPS-stamped in-app camera POD delivery", async ({
       destination?: { latitude: number; longitude: number };
     }>;
   };
-  const task = tasks.data.find((item) => item.tracking === "AJ2509000011");
+  const task = tasks.data.find((item) => item.tracking === "AJ2509001001");
 
   test.skip(
     !task,
-    "Seed data AJ2509000011 is already delivered in this database.",
+    "Seed data AJ2509001001 (Maxy AI Hub) is already delivered in this database.",
   );
 
   // Mock the device GPS fix on the shipment destination so the live distance
