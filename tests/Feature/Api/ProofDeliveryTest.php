@@ -93,6 +93,7 @@ class ProofDeliveryTest extends TestCase
         $proof = $this->submitProof();
 
         $this->assertSame('valid', $proof->review_status);
+        $this->assertSame('langsung', $proof->relation);
         $this->assertStringStartsWith('pod/', $proof->photo_path);
         $this->assertLessThanOrEqual(1, $proof->distance_to_destination_m);
         Storage::disk('pod')->assertExists($proof->photo_path);

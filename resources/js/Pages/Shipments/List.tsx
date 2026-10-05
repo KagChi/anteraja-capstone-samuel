@@ -9,11 +9,12 @@ import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Pagination } from "../../Components/ui/Pagination";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { TextField } from "../../Components/ui/TextField";
-import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
+import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useSeo } from "../../Hooks/useSeo";
 import { MainLayout } from "../../Layouts/MainLayout";
-import type { ServiceSegment } from "../../types";
+import type { DeliveryRow, ServiceSegment } from "../../types";
 
 type ServiceFilter = "all" | ServiceSegment;
 
@@ -26,25 +27,18 @@ const FILTERS: { id: ServiceFilter; label: string }[] = [
 
 export function ShipmentListPage() {
   useSeo("/shipments");
-  const { shipments, shipmentsResource, shipmentsPagination, getShipmentById } =
-    useShipmentContext();
   const toast = useToast();
 
   const [query, setQuery] = useState("");
   const [service, setService] = useState<ServiceFilter>("all");
+  const debouncedQuery = useDebouncedValue(query, 300);
 
-  const term = query.trim().toLowerCase();
-  const rows = shipments.filter((row) => {
-    const okService = service === "all" || row.service === service;
-    const okSearch =
-      !term ||
-      `${row.tracking} ${row.courierName} ${row.recipient ?? ""} ${
-        row.address ?? ""
-      } ${row.regionLabel}`
-        .toLowerCase()
-        .includes(term);
-    return okService && okSearch;
+  // Search and service filtering run on the server.
+  const list = useCursorPagination<DeliveryRow>("/api/v1/shipments", PER_PAGE, {
+    search: debouncedQuery.trim() || undefined,
+    service: service === "all" ? undefined : service,
   });
+  const rows = list.items;
 
   function track(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,15 +47,14 @@ export function ShipmentListPage() {
       toast("Masukkan nomor resi terlebih dahulu.", "error");
       return;
     }
-    const found = getShipmentById(code);
-    router.visit(`/shipments/${found ? found.id : encodeURIComponent(code)}`);
+    router.visit(`/shipments/${encodeURIComponent(code)}`);
   }
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Lacak Resi"
-        description={`${rows.length} resi ditemukan • masukkan nomor resi untuk membuka detail`}
+        description={`${rows.length} resi ditampilkan • masukkan nomor resi untuk membuka detail`}
       />
 
       <form className="flex items-center gap-2" onSubmit={track}>
@@ -93,16 +86,16 @@ export function ShipmentListPage() {
         ))}
       </FilterTabs>
 
-      {shipmentsResource.isLoading ? (
+      {list.isLoading ? (
         <StatusPanel spinning>Memuat resi dari server...</StatusPanel>
-      ) : shipmentsResource.isError ? (
+      ) : list.isError ? (
         <StatusPanel
           tone="error"
           action={
             <Button
               variant="text"
               className="text-[12px]"
-              onClick={shipmentsResource.reload}
+              onClick={list.reload}
             >
               Coba lagi
             </Button>
@@ -125,12 +118,12 @@ export function ShipmentListPage() {
       )}
 
       <Pagination
-        page={shipmentsPagination.page}
-        hasPrev={shipmentsPagination.hasPrev}
-        hasNext={shipmentsPagination.hasNext}
-        isLoading={shipmentsPagination.isLoading}
-        onPrev={shipmentsPagination.prev}
-        onNext={shipmentsPagination.next}
+        page={list.page}
+        hasPrev={list.hasPrev}
+        hasNext={list.hasNext}
+        isLoading={list.isLoading}
+        onPrev={list.prev}
+        onNext={list.next}
       />
     </div>
   );

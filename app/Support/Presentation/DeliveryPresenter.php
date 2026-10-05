@@ -6,6 +6,7 @@ use App\Models\DeliveryProof;
 use App\Models\Shipment;
 use App\Support\Date;
 use App\Support\Geo\Distance;
+use App\Support\Geo\ServiceAreas;
 
 /**
  * Maps Eloquent shipments onto the shapes consumed by the React UI
@@ -13,16 +14,6 @@ use App\Support\Geo\Distance;
  */
 class DeliveryPresenter
 {
-    /**
-     * @var array<string, array{region: string, label: string, regencyId: string}>
-     */
-    private const AREAS = [
-        'JKS' => ['region' => 'jaksel', 'label' => 'Jak-Sel', 'regencyId' => '3171'],
-        'JKT' => ['region' => 'jaktim', 'label' => 'Jak-Tim', 'regencyId' => '3172'],
-        'JKP' => ['region' => 'jakpus', 'label' => 'Jak-Pus', 'regencyId' => '3173'],
-        'JKB' => ['region' => 'jakbar', 'label' => 'Jak-Bar', 'regencyId' => '3174'],
-    ];
-
     public static function row(Shipment $shipment): array
     {
         $area = self::area($shipment);
@@ -164,7 +155,7 @@ class DeliveryPresenter
                 'pointLabel' => $shipment->destination_address,
                 'analysis' => $shipment->activeGeofence?->source === 'meeting_point'
                     ? 'Titik pusat geofence mengikuti titik temu final.'
-                    : 'Deviasi dinilai wajar untuk area drop-off / parkir lobi.',
+                    : 'Analisis radius dihitung dari titik serah terima terakhir.',
             ],
             'pod' => [
                 'id' => $proof?->id,
@@ -181,7 +172,7 @@ class DeliveryPresenter
                     ])), ' •')
                     : '—',
                 'recipientName' => $proof?->recipient_name ?? $shipment->recipient?->name ?? 'Penerima',
-                'relation' => 'Penerima Langsung',
+                'relation' => self::relationLabel($proof?->relation),
                 'pin' => $pin && $pin->status === 'verified' ? '••••' : '—',
                 'reviewStatus' => $proof?->review_status,
                 'reviewNote' => $proof?->review_note,
@@ -191,7 +182,7 @@ class DeliveryPresenter
             'maxToleranceMeters' => $radius,
             'reason' => $shipment->deliveryExceptions
                 ->firstWhere('status', 'approved')?->reason
-                ?? 'Deviasi dinilai wajar untuk area drop-off / parkir lobi.',
+                ?? 'Tidak ada pengecualian radius yang disetujui.',
             'completedLabel' => $shipment->delivered_at
                 ? 'Selesai '.Date::timeLabel($shipment->delivered_at)
                 : 'Belum selesai',
@@ -268,6 +259,16 @@ class DeliveryPresenter
         }
 
         return sprintf('%.6f, %.6f', (float) $latitude, (float) $longitude);
+    }
+
+    private static function relationLabel(?string $relation): ?string
+    {
+        return match ($relation) {
+            'langsung' => 'Penerima Langsung',
+            'keluarga' => 'Keluarga Penerima',
+            'satpam' => 'Satpam / Keamanan',
+            default => $relation,
+        };
     }
 
     private static function statusLabel(Shipment $shipment, string $flag, int $deviation): string
@@ -352,7 +353,7 @@ class DeliveryPresenter
      */
     private static function areaFromCode(?string $code): array
     {
-        return self::AREAS[$code] ?? ['region' => 'jaksel', 'label' => 'Jak-Sel', 'regencyId' => '3171'];
+        return ServiceAreas::fromCode($code);
     }
 
     private static function serviceSegment(string $serviceType): string

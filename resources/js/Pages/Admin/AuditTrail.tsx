@@ -7,28 +7,29 @@ import { PageHeader } from "../../Components/layout/PageHeader";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { Spinner } from "../../Components/ui/Spinner";
-import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useAvatar } from "../../Hooks/useAvatar";
 import { useFetch } from "../../Hooks/useFetch";
+import { usePostalSearch } from "../../Hooks/usePostalSearch";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
 import { sendJson } from "../../lib/api";
+import { districtFromAddress } from "../../lib/postal";
 import type { DeliveryRow, ShipmentDetail } from "../../types";
 
 export function AuditTrailPage({ id = "" }: { id?: string }) {
   useSeo("/admin/audit-trail");
   const toast = useToast();
-  const { postal } = useShipmentContext();
   const detail = useFetch<{
     data: { shipment: DeliveryRow; detail: ShipmentDetail | null };
   }>(id ? `/api/v1/shipments/${encodeURIComponent(id)}` : null);
   const shipment = detail.data?.data?.shipment;
+  const postal = usePostalSearch(districtFromAddress(shipment?.address));
   const audit = detail.data?.data?.detail;
   const geofence = audit?.geofence;
   const milestones = audit?.milestones ?? [];
   const tracking = shipment?.tracking ?? id;
-  const courierName = shipment?.courierName ?? "Ahmad Satria";
+  const courierName = shipment?.courierName ?? "Belum ditugaskan";
   const courierAvatar = useAvatar(courierName);
 
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
@@ -201,22 +202,20 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
             <span className="flex flex-col">
               <span className="flex items-center gap-2">
                 <span className="text-base font-bold text-on-surface">
-                  {shipment?.courierCode ?? "#STR-4821"}
+                  {shipment?.courierCode ?? "—"}
                 </span>{" "}
                 <span className="text-sm text-on-surface-variant">
                   ({courierName})
                 </span>
               </span>
               <span className="mt-0.5 text-xs text-on-surface-variant">
-                {shipment?.service ?? "Instant"} &bull;{" "}
-                {shipment?.regionLabel ?? "Hub Jakarta Selatan"}
+                {shipment?.service ?? "—"} &bull; {shipment?.regionLabel ?? "—"}
               </span>
             </span>
           </p>
           <address className="m-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-subtle bg-surface-container-low px-3.5 py-2 text-xs font-medium not-italic text-on-surface-variant">
             <MaterialIcon name="route" className="text-[16px]" />{" "}
-            {shipment?.regionLabel ?? "Hub Jak-Sel"} &rarr;{" "}
-            {shipment?.address ?? "Jl. Senopati No. 42"}
+            {shipment?.regionLabel ?? "—"} &rarr; {shipment?.address ?? "—"}
             <span className="ml-1 flex items-center gap-1.5 border-l border-border-subtle pl-2">
               <MaterialIcon
                 name="markunread_mailbox"
@@ -266,27 +265,24 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
             </h2>
           </header>
           <section className="grid grid-cols-1 items-center gap-5 md:grid-cols-3">
-            <figure
-              className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
-              aria-label="Visual peta titik tujuan dan posisi kurir"
-            >
-              <AuditTrailMap
-                target={
-                  geofence?.target ?? ([-6.2401, 106.8093] as [number, number])
-                }
-                courier={
-                  geofence?.courier ??
-                  ([-6.24005, 106.80938] as [number, number])
-                }
-                radiusMeters={geofence?.radiusMeters ?? 30}
-                deviationMeters={geofence?.deviationMeters ?? 0}
-              />
-              <figcaption className="sr-only">
-                Kurir berada {geofence?.deviationMeters ?? 0} meter dari titik
-                tujuan, di dalam toleransi radius {geofence?.radiusMeters ?? 30}{" "}
-                meter.
-              </figcaption>
-            </figure>
+            {geofence ? (
+              <figure
+                className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
+                aria-label="Visual peta titik tujuan dan posisi kurir"
+              >
+                <AuditTrailMap
+                  target={geofence.target}
+                  courier={geofence.courier}
+                  radiusMeters={geofence.radiusMeters}
+                  deviationMeters={geofence.deviationMeters}
+                />
+                <figcaption className="sr-only">
+                  Kurir berada {geofence.deviationMeters} meter dari titik
+                  tujuan, di dalam toleransi radius {geofence.radiusMeters}{" "}
+                  meter.
+                </figcaption>
+              </figure>
+            ) : null}
             <dl className="m-0 h-full space-y-3 rounded-xl border border-border-subtle bg-surface-container-low/60 p-4">
               <dt className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
                 Titik Selesai
@@ -345,9 +341,11 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                     audit?.pod.recipientName ??
                     "Penerima"}
                 </span>{" "}
-                <mark className="rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs font-medium text-on-surface-variant">
-                  {audit?.pod.relation ?? "Penerima Langsung"}
-                </mark>
+                {audit?.pod.relation ? (
+                  <mark className="rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs font-medium text-on-surface-variant">
+                    {audit.pod.relation}
+                  </mark>
+                ) : null}
               </p>
               <p className="text-xs leading-relaxed text-on-surface-variant">
                 PIN cocok pada percobaan pertama. Geotag foto serah terima

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchJson } from "../lib/api";
 
 export interface CursorMeta {
@@ -34,6 +34,7 @@ export const PER_PAGE = 10;
 export function useCursorPagination<T>(
   url: string | null,
   perPage: number = PER_PAGE,
+  params: Record<string, string | undefined> = {},
 ): CursorPagination<T> {
   const [items, setItems] = useState<T[]>([]);
   const [meta, setMeta] = useState<CursorMeta | null>(null);
@@ -44,15 +45,34 @@ export function useCursorPagination<T>(
   const [nonce, setNonce] = useState(0);
   const requestId = useRef(0);
 
+  const paramsKey = useMemo(
+    () =>
+      JSON.stringify(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined && value !== "")
+          .sort(([a], [b]) => a.localeCompare(b)),
+      ),
+    [params],
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: paramsKey captures the filters that matter
+  const activeParams = useMemo(
+    () => JSON.parse(paramsKey) as [string, string][],
+    [paramsKey],
+  );
+
   const buildUrl = useCallback(
     (cursor: string | null) => {
-      const params = new URLSearchParams({ per_page: String(perPage) });
-      if (cursor) params.set("cursor", cursor);
+      const search = new URLSearchParams({ per_page: String(perPage) });
+      for (const [key, value] of activeParams) {
+        search.set(key, value);
+      }
+      if (cursor) search.set("cursor", cursor);
       const base = url ?? "";
       const separator = base.includes("?") ? "&" : "?";
-      return `${base}${separator}${params.toString()}`;
+      return `${base}${separator}${search.toString()}`;
     },
-    [url, perPage],
+    [url, perPage, activeParams],
   );
 
   const load = useCallback(

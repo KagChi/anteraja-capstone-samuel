@@ -6,6 +6,7 @@ import { Button } from "../../Components/ui/Button";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
+import { useActiveTracking } from "../../Hooks/useActiveTracking";
 import { useFetch } from "../../Hooks/useFetch";
 import { useGeolocation } from "../../Hooks/useGeolocation";
 import { useSeo } from "../../Hooks/useSeo";
@@ -19,6 +20,12 @@ import type {
 } from "../../types";
 
 type CameraState = "starting" | "live" | "error";
+
+const RELATION_LABELS: Record<string, string> = {
+  langsung: "Penerima Langsung",
+  keluarga: "Keluarga Penerima",
+  satpam: "Satpam / Keamanan",
+};
 
 interface Capture {
   blob: Blob;
@@ -34,13 +41,16 @@ interface Capture {
 export function ProofPhotoPage() {
   useSeo("/courier/bukti-foto");
   const toast = useToast();
-  const {
-    relation,
-    setProof,
-    setCompletion,
-    tracking: activeTracking,
-  } = useShipmentContext();
+  const { relation, setProof, setCompletion } = useShipmentContext();
+  const activeTracking = useActiveTracking();
   const geo = useGeolocation(true);
+
+  // Without a shipment in the URL there is nothing to capture.
+  useEffect(() => {
+    if (!activeTracking) {
+      router.visit("/courier/tugas");
+    }
+  }, [activeTracking]);
 
   const [clock, setClock] = useState(() => formatClock());
   const [flash, setFlash] = useState(false);
@@ -51,10 +61,10 @@ export function ProofPhotoPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${activeTracking}`,
+    activeTracking ? `/api/v1/courier/tasks/${activeTracking}` : null,
   );
   const task = taskResource.data?.data;
-  const tracking = task?.tracking ?? activeTracking;
+  const tracking = task?.tracking ?? activeTracking ?? "";
   const recipient = task?.recipient ?? "Penerima";
   const destination = task?.destination;
 
@@ -386,7 +396,7 @@ export function ProofPhotoPage() {
               {recipient}
             </h2>
             <p className="text-[12px] text-white/50">
-              Penerima Langsung &bull; Paket Sesuai
+              {RELATION_LABELS[relation] ?? "Penerima"}
             </p>
           </header>
           <p className="m-0 flex flex-col items-center gap-3 pt-1">

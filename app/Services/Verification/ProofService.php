@@ -64,6 +64,9 @@ class ProofService
         $reviewStatus = $outOfRadius || $deviceMismatch ? 'needs_review' : 'valid';
         $address = (string) ($shipment->destination_address ?? '');
         $recipient = (string) $data['recipient_name'];
+        $relation = isset($data['relation']) && $data['relation'] !== ''
+            ? (string) $data['relation']
+            : null;
 
         $binary = file_get_contents($photo->getRealPath());
 
@@ -96,6 +99,7 @@ class ProofService
             $deviceCapturedAtUtc,
             $address,
             $recipient,
+            $relation,
             $reviewStatus,
             $outOfRadius,
             $deviceMismatch,
@@ -133,6 +137,7 @@ class ProofService
                 ),
                 'watermark_address' => $address,
                 'recipient_name' => $recipient,
+                'relation' => $relation,
                 'review_status' => $reviewStatus,
                 'review_note' => $outOfRadius
                     ? 'POD di luar radius geofence'

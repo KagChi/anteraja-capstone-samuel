@@ -4,7 +4,6 @@ import { useState } from "react";
 import { MaterialIcon } from "../Components/MaterialIcon";
 import { Button } from "../Components/ui/Button";
 import { TextField } from "../Components/ui/TextField";
-import { useShipmentContext } from "../Contexts/ShipmentContext";
 import { useToast } from "../Contexts/ToastContext";
 import { useSeo } from "../Hooks/useSeo";
 import { MainLayout } from "../Layouts/MainLayout";
@@ -12,7 +11,6 @@ import { MainLayout } from "../Layouts/MainLayout";
 export function NotFoundPage() {
   useSeo("/404");
   const toast = useToast();
-  const { getShipmentById } = useShipmentContext();
   const [query, setQuery] = useState("");
 
   function track(event: FormEvent<HTMLFormElement>) {
@@ -22,12 +20,7 @@ export function NotFoundPage() {
       toast("Masukkan nomor resi terlebih dahulu.", "error");
       return;
     }
-    const found = getShipmentById(code);
-    if (!found) {
-      toast(`Resi tidak ditemukan: ${code}`, "error");
-      return;
-    }
-    router.visit(`/shipments/${found.id}`);
+    router.visit(`/shipments/${encodeURIComponent(code)}`);
   }
 
   return (

@@ -8,16 +8,22 @@ test("courier lands on tasks and opens the verification step", async ({
 
   await expect(page.getByRole("heading", { name: "Pengiriman" })).toBeVisible();
 
-  // Open the Maxy AI Hub task explicitly; its tracking drives the flow.
-  await page
-    .locator('article[data-tracking="AJ2509001001"]')
-    .getByRole("link", { name: /Mulai Antar/ })
-    .click();
+  await page.getByRole("link", { name: "Mulai Antar" }).first().click();
 
   await expect(page).toHaveURL(/\/courier\/verifikasi/);
   await expect(
     page.getByRole("heading", { name: "Verifikasi Pengiriman" }),
   ).toBeVisible();
+});
+
+test("verification without a shipment returns to the task list", async ({
+  page,
+}) => {
+  await login(page, "budi.pratama@anteraja.example.com");
+
+  await page.goto("/courier/verifikasi");
+
+  await expect(page).toHaveURL(/\/courier\/tugas/);
 });
 
 test("courier completes a GPS-stamped in-app camera POD delivery", async ({
@@ -52,7 +58,11 @@ test("courier completes a GPS-stamped in-app camera POD delivery", async ({
     });
   }
 
-  await page.getByRole("link", { name: "Mulai Antar" }).first().click();
+  // Open the Maxy AI Hub task explicitly; its tracking drives the flow.
+  await page
+    .locator('article[data-tracking="AJ2509001001"]')
+    .getByRole("link", { name: /Mulai Antar/ })
+    .click();
   await expect(page).toHaveURL(/\/courier\/verifikasi/);
 
   // GPS detection: the live fix must resolve inside the geofence radius.

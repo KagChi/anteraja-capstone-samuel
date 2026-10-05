@@ -35,14 +35,27 @@ class ShipmentReadService
      *
      * @return array{rows: array<int, array<string, mixed>>, next_cursor: string|null}
      */
-    public function page(int $perPage, ?string $cursor): array
+    public function page(int $perPage, ?string $cursor, array $filters = []): array
     {
+        $filters = array_filter([
+            'search' => is_string($filters['search'] ?? null) ? trim($filters['search']) : null,
+            'status' => is_string($filters['status'] ?? null) ? $filters['status'] : null,
+            'service' => is_string($filters['service'] ?? null) ? $filters['service'] : null,
+            'region' => is_string($filters['region'] ?? null) ? $filters['region'] : null,
+        ], static fn ($value) => $value !== null && $value !== '');
+
         $decoded = Cursor::decode($cursor);
-        $key = sprintf('index.%d.%s', $perPage, $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first');
+        $key = sprintf(
+            'index.%d.%s.%s',
+            $perPage,
+            $decoded ? substr(sha1((string) $cursor), 0, 12) : 'first',
+            $filters === [] ? 'all' : substr(sha1(json_encode($filters)), 0, 12),
+        );
 
         return ShipmentCache::remember($key, fn (): array => CursorPage::get(
             Shipment::query()
                 ->forListPresentation()
+                ->forListFilters($filters)
                 ->orderByDesc('shipments.created_at')
                 ->orderByDesc('shipments.id'),
             $perPage,

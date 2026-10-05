@@ -262,7 +262,7 @@ export function LandingPage() {
                 <li>
                   <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/audit-trail/AJ2509000004"
+                    href="/admin/dashboard"
                   >
                     2. Detail Audit Trail
                   </Link>
@@ -278,7 +278,7 @@ export function LandingPage() {
                 <li>
                   <Link
                     className="text-on-surface hover:text-brand-magenta"
-                    href="/admin/antrian-pengecualian?open=AJ2509000005"
+                    href="/admin/antrian-pengecualian"
                   >
                     3b. Detail Pengecualian
                   </Link>

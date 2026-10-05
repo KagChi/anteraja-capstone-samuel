@@ -68,7 +68,7 @@ export function TasksPage() {
   const { session } = useSession();
   const { courierAvatar } = useShipmentContext();
   const toast = useToast();
-  const name = session?.name ?? "Satria";
+  const name = session?.name ?? "Kurir";
   useFlashToast();
 
   const [filter, setFilter] = useState<Filter>("all");

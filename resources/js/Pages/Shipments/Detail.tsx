@@ -9,7 +9,6 @@ import {
 import { Button } from "../../Components/ui/Button";
 import { CARD_CLASS } from "../../Components/ui/Card";
 import { Spinner } from "../../Components/ui/Spinner";
-import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { MainLayout } from "../../Layouts/MainLayout";
@@ -41,7 +40,6 @@ function buildTimeline(
 
 export function ShipmentDetailPage({ id = "" }: { id?: string }) {
   useSeo(`/shipments/${id}`, "/shipments");
-  const { getShipmentById } = useShipmentContext();
   const detail = useFetch<{
     data: { shipment: DeliveryRow; detail: ShipmentDetail | null };
   }>(id ? `/api/v1/shipments/${encodeURIComponent(id)}` : null);
@@ -54,8 +52,7 @@ export function ShipmentDetailPage({ id = "" }: { id?: string }) {
     );
   }
 
-  // API adalah sumber utama; fallback memakai daftar resi yang sudah dimuat.
-  const shipment = detail.data?.data?.shipment ?? getShipmentById(id);
+  const shipment = detail.data?.data?.shipment;
 
   if (!shipment) {
     return (

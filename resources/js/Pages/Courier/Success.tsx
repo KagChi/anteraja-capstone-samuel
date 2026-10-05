@@ -1,11 +1,12 @@
-import { Link } from "@inertiajs/react";
-import { useState } from "react";
+import { Link, router } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 import { Avatar } from "../../Components/Avatar";
 import { CourierBottomNav } from "../../Components/courier/CourierBottomNav";
 import { MaterialIcon } from "../../Components/MaterialIcon";
 import { Button } from "../../Components/ui/Button";
 import { useSession } from "../../Contexts/SessionContext";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
+import { useActiveTracking } from "../../Hooks/useActiveTracking";
 import { useFetch } from "../../Hooks/useFetch";
 import { useSeo } from "../../Hooks/useSeo";
 import { formatStamp, randomDigits } from "../../lib/format";
@@ -14,21 +15,25 @@ import type { DeliveryTask } from "../../types";
 export function SuccessPage() {
   useSeo("/courier/sukses");
   const { session } = useSession();
-  const {
-    courierAvatar,
-    proof,
-    tracking: activeTracking,
-  } = useShipmentContext();
-  const name = session?.name ?? "Satria";
+  const { courierAvatar, proof } = useShipmentContext();
+  const activeTracking = useActiveTracking();
+  const name = session?.name ?? "Kurir";
+
+  // Without a shipment in the URL there is nothing to celebrate.
+  useEffect(() => {
+    if (!activeTracking) {
+      router.visit("/courier/tugas");
+    }
+  }, [activeTracking]);
 
   const [fallbackHash] = useState(() => `AUD-SEC-${randomDigits(4)}-SHA256`);
   const [stamp] = useState(() => new Date());
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${activeTracking}`,
+    activeTracking ? `/api/v1/courier/tasks/${activeTracking}` : null,
   );
   const task = taskResource.data?.data;
-  const tracking = task?.tracking ?? activeTracking;
+  const tracking = task?.tracking ?? activeTracking ?? "—";
   const auditHash = proof?.watermark_hash ?? fallbackHash;
 
   return (
@@ -121,7 +126,7 @@ export function SuccessPage() {
                   </p>
                 </header>
                 <p className="mt-0.5 text-[12px] leading-relaxed text-on-surface-variant">
-                  {task?.address ?? "Kebayoran Baru"}
+                  {task?.address ?? "—"}
                 </p>
               </section>
             </section>

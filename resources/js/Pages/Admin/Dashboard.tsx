@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ShipmentFilters,
   type StatusFilter,
@@ -8,15 +8,15 @@ import { ShipmentList } from "../../Components/admin/dashboard/ShipmentList";
 import { PageHeader } from "../../Components/layout/PageHeader";
 import { Button } from "../../Components/ui/Button";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
-import { useShipmentContext } from "../../Contexts/ShipmentContext";
+import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
+import { useLocationData } from "../../Hooks/useLocationData";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
+import type { DeliveryRow } from "../../types";
 
 export function DashboardPage() {
   useSeo("/admin/dashboard");
-  const { regencies, shipments, shipmentsResource, shipmentsPagination } =
-    useShipmentContext();
 
   const [status, setStatus] = useState<StatusFilter>("review");
   const [service, setService] = useState("");
@@ -24,18 +24,28 @@ export function DashboardPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 150);
 
-  const query = debouncedSearch.trim().toLowerCase();
-  const rows = shipments.filter((row) => {
-    const okStatus = status === "all" || row.flag === status;
-    const okService = !service || row.service === service;
-    const okRegion = !region || row.regencyId === region;
-    const okSearch =
-      !query ||
-      `${row.courierName} ${row.courierCode} ${row.tracking} ${row.statusLabel}`
-        .toLowerCase()
-        .includes(query);
-    return okStatus && okService && okRegion && okSearch;
+  // Filtering and search run on the server; the client renders the returned
+  // page and only drives the cursors.
+  const list = useCursorPagination<DeliveryRow>("/api/v1/shipments", PER_PAGE, {
+    status: status === "all" ? undefined : status,
+    service: service || undefined,
+    region: region || undefined,
+    search: debouncedSearch.trim() || undefined,
   });
+  const rows = list.items;
+
+  // Region options follow the provinces present in the loaded rows, so no
+  // region id is configured by hand.
+  const provinceId = useMemo(() => {
+    const prefixes = new Set(
+      rows
+        .map((row) => row.regencyId?.slice(0, 2))
+        .filter((prefix): prefix is string => Boolean(prefix)),
+    );
+
+    return prefixes.size === 1 ? ([...prefixes][0] ?? null) : null;
+  }, [rows]);
+  const { regencies } = useLocationData(provinceId);
 
   return (
     <>
@@ -44,13 +54,13 @@ export function DashboardPage() {
         description="Pantau status integritas pengiriman kurir Satria hari ini."
       />
 
-      {shipmentsResource.isLoading && (
+      {list.isLoading && (
         <StatusPanel spinning>
           Memuat data pengiriman dari server...
         </StatusPanel>
       )}
 
-      {shipmentsResource.isError && (
+      {list.isError && (
         <StatusPanel
           icon="cloud_off"
           tone="error"
@@ -58,7 +68,7 @@ export function DashboardPage() {
             <Button
               variant="text"
               className="text-[12px]"
-              onClick={shipmentsResource.reload}
+              onClick={list.reload}
             >
               Coba lagi
             </Button>
@@ -68,7 +78,7 @@ export function DashboardPage() {
         </StatusPanel>
       )}
 
-      {shipmentsResource.data && (
+      {!list.isLoading && !list.isError && (
         <ShipmentList
           shipments={rows}
           toolbar={
@@ -86,12 +96,12 @@ export function DashboardPage() {
             />
           }
           pagination={{
-            page: shipmentsPagination.page,
-            hasPrev: shipmentsPagination.hasPrev,
-            hasNext: shipmentsPagination.hasNext,
-            isLoading: shipmentsPagination.isLoading,
-            onPrev: shipmentsPagination.prev,
-            onNext: shipmentsPagination.next,
+            page: list.page,
+            hasPrev: list.hasPrev,
+            hasNext: list.hasNext,
+            isLoading: list.isLoading,
+            onPrev: list.prev,
+            onNext: list.next,
           }}
         />
       )}

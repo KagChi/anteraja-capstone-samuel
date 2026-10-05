@@ -15,6 +15,7 @@ class DeliveryProof extends Model
         'shipment_id', 'courier_id', 'photo_path', 'point',
         'distance_to_destination_m', 'captured_at', 'device_captured_at',
         'watermark_hash', 'watermark_address', 'recipient_name',
+        'relation',
         'review_status', 'review_note', 'reviewed_by', 'reviewed_at',
     ];
 

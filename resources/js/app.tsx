@@ -31,13 +31,11 @@ createInertiaApp({
     const authUser =
       (props.initialPage.props as { auth?: { user: AuthUser | null } }).auth
         ?.user ?? null;
-    const initialPathname = props.initialPage.url.split("?")[0];
-
     createRoot(el).render(
       <StrictMode>
         <AuthProvider initialUser={authUser}>
           <ToastProvider>
-            <ShipmentProvider initialPathname={initialPathname}>
+            <ShipmentProvider>
               <App {...props} />
             </ShipmentProvider>
           </ToastProvider>

@@ -3,6 +3,7 @@
 namespace App\Services\Delivery;
 
 use App\Support\CacheTtl;
+use App\Support\Date;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -59,8 +60,23 @@ class DashboardService
                 'total' => (int) ($counts->total ?? 0),
                 'reviewCount' => (int) ($counts->review_count ?? 0),
                 'verifiedCount' => (int) ($counts->verified_count ?? 0),
-                'shift' => 'Shift Aktif (08:00 - 20:00)',
+                'shift' => $this->shiftLabel(),
             ];
         });
+    }
+
+    /**
+     * The active dispatch window is derived from the clock instead of a fixed
+     * label, so the dashboard header always matches the current shift.
+     */
+    private function shiftLabel(): string
+    {
+        $hour = (int) Date::now()->format('G');
+
+        return match (true) {
+            $hour >= 8 && $hour < 14 => 'Shift Pagi (08:00 - 14:00)',
+            $hour >= 14 && $hour < 20 => 'Shift Sore (14:00 - 20:00)',
+            default => 'Shift Malam (20:00 - 08:00)',
+        };
     }
 }

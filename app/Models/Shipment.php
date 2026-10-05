@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Support\Geo\Point;
+use App\Support\Geo\ServiceAreas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -150,5 +151,56 @@ class Shipment extends Model
                 DB::raw('(SELECT le2.distance_to_destination_m FROM delivery_events le2 WHERE le2.shipment_id = shipments.id AND le2.distance_to_destination_m IS NOT NULL ORDER BY le2.created_at DESC LIMIT 1) as latest_distance'),
                 DB::raw('(SELECT lc.status FROM pin_challenges lc WHERE lc.shipment_id = shipments.id LIMIT 1) as pin_status'),
             ]);
+    }
+
+    /**
+     * Server-side list filters for the shipment tables (search, flag, service
+     * and region). Expects the list-presentation aliases to be present, so the
+     * clauses can reuse them.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function scopeForListFilters($query, array $filters)
+    {
+        $search = trim((string) ($filters['search'] ?? ''));
+
+        if ($search !== '') {
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+
+            $query->where(function ($query) use ($like): void {
+                $query->where('shipments.tracking_number', 'ilike', $like)
+                    ->orWhere('list_courier.name', 'ilike', $like)
+                    ->orWhere('list_courier.code', 'ilike', $like)
+                    ->orWhere('list_recipient.name', 'ilike', $like)
+                    ->orWhere('shipments.destination_address', 'ilike', $like);
+            });
+        }
+
+        $pending = "EXISTS (SELECT 1 FROM delivery_exceptions le WHERE le.shipment_id = shipments.id AND le.status = 'pending')";
+        $needsReview = 'coalesce((SELECT sum(la.weight) FROM anomaly_flags la WHERE la.shipment_id = shipments.id AND NOT la.is_resolved), 0) >= 2.0'
+            ." OR EXISTS (SELECT 1 FROM delivery_proofs lp WHERE lp.shipment_id = shipments.id AND lp.review_status = 'needs_review')";
+
+        match ((string) ($filters['status'] ?? '')) {
+            'exception' => $query->whereRaw($pending),
+            'delivered' => $query->whereRaw("NOT {$pending} AND shipments.status = 'delivered' AND NOT ({$needsReview})"),
+            'review' => $query->whereRaw("NOT {$pending} AND NOT (shipments.status = 'delivered' AND NOT ({$needsReview}))"),
+            default => null,
+        };
+
+        match ((string) ($filters['service'] ?? '')) {
+            'instant' => $query->where('shipments.service_type', 'instant'),
+            'regular' => $query->where('shipments.service_type', 'regular'),
+            'sameday' => $query->whereNotIn('shipments.service_type', ['instant', 'regular']),
+            default => null,
+        };
+
+        $region = $filters['region'] ?? null;
+        $areaCode = ServiceAreas::codeForRegency(is_string($region) ? $region : null);
+
+        if ($areaCode !== null) {
+            $query->where('list_area.code', $areaCode);
+        }
+
+        return $query;
     }
 }

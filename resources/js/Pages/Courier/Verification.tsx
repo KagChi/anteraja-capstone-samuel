@@ -8,16 +8,18 @@ import { FilterTab, FilterTabs } from "../../Components/ui/FilterBar";
 import { Spinner } from "../../Components/ui/Spinner";
 import { useShipmentContext } from "../../Contexts/ShipmentContext";
 import { useToast } from "../../Contexts/ToastContext";
+import { useActiveTracking } from "../../Hooks/useActiveTracking";
 import { useFetch } from "../../Hooks/useFetch";
 import { useGeolocation } from "../../Hooks/useGeolocation";
+import { usePostalSearch } from "../../Hooks/usePostalSearch";
 import { useSeo } from "../../Hooks/useSeo";
 import { sendJson } from "../../lib/api";
 import { clamp } from "../../lib/format";
 import { formatMeters, haversineMeters } from "../../lib/geo";
+import { districtFromAddress } from "../../lib/postal";
 import type { DeliveryTask, PinIssue, PinVerifyResult } from "../../types";
 
 const PIN_KEYS = ["d1", "d2", "d3", "d4", "d5", "d6"] as const;
-const MAX_ATTEMPTS = 3;
 
 type PinStatus = "idle" | "error" | "ok";
 
@@ -30,27 +32,30 @@ const RELATIONS = [
 export function VerificationPage() {
   useSeo("/courier/verifikasi");
   const toast = useToast();
-  const {
-    postal,
-    relation,
-    setRelation,
-    setPinVerified,
-    tracking: activeTracking,
-  } = useShipmentContext();
+  const { relation, setRelation, setPinVerified } = useShipmentContext();
+  const activeTracking = useActiveTracking();
+
+  // Without a shipment in the URL there is nothing to verify.
+  useEffect(() => {
+    if (!activeTracking) {
+      router.visit("/courier/tugas");
+    }
+  }, [activeTracking]);
 
   const taskResource = useFetch<{ data: DeliveryTask }>(
-    `/api/v1/courier/tasks/${activeTracking}`,
+    activeTracking ? `/api/v1/courier/tasks/${activeTracking}` : null,
   );
   const task = taskResource.data?.data;
   const geofence = task?.geofence;
-  const tracking = task?.tracking ?? activeTracking;
+  const tracking = task?.tracking ?? activeTracking ?? "";
   const recipient = task?.recipient ?? "Penerima";
+  const postal = usePostalSearch(districtFromAddress(task?.address));
 
   // Live GPS: the device fix drives the distance readout and is the exact
   // coordinate pair later submitted with the POD (the server re-verifies it).
   const geo = useGeolocation(true);
   const destination = task?.destination;
-  const radius = geofence?.radiusMeters ?? 30;
+  const radius = geofence?.radiusMeters ?? null;
   const liveDistance =
     geo.latitude !== null && geo.longitude !== null && destination
       ? haversineMeters(
@@ -61,7 +66,8 @@ export function VerificationPage() {
         )
       : null;
   const gpsReady = geo.status === "ready" && liveDistance !== null;
-  const inside = liveDistance !== null ? liveDistance <= radius : null;
+  const inside =
+    liveDistance !== null && radius !== null ? liveDistance <= radius : null;
 
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const resetToken = useRef(0);
@@ -77,6 +83,7 @@ export function VerificationPage() {
   const [verifying, setVerifying] = useState(false);
   const [resendSeconds, setResendSeconds] = useState(0);
   const [nextBusy, setNextBusy] = useState(false);
+  const [maxAttempts, setMaxAttempts] = useState<number | null>(null);
 
   const code = digits.join("");
   const ready =
@@ -88,7 +95,7 @@ export function VerificationPage() {
       ? "Posisi " +
         formatMeters(liveDistance ?? 0) +
         " dari tujuan (radius " +
-        radius +
+        (radius ?? "?") +
         " m). Serah terima di luar radius butuh persetujuan Admin."
       : null;
 
@@ -107,7 +114,10 @@ export function VerificationPage() {
       `/api/v1/courier/tasks/${tracking}/pin`,
     )
       .then((response) => {
-        if (active) setPinCode(response.data.debug_code ?? null);
+        if (active) {
+          setPinCode(response.data.debug_code ?? null);
+          setMaxAttempts(response.data.max_attempts);
+        }
       })
       .catch(() => {
         if (active) setPinCode(null);
@@ -152,8 +162,9 @@ export function VerificationPage() {
       setVerified(false);
       setLocked(lockedNow);
       setAttempts(response.data.attempts);
+      setMaxAttempts(response.data.max_attempts);
       setPinVerified(false);
-      failPin(lockedNow);
+      failPin(lockedNow, response.data.max_attempts);
     } catch (error) {
       setVerified(false);
       toast(
@@ -165,7 +176,7 @@ export function VerificationPage() {
     }
   }
 
-  function failPin(lockedNow: boolean) {
+  function failPin(lockedNow: boolean, limit: number) {
     setStatuses(Array(6).fill("error"));
     setShake(false);
     window.setTimeout(() => setShake(true), 0);
@@ -173,7 +184,7 @@ export function VerificationPage() {
 
     if (lockedNow) {
       toast(
-        `PIN salah ${MAX_ATTEMPTS} kali. Hubungi Admin untuk membuka akses.`,
+        `PIN salah ${limit} kali. Hubungi Admin untuk membuka akses.`,
         "error",
       );
       return;
@@ -377,9 +388,11 @@ export function VerificationPage() {
               ? "GPS tidak aktif"
               : !gpsReady
                 ? "Mencari sinyal GPS…"
-                : inside
-                  ? "Di dalam radius (Aman)"
-                  : "Di luar radius"}
+                : radius === null
+                  ? "Radius belum tersedia"
+                  : inside
+                    ? "Di dalam radius (Aman)"
+                    : "Di luar radius"}
           </p>
           {geo.status === "error" ? (
             <p className="mt-2 m-0 max-w-sm text-[12px] font-medium text-error">
@@ -412,7 +425,7 @@ export function VerificationPage() {
                 Radius
               </dt>
               <dd className="tabular-nums ml-0 mt-0.5 font-semibold text-on-surface">
-                {radius} m
+                {radius !== null ? `${radius} m` : "—"}
               </dd>
             </div>
             <div>
@@ -436,7 +449,7 @@ export function VerificationPage() {
             className="relative m-0 mt-4 h-48 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
             id="geofence-map"
           >
-            {destination ? (
+            {destination && radius !== null ? (
               <GeofenceMap
                 target={[destination.latitude, destination.longitude]}
                 courier={
@@ -527,7 +540,7 @@ export function VerificationPage() {
                 className="rounded-full bg-surface-container px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant"
                 id="pin-attempts"
               >
-                Percobaan {attempts} dari {MAX_ATTEMPTS}
+                Percobaan {attempts} dari {maxAttempts ?? "—"}
               </mark>
             </header>
             <p className="mb-3 text-[12px] text-on-surface-variant">

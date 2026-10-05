@@ -21,9 +21,8 @@ use Illuminate\Support\Facades\Cache;
 class PinService
 {
     /**
-     * Demo prototype: the recipient PIN is a fixed code so the whole flow can
-     * be demonstrated without SMS/email delivery. Production would generate a
-     * random code per challenge.
+     * Demo prototype: the recipient PIN is a fixed code so the flow can be
+     * demonstrated without SMS/email delivery.
      */
     private const DEMO_PIN = '123456';
 
