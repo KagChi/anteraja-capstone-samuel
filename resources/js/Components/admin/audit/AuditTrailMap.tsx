@@ -8,6 +8,7 @@ interface AuditTrailMapProps {
   courier?: [number, number] | null;
   radiusMeters: number;
   deviationMeters: number;
+  courierLabel?: string;
 }
 
 function pinHtml(
@@ -66,14 +67,20 @@ export function AuditTrailMap({
   courier = null,
   radiusMeters,
   deviationMeters,
+  courierLabel = "Kurir",
 }: AuditTrailMapProps) {
   const targetIcon = useMemo(
     () => createPin("target", "flag", "Titik Tujuan"),
     [],
   );
   const courierIcon = useMemo(
-    () => createPin("courier", "two_wheeler", `Kurir +${deviationMeters} m`),
-    [deviationMeters],
+    () =>
+      createPin(
+        "courier",
+        "two_wheeler",
+        `${courierLabel} +${deviationMeters} m`,
+      ),
+    [courierLabel, deviationMeters],
   );
 
   return (

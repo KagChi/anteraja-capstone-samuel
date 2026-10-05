@@ -313,11 +313,12 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                   courier={geofence.courier}
                   radiusMeters={geofence.radiusMeters}
                   deviationMeters={geofence.deviationMeters}
+                  courierLabel="Serah terima"
                 />
                 <figcaption className="sr-only">
                   {geofence.courier
-                    ? `Posisi terakhir kurir ${geofence.deviationMeters} meter dari titik tujuan (${geofence.deviationMeters <= geofence.radiusMeters ? "di dalam" : "di luar"} toleransi radius ${geofence.radiusMeters} meter).`
-                    : "Belum ada catatan posisi kurir untuk pengiriman ini."}
+                    ? `Titik serah terima (POD) ${geofence.deviationMeters} meter dari titik tujuan (${geofence.deviationMeters <= geofence.radiusMeters ? "di dalam" : "di luar"} toleransi radius ${geofence.radiusMeters} meter).`
+                    : "Belum ada bukti titik serah terima (POD) untuk pengiriman ini."}
                 </figcaption>
               </figure>
             ) : null}

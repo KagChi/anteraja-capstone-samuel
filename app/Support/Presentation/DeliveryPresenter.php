@@ -294,10 +294,9 @@ class DeliveryPresenter
     }
 
     /**
-     * Latest real position recorded for the courier: the POD capture point,
-     * falling back to the most recent delivery event that carries one. Null
-     * when the shipment has no positional record yet, so the UI shows no
-     * courier marker instead of a fabricated one.
+     * The handover position: the POD capture point of the chosen proof. Null
+     * while the shipment has no proof, so the map never implies the courier
+     * is on site when they are not.
      *
      * @return array{0: float, 1: float}|null
      */
@@ -307,17 +306,8 @@ class DeliveryPresenter
             fn ($proof) => $proof->point_lat !== null && $proof->point_lng !== null,
         );
 
-        if ($proof !== null) {
-            return [(float) $proof->point_lat, (float) $proof->point_lng];
-        }
-
-        $event = $shipment->deliveryEvents
-            ->filter(fn ($event) => $event->point_lat !== null && $event->point_lng !== null)
-            ->sortByDesc('created_at')
-            ->first();
-
-        return $event !== null
-            ? [(float) $event->point_lat, (float) $event->point_lng]
+        return $proof !== null
+            ? [(float) $proof->point_lat, (float) $proof->point_lng]
             : null;
     }
 
@@ -327,7 +317,7 @@ class DeliveryPresenter
     private static function geofenceAnalysis(Shipment $shipment, ?array $courierPoint, int $deviation, int $radius): string
     {
         if ($courierPoint === null) {
-            return 'Belum ada catatan posisi kurir untuk pengiriman ini.';
+            return 'Belum ada bukti titik serah terima (POD) untuk pengiriman ini.';
         }
 
         if ($shipment->activeGeofence?->source === 'meeting_point') {
@@ -335,8 +325,8 @@ class DeliveryPresenter
         }
 
         return $deviation <= $radius
-            ? 'Posisi terakhir kurir masih di dalam radius geofence.'
-            : 'Posisi terakhir kurir berada di luar radius geofence.';
+            ? 'Titik serah terima POD berada di dalam radius geofence.'
+            : 'Titik serah terima POD berada di luar radius geofence.';
     }
 
     private static function statusLabel(Shipment $shipment, string $flag, int $deviation): string
