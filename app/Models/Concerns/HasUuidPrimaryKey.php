@@ -6,9 +6,16 @@ use Illuminate\Support\Str;
 
 trait HasUuidPrimaryKey
 {
-    public $incrementing = false;
-
-    protected $keyType = 'string';
+    /**
+     * PHP 8.4 rejects a trait that re-declares the parent Model properties
+     * ($incrementing / $keyType), so the UUID key settings are applied through
+     * Eloquent's trait initializer instead.
+     */
+    public function initializeHasUuidPrimaryKey(): void
+    {
+        $this->incrementing = false;
+        $this->keyType = 'string';
+    }
 
     protected static function bootHasUuidPrimaryKey(): void
     {
