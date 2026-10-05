@@ -38,6 +38,9 @@ class ExceptionPresenter
             ?->sortByDesc(fn ($item) => $item->review_status === 'valid')
             ->first();
         $point = Point::parse($exception->requested_point);
+        $target = ($shipment?->destination_lat !== null && $shipment?->destination_lng !== null)
+            ? [(float) $shipment->destination_lat, (float) $shipment->destination_lng]
+            : null;
 
         return [
             ...self::row($exception),
@@ -49,6 +52,8 @@ class ExceptionPresenter
             'podCapturedAt' => Date::dateTimeLabel($proof?->captured_at),
             'podIso' => Date::iso($proof?->captured_at),
             'podPhotoUrl' => ProofMedia::signedUrl($proof),
+            'target' => $target,
+            'courierPoint' => $point ? [$point['latitude'], $point['longitude']] : null,
         ];
     }
 }

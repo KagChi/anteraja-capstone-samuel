@@ -257,6 +257,8 @@ export interface ExceptionDetail extends ExceptionRow {
   podCapturedAt: string;
   podIso: string;
   podPhotoUrl?: string | null;
+  target?: [number, number] | null;
+  courierPoint?: [number, number] | null;
 }
 
 export interface RadiusMeta {

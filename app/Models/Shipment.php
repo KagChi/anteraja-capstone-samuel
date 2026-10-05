@@ -55,7 +55,14 @@ class Shipment extends Model
 
     public function deliveryEvents()
     {
-        return $this->hasMany(DeliveryEvent::class)->orderBy('created_at');
+        [$lat, $lng] = Point::latLngExpression('point');
+
+        // Project the event coordinates alongside the row so presenters can
+        // read the courier's recorded positions without re-parsing EWKB.
+        return $this->hasMany(DeliveryEvent::class)
+            ->select('delivery_events.*')
+            ->addSelect(DB::raw($lat.' as point_lat'), DB::raw($lng.' as point_lng'))
+            ->orderBy('created_at');
     }
 
     public function deliveryProofs()

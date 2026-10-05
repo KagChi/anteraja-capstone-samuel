@@ -154,19 +154,18 @@ class DeliveryPresenter
         ])->values()->all();
 
         $destination = self::pointFromSelect($shipment);
+        $courierPoint = self::courierPoint($shipment);
 
         return [
             'timeline' => $timeline,
             'milestones' => $milestones,
             'geofence' => [
                 'target' => $destination,
-                'courier' => $destination,
+                'courier' => $courierPoint,
                 'radiusMeters' => $radius,
                 'deviationMeters' => $deviation,
                 'pointLabel' => $shipment->destination_address,
-                'analysis' => $shipment->activeGeofence?->source === 'meeting_point'
-                    ? 'Titik pusat geofence mengikuti titik temu final.'
-                    : 'Analisis radius dihitung dari titik serah terima terakhir.',
+                'analysis' => self::geofenceAnalysis($shipment, $courierPoint, $deviation, $radius),
             ],
             'pod' => [
                 'id' => $proof?->id,
@@ -292,6 +291,52 @@ class DeliveryPresenter
             'satpam' => 'Satpam / Keamanan',
             default => $relation,
         };
+    }
+
+    /**
+     * Latest real position recorded for the courier: the POD capture point,
+     * falling back to the most recent delivery event that carries one. Null
+     * when the shipment has no positional record yet, so the UI shows no
+     * courier marker instead of a fabricated one.
+     *
+     * @return array{0: float, 1: float}|null
+     */
+    private static function courierPoint(Shipment $shipment): ?array
+    {
+        $proof = $shipment->deliveryProofs->first(
+            fn ($proof) => $proof->point_lat !== null && $proof->point_lng !== null,
+        );
+
+        if ($proof !== null) {
+            return [(float) $proof->point_lat, (float) $proof->point_lng];
+        }
+
+        $event = $shipment->deliveryEvents
+            ->filter(fn ($event) => $event->point_lat !== null && $event->point_lng !== null)
+            ->sortByDesc('created_at')
+            ->first();
+
+        return $event !== null
+            ? [(float) $event->point_lat, (float) $event->point_lng]
+            : null;
+    }
+
+    /**
+     * @param  array{0: float, 1: float}|null  $courierPoint
+     */
+    private static function geofenceAnalysis(Shipment $shipment, ?array $courierPoint, int $deviation, int $radius): string
+    {
+        if ($courierPoint === null) {
+            return 'Belum ada catatan posisi kurir untuk pengiriman ini.';
+        }
+
+        if ($shipment->activeGeofence?->source === 'meeting_point') {
+            return 'Titik pusat geofence mengikuti titik temu final.';
+        }
+
+        return $deviation <= $radius
+            ? 'Posisi terakhir kurir masih di dalam radius geofence.'
+            : 'Posisi terakhir kurir berada di luar radius geofence.';
     }
 
     private static function statusLabel(Shipment $shipment, string $flag, int $deviation): string

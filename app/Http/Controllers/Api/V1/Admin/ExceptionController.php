@@ -97,7 +97,7 @@ class ExceptionController extends Controller
 
         if (Str::isUuid($key)) {
             $exception = DeliveryException::query()
-                ->with(['shipment.deliveryProofs', 'courier'])
+                ->with(['shipment' => fn ($query) => $query->withDestinationCoordinates()->with('deliveryProofs'), 'courier'])
                 ->where(fn ($query) => $query->where('id', $key)->orWhere('shipment_id', $key))
                 ->latest('created_at')
                 ->first();
@@ -105,7 +105,7 @@ class ExceptionController extends Controller
 
         if (! $exception) {
             $exception = DeliveryException::query()
-                ->with(['shipment.deliveryProofs', 'courier'])
+                ->with(['shipment' => fn ($query) => $query->withDestinationCoordinates()->with('deliveryProofs'), 'courier'])
                 ->whereHas('shipment', function ($query) use ($key): void {
                     $query->where('tracking_number', $key);
                 })

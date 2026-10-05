@@ -207,14 +207,14 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
       <article className="mb-6 rounded-md border border-border-subtle bg-surface-card p-6 shadow-card">
         <header className="flex flex-col justify-between gap-4 border-b border-border-subtle pb-5 md:flex-row md:items-center">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="tabular-nums text-xl font-bold tracking-tight text-on-surface">
+            <h2 className="tabular-nums m-0 text-2xl font-bold tracking-tight text-on-surface">
               {tracking}
             </h2>
             <mark className="rounded-full bg-secondary-container px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-on-secondary-container">
-              Instant Delivery
+              {shipment?.service ?? "—"}
             </mark>
           </div>
-          <p className="m-0 inline-flex w-fit items-center gap-2 rounded-full border border-border-subtle bg-surface-container-low px-3 py-1.5 text-[11px] font-semibold text-tertiary">
+          <p className="m-0 inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-border-subtle bg-surface-container-low px-3 py-1.5 text-[11px] font-semibold text-tertiary">
             <span
               className="size-2 rounded-full bg-tertiary"
               aria-hidden="true"
@@ -222,31 +222,39 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
             {audit?.completedLabel ?? "—"}
           </p>
         </header>
-        <section className="flex flex-col justify-between gap-4 pt-5 sm:flex-row sm:items-center">
-          <p className="m-0 flex items-center gap-3.5">
-            <Avatar
-              name={courierName}
-              resource={courierAvatar}
-              className="size-11 text-[15px]"
-            />
-            <span className="flex flex-col">
-              <span className="flex items-center gap-2">
-                <span className="text-base font-bold text-on-surface">
-                  {shipment?.courierCode ?? "—"}
-                </span>{" "}
-                <span className="text-sm text-on-surface-variant">
-                  ({courierName})
+        <section className="grid gap-4 pt-5 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+          <div className="rounded-xl border border-border-subtle bg-surface-container-low/60 p-4">
+            <p className="m-0 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+              Kurir
+            </p>
+            <p className="m-0 mt-2.5 flex items-center gap-3">
+              <Avatar
+                name={courierName}
+                resource={courierAvatar}
+                className="size-11 text-[15px]"
+              />
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-sm font-bold text-on-surface">
+                  {courierName}
+                </span>
+                <span className="tabular-nums mt-0.5 text-xs text-on-surface-variant">
+                  {shipment?.courierCode ?? "—"} &bull;{" "}
+                  {shipment?.regionLabel ?? "—"}
                 </span>
               </span>
-              <span className="mt-0.5 text-xs text-on-surface-variant">
-                {shipment?.service ?? "—"} &bull; {shipment?.regionLabel ?? "—"}
+            </p>
+          </div>
+          <address className="m-0 flex min-w-0 flex-col rounded-xl border border-border-subtle bg-surface-container-low/60 p-4 not-italic">
+            <p className="m-0 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+              Tujuan
+            </p>
+            <p className="m-0 mt-2.5 text-[13px] font-semibold leading-snug text-on-surface">
+              {shipment?.recipient ?? audit?.pod.recipientName ?? "Penerima"}
+              <span className="mt-0.5 block text-xs font-normal leading-relaxed text-on-surface-variant">
+                {shipment?.address ?? "—"}
               </span>
-            </span>
-          </p>
-          <address className="m-0 flex flex-wrap items-center gap-2 rounded-xl border border-border-subtle bg-surface-container-low px-3.5 py-2 text-xs font-medium not-italic text-on-surface-variant">
-            <MaterialIcon name="route" className="text-[16px]" />{" "}
-            {shipment?.regionLabel ?? "—"} &rarr; {shipment?.address ?? "—"}
-            <span className="ml-1 flex items-center gap-1.5 border-l border-border-subtle pl-2">
+            </p>
+            <span className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-on-surface-variant">
               <MaterialIcon
                 name="markunread_mailbox"
                 className="text-[15px] text-brand-magenta"
@@ -307,9 +315,9 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
                   deviationMeters={geofence.deviationMeters}
                 />
                 <figcaption className="sr-only">
-                  Kurir berada {geofence.deviationMeters} meter dari titik
-                  tujuan, di dalam toleransi radius {geofence.radiusMeters}{" "}
-                  meter.
+                  {geofence.courier
+                    ? `Posisi terakhir kurir ${geofence.deviationMeters} meter dari titik tujuan (${geofence.deviationMeters <= geofence.radiusMeters ? "di dalam" : "di luar"} toleransi radius ${geofence.radiusMeters} meter).`
+                    : "Belum ada catatan posisi kurir untuk pengiriman ini."}
                 </figcaption>
               </figure>
             ) : null}

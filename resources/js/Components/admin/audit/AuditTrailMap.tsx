@@ -5,7 +5,7 @@ import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 interface AuditTrailMapProps {
   target: [number, number];
-  courier: [number, number];
+  courier?: [number, number] | null;
   radiusMeters: number;
   deviationMeters: number;
 }
@@ -42,14 +42,19 @@ function FitBounds({
   radiusMeters,
 }: {
   target: [number, number];
-  courier: [number, number];
+  courier: [number, number] | null;
   radiusMeters: number;
 }) {
   const map = useMap();
 
   useEffect(() => {
-    const bounds = L.latLngBounds([target, courier]);
+    const bounds = L.latLngBounds([target]);
     bounds.extend(L.latLng(target).toBounds(radiusMeters * 2));
+
+    if (courier) {
+      bounds.extend(L.latLng(courier));
+    }
+
     map.fitBounds(bounds, { padding: [28, 28], maxZoom: 19 });
   }, [map, target, courier, radiusMeters]);
 
@@ -58,7 +63,7 @@ function FitBounds({
 
 export function AuditTrailMap({
   target,
-  courier,
+  courier = null,
   radiusMeters,
   deviationMeters,
 }: AuditTrailMapProps) {
@@ -105,7 +110,7 @@ export function AuditTrailMap({
         }}
       />
       <Marker position={target} icon={targetIcon} />
-      <Marker position={courier} icon={courierIcon} />
+      {courier ? <Marker position={courier} icon={courierIcon} /> : null}
       <FitBounds
         target={target}
         courier={courier}

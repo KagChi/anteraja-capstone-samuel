@@ -8,6 +8,7 @@ import { Avatar } from "../../Avatar";
 import { MaterialIcon } from "../../MaterialIcon";
 import { Button } from "../../ui/Button";
 import { Spinner } from "../../ui/Spinner";
+import { AuditTrailMap } from "../audit/AuditTrailMap";
 
 interface ExceptionDetailModalProps {
   id: string;
@@ -226,6 +227,31 @@ export function ExceptionDetailModal({
                 </dd>
               </dl>
             </section>
+
+            {exception.target ? (
+              <section aria-labelledby="judul-peta-pengecualian">
+                <h3
+                  id="judul-peta-pengecualian"
+                  className="mb-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+                >
+                  Peta Titik Pengecualian
+                </h3>
+                <figure className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm">
+                  <AuditTrailMap
+                    target={exception.target}
+                    courier={exception.courierPoint ?? null}
+                    radiusMeters={exception.maxTolerance}
+                    deviationMeters={exception.actualDistance ?? 0}
+                  />
+                  <figcaption className="sr-only">
+                    Titik tujuan dengan radius {exception.maxTolerance} meter
+                    {exception.courierPoint
+                      ? `, dan posisi pengecualian kurir ${exception.actualDistance ?? 0} meter dari tujuan.`
+                      : "."}
+                  </figcaption>
+                </figure>
+              </section>
+            ) : null}
 
             <section aria-labelledby="judul-alasan-kurir">
               <h3
