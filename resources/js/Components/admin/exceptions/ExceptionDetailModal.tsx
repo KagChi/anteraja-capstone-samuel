@@ -236,7 +236,7 @@ export function ExceptionDetailModal({
                 >
                   Peta Titik Pengecualian
                 </h3>
-                <figure className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm">
+                <figure className="relative z-0 isolate m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm">
                   <AuditTrailMap
                     target={exception.target}
                     courier={exception.courierPoint ?? null}

@@ -28,11 +28,16 @@ class DeliveryCompletionService
         $evaluation = $this->geofence->evaluate($shipment, $latitude, $longitude);
         $this->geofence->record($shipment, $courier, $latitude, $longitude, $evaluation, 'arrived');
 
-        $approvedException = $shipment->deliveryExceptions
-            ->firstWhere('status', 'approved');
+        $recordedException = $shipment->deliveryExceptions
+            ->sortByDesc('created_at')
+            ->first();
+        $outside = ! $evaluation['inside'];
 
-        if (! $evaluation['inside'] && ! $approvedException) {
-            abort(422, 'Titik serah terima di luar radius geofence dan belum ada pengecualian yang disetujui.');
+        // Outside the radius the courier must have recorded a reason. The
+        // admin still reviews it, but the delivery is not blocked until that
+        // decision lands.
+        if ($outside && $recordedException === null) {
+            abort(422, 'Titik serah terima di luar radius geofence. Kirim alasan pengecualian terlebih dahulu.');
         }
 
         if ($shipment->pin_required) {
@@ -56,12 +61,15 @@ class DeliveryCompletionService
             'delivered_at' => Date::now()->utc(),
         ]);
 
-        if ($approvedException) {
+        if ($outside) {
             AnomalyFlag::updateOrCreate(
                 ['shipment_id' => $shipment->id, 'flag_type' => 'exception_used'],
                 [
                     'weight' => 0.50,
-                    'details' => ['exception' => $approvedException->id],
+                    'details' => [
+                        'exception' => $recordedException?->id,
+                        'status' => $recordedException?->status,
+                    ],
                     'detected_at' => Date::now(),
                     'is_resolved' => false,
                 ],
@@ -76,7 +84,7 @@ class DeliveryCompletionService
             'distance_to_destination_m' => $evaluation['distance_m'],
             'actor_type' => 'system',
             'metadata' => [
-                'checks' => $approvedException
+                'checks' => $outside
                     ? ['exception', 'pod']
                     : array_values(array_filter(['geofence', $shipment->pin_required ? 'pin' : null, 'pod'])),
             ],
@@ -89,7 +97,7 @@ class DeliveryCompletionService
             'status' => 'delivered',
             'distance_m' => $evaluation['distance_m'],
             'inside' => $evaluation['inside'],
-            'exception_used' => (bool) $approvedException,
+            'exception_used' => $outside && $recordedException !== null,
             'pin_required' => (bool) $shipment->pin_required,
         ];
     }

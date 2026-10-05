@@ -41,12 +41,10 @@ test("courier is asked for a reason when outside the geofence", async ({
   await page.fill("#exception-reason", "Lobi gedung dikunci satpam.");
   await page.locator("#btn-request-exception").click();
 
-  await expect(page.locator("#exception-card")).toContainText(
-    "Menunggu Admin",
-    {
-      timeout: 20_000,
-    },
-  );
+  await expect(page.locator("#exception-card")).toContainText("Tercatat", {
+    timeout: 20_000,
+  });
+  await expect(page.locator("#lock-reason")).toContainText("boleh dilanjutkan");
 });
 
 test("courier completes a GPS-stamped in-app camera POD delivery", async ({

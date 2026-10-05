@@ -90,25 +90,31 @@ export function VerificationPage() {
   const code = digits.join("");
   const exception = task?.exception ?? null;
   const exceptionApproved = exception?.status === "approved";
-  const outsideWithoutApproval = inside === false && !exceptionApproved;
+  // Outside the radius a recorded reason is required; the admin review does
+  // not block the courier from continuing.
+  const outsideNeedsReason = inside === false && exception === null;
   const ready =
     code.length === 6 &&
     verified &&
     !locked &&
     !verifying &&
     gpsReady &&
-    !outsideWithoutApproval;
+    !outsideNeedsReason;
 
   const gateMessage = !gpsReady
     ? (geo.error ?? "Menunggu sinyal GPS…")
     : inside === false
-      ? exceptionApproved
-        ? "Pengecualian radius disetujui Admin. Serah terima boleh dilanjutkan."
+      ? exception
+        ? exceptionApproved
+          ? "Pengecualian radius disetujui Admin."
+          : "Alasan pengecualian tersimpan (" +
+            exception.submittedTime +
+            "). Pengiriman boleh dilanjutkan; Admin tetap dapat meninjau."
         : "Posisi " +
           formatMeters(liveDistance ?? 0) +
           " dari tujuan (radius " +
           (radius ?? "?") +
-          " m). Tuliskan alasan pengecualian untuk diteruskan ke Admin."
+          " m). Kirim alasan pengecualian untuk melanjutkan."
       : null;
 
   async function submitException() {
@@ -496,7 +502,7 @@ export function VerificationPage() {
             </div>
           </dl>
           <figure
-            className="relative m-0 mt-4 h-48 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
+            className="relative isolate m-0 mt-4 h-48 overflow-hidden rounded-xl border border-border-subtle bg-surface-container"
             id="geofence-map"
           >
             {destination && radius !== null ? (
@@ -598,7 +604,7 @@ export function VerificationPage() {
                 {exceptionApproved
                   ? "Disetujui"
                   : exception?.status === "pending"
-                    ? "Menunggu Admin"
+                    ? "Tercatat"
                     : exception?.status === "rejected"
                       ? "Ditolak"
                       : "Belum diajukan"}
@@ -607,12 +613,14 @@ export function VerificationPage() {
             <p className="mb-3 text-[12px] leading-relaxed text-on-surface-variant">
               Posisi Anda di luar radius geofence.{" "}
               {exceptionApproved
-                ? "Admin menyetujui pengecualian ini, serah terima boleh dilanjutkan."
+                ? "Admin menyetujui pengecualian ini."
                 : exception?.status === "pending"
-                  ? `Alasan terkirim ${exception.submittedTime}. Tunggu keputusan Admin sebelum melanjutkan.`
-                  : "Tuliskan alasan agar Admin dapat memutuskan."}
+                  ? `Alasan terkirim ${exception.submittedTime}. Pengiriman boleh dilanjutkan; Admin tetap meninjau.`
+                  : exception?.status === "rejected"
+                    ? "Pengecualian ditolak Admin. Alasan tetap tercatat; Anda dapat mengirim alasan baru atau melanjutkan."
+                    : "Tuliskan alasan agar keputusan dapat ditinjau Admin."}
             </p>
-            {exception?.reason && exception.status !== "rejected" ? (
+            {exception?.reason ? (
               <p className="mb-3 rounded-lg bg-white/70 px-3 py-2 text-[12px] text-on-surface">
                 &ldquo;{exception.reason}&rdquo;
               </p>

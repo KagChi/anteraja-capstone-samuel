@@ -305,7 +305,7 @@ export function AuditTrailPage({ id = "" }: { id?: string }) {
           <section className="grid grid-cols-1 items-center gap-5 md:grid-cols-3">
             {geofence ? (
               <figure
-                className="relative z-0 m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
+                className="relative z-0 isolate m-0 h-44 overflow-hidden rounded-xl border border-border-subtle bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low shadow-sm md:col-span-2"
                 aria-label="Visual peta titik tujuan dan posisi kurir"
               >
                 <AuditTrailMap

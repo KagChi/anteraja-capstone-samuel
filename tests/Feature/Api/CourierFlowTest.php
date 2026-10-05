@@ -128,7 +128,7 @@ class CourierFlowTest extends TestCase
         ])->assertCreated();
     }
 
-    public function test_out_of_radius_delivery_requires_a_reasoned_exception(): void
+    public function test_out_of_radius_delivery_records_a_reason_without_waiting_for_approval(): void
     {
         $this->actingAs($this->courier());
 
@@ -140,7 +140,21 @@ class CourierFlowTest extends TestCase
             'longitude' => $task['destination']['longitude'],
         ];
 
-        // Finishing outside the radius without an approved exception fails.
+        // PIN and POD stay mandatory, so prepare them first.
+        $code = $this->postJson("/api/v1/courier/tasks/{$tracking}/pin")
+            ->json('data.debug_code');
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/pin/verify", ['code' => $code])
+            ->assertOk();
+        $this->post("/api/v1/courier/tasks/{$tracking}/proof", [
+            'latitude' => $far['latitude'],
+            'longitude' => $far['longitude'],
+            'recipient_name' => $task['recipient'],
+            'relation' => 'langsung',
+            'device_captured_at' => now()->toIso8601String(),
+            'photo' => UploadedFile::fake()->image('pod.jpg', 480, 640),
+        ])->assertCreated();
+
+        // Without a recorded reason the handover is refused …
         $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", $far)
             ->assertStatus(422);
 
@@ -159,5 +173,11 @@ class CourierFlowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.exception.status', 'pending')
             ->assertJsonPath('data.exception.reason', 'Lobi gedung dikunci satpam.');
+
+        // Once recorded, the courier may finish without waiting for the
+        // admin's decision.
+        $this->postJson("/api/v1/courier/tasks/{$tracking}/complete", $far)
+            ->assertOk()
+            ->assertJsonPath('data.status', 'delivered');
     }
 }
