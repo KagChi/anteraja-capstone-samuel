@@ -38,13 +38,15 @@ class WarmCache extends Command
         );
 
         $shipments->index(ShipmentReadService::DEFAULT_INDEX_PER_PAGE);
+        $shipments->index(ShipmentReadService::UI_PER_PAGE);
 
         $couriers = Courier::query()->pluck('id');
         foreach ($couriers as $courierId) {
             $shipments->tasks($courierId, ShipmentReadService::DEFAULT_TASKS_PER_PAGE);
+            $shipments->tasks($courierId, ShipmentReadService::UI_PER_PAGE);
         }
 
-        $this->info(sprintf('Warmed read caches (%d courier task lists).', $couriers->count()));
+        $this->info(sprintf('Warmed read caches (%d courier task lists, two page sizes).', $couriers->count()));
 
         return self::SUCCESS;
     }

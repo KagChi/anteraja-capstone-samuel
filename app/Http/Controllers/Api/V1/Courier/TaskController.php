@@ -12,7 +12,7 @@ class TaskController extends CourierController
 
     public function index(Request $request, ShipmentReadService $shipments): JsonResponse
     {
-        $courierId = $this->courier()->id;
+        $courierId = $this->courierId();
         $perPage = $this->perPage($request);
 
         $page = $shipments->tasksPage($courierId, $perPage, $request->query('cursor'), [

@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
+# Every stage stays on a Debian/glibc base: the Bun, PHP and FrankenPHP images
+# all publish a musl (-alpine) variant, and this app is not built for musl.
+
 # --- Frontend assets -------------------------------------------------------
-FROM oven/bun:1 AS assets
+FROM oven/bun:1-debian AS assets
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
@@ -11,7 +14,22 @@ COPY public ./public
 RUN bun run build
 
 # --- Composer dependencies -------------------------------------------------
-FROM composer:2 AS vendor
+FROM php:8.4-cli-bookworm AS vendor
+
+ARG COMPOSER_VERSION=2.10.3
+ARG COMPOSER_SHA256=7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+
+# The official composer image resolves to Alpine on this registry, so the
+# pinned phar is installed on the same glibc base (and PHP minor) as the
+# runtime instead of mixing libcs.
+RUN apt-get update && apt-get install -y --no-install-recommends unzip git \
+    && curl -fsSL "https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer \
+    && echo "${COMPOSER_SHA256}  /usr/local/bin/composer" | sha256sum -c - \
+    && chmod +x /usr/local/bin/composer \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress
@@ -25,19 +43,15 @@ COPY public ./public
 COPY artisan composer.json composer.lock ./
 RUN composer dump-autoload --no-dev --optimize --no-interaction --no-scripts
 
-# --- Runtime ---------------------------------------------------------------
-FROM php:8.4-cli-bookworm AS runtime
+# --- Runtime: FrankenPHP (Caddy) in Octane worker mode ----------------------
+# The -bookworm tag is the Debian/glibc variant of the FrankenPHP image.
+FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
-        libonig-dev libzip-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" gd pdo_pgsql mbstring bcmath opcache pcntl zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Same extension set as before (GD with FreeType/JPEG renders the POD
+# watermark); install-php-extensions also pulls and prunes its build deps.
+RUN install-php-extensions pdo_pgsql gd mbstring bcmath pcntl zip redis
 
-WORKDIR /var/www/html
+WORKDIR /app
 
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
@@ -48,10 +62,9 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && php artisan package:discover --ansi \
     && php artisan view:cache
 
-ENV PHP_CLI_SERVER_WORKERS=8
-
 EXPOSE 8080
 
-# --no-reload lets PHP_CLI_SERVER_WORKERS fork multiple workers (the reload
-# watcher otherwise forces a single-process server).
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080", "--no-reload"]
+# Octane boots Laravel once per worker and reuses it across requests; Caddy
+# serves public/build and public/* directly. Each worker is recycled after
+# --max-requests requests so a leak cannot accumulate.
+CMD ["php", "artisan", "octane:frankenphp", "--host=0.0.0.0", "--port=8080", "--workers=8", "--max-requests=500"]

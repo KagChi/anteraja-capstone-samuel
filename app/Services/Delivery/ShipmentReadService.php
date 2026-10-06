@@ -20,6 +20,13 @@ class ShipmentReadService
     public const DEFAULT_TASKS_PER_PAGE = 100;
 
     /**
+     * Page size the Inertia tables request (see
+     * resources/js/Hooks/useCursorPagination.ts). The warm-cache command primes
+     * this alongside the API defaults, since it is the page the UI reads.
+     */
+    public const UI_PER_PAGE = 10;
+
+    /**
      * Rows for the first page, kept for the cache-warming command and callers
      * that do not paginate.
      *

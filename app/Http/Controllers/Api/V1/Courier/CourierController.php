@@ -25,6 +25,15 @@ abstract class CourierController extends Controller
         return $courier;
     }
 
+    /**
+     * Courier id for the acting user. The users row already carries it, so
+     * callers that only need the id skip the extra courier query.
+     */
+    protected function courierId(): string
+    {
+        return Auth::courierId() ?? $this->courier()->id;
+    }
+
     protected function shipment(string $key): Shipment
     {
         return Shipment::query()
@@ -47,7 +56,7 @@ abstract class CourierController extends Controller
                     $query->where('tracking_number', $key);
                 }
             })
-            ->where('courier_id', $this->courier()->id)
+            ->where('courier_id', $this->courierId())
             ->value('id');
 
         if (! $id) {

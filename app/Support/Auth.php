@@ -32,6 +32,18 @@ class Auth
     }
 
     /**
+     * The acting courier's id straight off the authenticated users row. Read
+     * paths that only need the id (the task list, ownership checks) use this so
+     * they do not spend a second query loading the whole courier.
+     */
+    public static function courierId(?Request $request = null): ?string
+    {
+        $user = self::user($request);
+
+        return $user?->isCourier() ? $user->courier_id : null;
+    }
+
+    /**
      * @return array{id: string, name: string, code: string, serviceAreaId: string|null, phone: string|null}|null
      */
     public static function getCurrentCourier(?Request $request = null): ?array

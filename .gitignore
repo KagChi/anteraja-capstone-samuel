@@ -49,3 +49,7 @@ Homestead.yaml
 
 # Deployment secrets: created in the cluster, never committed.
 deploy/secrets.env
+
+# Octane downloads the FrankenPHP binary here when it is not on the PATH; the
+# Docker image ships it instead, and public/frankenphp-worker.php is committed.
+/frankenphp

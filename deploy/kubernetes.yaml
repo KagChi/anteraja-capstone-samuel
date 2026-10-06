@@ -29,8 +29,10 @@ spec:
         - name: image-pull-secrets
       containers:
         - name: web
-          image: ghcr.io/kagchi/anteraja-capstone-samuel:main-1791210292792
-          command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080", "--no-reload"]
+          image: ghcr.io/kagchi/anteraja-capstone-samuel:9-laravel-1791244505000
+          # FrankenPHP worker mode: Laravel boots once per worker and is reused
+          # across requests. Raise --workers with the pod's CPU/memory budget.
+          command: ["php", "artisan", "octane:frankenphp", "--host=0.0.0.0", "--port=8080", "--workers=8", "--max-requests=500"]
           ports:
             - containerPort: 8080
               name: http
@@ -59,7 +61,7 @@ spec:
             limits:
               memory: 1Gi
         - name: worker
-          image: ghcr.io/kagchi/anteraja-capstone-samuel:main-1791210292792
+          image: ghcr.io/kagchi/anteraja-capstone-samuel:9-laravel-1791244505000
           command: ["php", "artisan", "queue:work", "--tries=1", "--sleep=2", "--timeout=60"]
           envFrom:
             - secretRef:

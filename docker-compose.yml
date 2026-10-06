@@ -31,6 +31,44 @@ services:
       timeout: 5s
       retries: 5
 
+  # The app itself, served by FrankenPHP/Octane. Opt-in so the plain
+  # `docker compose up -d` keeps starting only the datastores:
+  #   docker compose --profile app up -d --build
+  #   docker compose --profile app run --rm app php artisan migrate --seed --force
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+    container_name: anteraja-app
+    depends_on:
+      postgis:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Inside the Compose network PostGIS is a service, not localhost:55432.
+      DB_HOST: postgis
+      DB_PORT: "5432"
+      DB_DATABASE: anteraja
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: prefer
+      # Sessions and the read caches go to the Redis service: the file drivers
+      # serialise on one hot session file, which shows up as a ~25 ms p99 under
+      # concurrent load even though it costs nothing at rest.
+      SESSION_DRIVER: redis
+      CACHE_STORE: redis
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      REDIS_CACHE_DB: "1"
+      REDIS_CACHE_CONNECTION: cache
+    ports:
+      - "8080:8080"
+
 volumes:
   postgis-data:
   redis-data:
