@@ -1,0 +1,6 @@
+hub_id,package_count,avg_dwell_hours,median_dwell_hours
+HUB_MKS,1928,10.7,10.3
+HUB_DPS,1580,9.48,9.16
+HUB_MDN,1702,8.96,8.59
+HUB_BJM,1096,8.38,8.2
+HUB_PLM,1349,7.82,7.56
