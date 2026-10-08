@@ -146,6 +146,38 @@
       const JAKARTA = { lat: -6.229, lng: 106.854 };
       const ZOOM = 12;
 
+      // Data contoh: 15 pengiriman dari docs/data/shipments-couriers-coordinates.csv
+      // (tracking number, titik tujuan, posisi kurir terakhir, status).
+      const shipments = [
+        { tracking: "AJ2509000001", status: "delivered", destinationLat: -6.175392, destinationLng: 106.827153, courierLat: -6.1754, courierLng: 106.82716 },
+        { tracking: "AJ2509000002", status: "delivered", destinationLat: -6.208763, destinationLng: 106.821247, courierLat: -6.20877, courierLng: 106.821255 },
+        { tracking: "AJ2509000003", status: "delivered", destinationLat: -6.195, destinationLng: 106.832, courierLat: -6.1952, courierLng: 106.8323 },
+        { tracking: "AJ2509000004", status: "delivered", destinationLat: -6.26, destinationLng: 106.813, courierLat: -6.2605, courierLng: 106.8136 },
+        { tracking: "AJ2509000005", status: "in_transit", destinationLat: -6.229, destinationLng: 106.854, courierLat: -6.236, courierLng: 106.86 },
+        { tracking: "AJ2509000006", status: "delivered", destinationLat: -6.225, destinationLng: 106.799, courierLat: -6.23, courierLng: 106.799 },
+        { tracking: "AJ2509000007", status: "failed", destinationLat: -6.236, destinationLng: 106.829, courierLat: -6.2361, courierLng: 106.8291 },
+        { tracking: "AJ2509000008", status: "pending", destinationLat: -6.109, destinationLng: 106.742, courierLat: -6.1089, courierLng: 106.7421 },
+        { tracking: "AJ2509000009", status: "delivered", destinationLat: -6.157, destinationLng: 106.906, courierLat: -6.1577, courierLng: 106.9068 },
+        { tracking: "AJ2509000010", status: "delivered", destinationLat: -6.183, destinationLng: 106.87, courierLat: -6.18305, courierLng: 106.87005 },
+        { tracking: "AJ2509000011", status: "pending", destinationLat: -6.175392, destinationLng: 106.827153, courierLat: -6.1755, courierLng: 106.8273 },
+        { tracking: "AJ2509000012", status: "in_transit", destinationLat: -6.195, destinationLng: 106.832, courierLat: -6.213, courierLng: 106.845 },
+        { tracking: "AJ2509000013", status: "failed", destinationLat: -6.26, destinationLng: 106.813, courierLat: -6.2599, courierLng: 106.8131 },
+        { tracking: "AJ2509000014", status: "delivered", destinationLat: -6.208763, destinationLng: 106.821247, courierLat: -6.21, courierLng: 106.823 },
+        { tracking: "AJ2509000015", status: "delivered", destinationLat: -6.225, destinationLng: 106.799, courierLat: -6.2251, courierLng: 106.7991 },
+      ];
+
+      const STATUS_LABELS = {
+        delivered: "Terkirim",
+        in_transit: "Dalam perjalanan",
+        pending: "Menunggu",
+        failed: "Gagal",
+      };
+
+      const MARKER_COLORS = {
+        shipment: "#e00065",
+        courier: "#0284c7",
+      };
+
       /** @type {google.maps.Map | undefined} */
       let map;
       /** @type {google.maps.InfoWindow | undefined} */
@@ -169,6 +201,84 @@
           streetViewControl: false,
         });
         infoWindow = new google.maps.InfoWindow();
+        addShipmentMarkers();
+      }
+
+      // Ikon marker berbentuk pin, dibuat dari SVG inline agar tidak perlu
+      // gambar eksternal. Warna pin membedakan shipment dan kurir.
+      function markerIcon(kind) {
+        const color = MARKER_COLORS[kind];
+        const svg =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="38" viewBox="0 0 26 38">' +
+          '<path d="M13 0C5.82 0 0 5.82 0 13c0 9.2 13 25 13 25s13-15.8 13-25C26 5.82 20.18 0 13 0z" fill="' +
+          color +
+          '"/><circle cx="13" cy="13" r="5" fill="#ffffff"/></svg>';
+
+        return {
+          url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg),
+          scaledSize: new google.maps.Size(26, 38),
+          anchor: new google.maps.Point(13, 38),
+        };
+      }
+
+      // Isi info window: tracking number, status, dan peran marker.
+      function infoContent({ tracking, status, role, detail }) {
+        const label = STATUS_LABELS[status] || status;
+        return (
+          '<div class="info">' +
+          `<div class="info__tracking">${tracking}</div>` +
+          `<div class="info__role">${role}</div>` +
+          `<div>Status: <strong>${label}</strong></div>` +
+          (detail ? `<div class="info__detail">${detail}</div>` : "") +
+          "</div>"
+        );
+      }
+
+      // Buat satu marker dan pasang info window pada klik. Semua marker berbagi
+      // satu info window agar hanya satu yang terbuka pada satu waktu.
+      function addMarker(position, kind, content) {
+        const marker = new google.maps.Marker({
+          position,
+          map,
+          icon: markerIcon(kind),
+          title: content.tracking,
+        });
+
+        marker.addListener("click", () => {
+          infoWindow.setContent(infoContent(content));
+          infoWindow.open({ map, anchor: marker });
+        });
+
+        return marker;
+      }
+
+      // Loop data shipment: satu marker di titik tujuan dan satu di posisi kurir.
+      function addShipmentMarkers() {
+        const bounds = new google.maps.LatLngBounds();
+
+        shipments.forEach((s) => {
+          const destination = { lat: s.destinationLat, lng: s.destinationLng };
+          const courier = { lat: s.courierLat, lng: s.courierLng };
+
+          addMarker(destination, "shipment", {
+            tracking: s.tracking,
+            status: s.status,
+            role: "Shipment — titik tujuan",
+            detail: `Tujuan: ${s.destinationLat.toFixed(5)}, ${s.destinationLng.toFixed(5)}`,
+          });
+
+          addMarker(courier, "courier", {
+            tracking: s.tracking,
+            status: s.status,
+            role: "Kurir",
+            detail: `Posisi kurir: ${s.courierLat.toFixed(5)}, ${s.courierLng.toFixed(5)}`,
+          });
+
+          bounds.extend(destination);
+          bounds.extend(courier);
+        });
+
+        map.fitBounds(bounds);
       }
 
       // Google Maps memanggil ini ketika API key ditolak (mis. referrer tidak
