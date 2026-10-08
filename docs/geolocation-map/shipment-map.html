@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Peta Lokasi Pengiriman — Anteraja Instant</title>
+    <style>
+      :root {
+        --brand: #e00065;
+        --courier: #0284c7;
+        --ink: #1f2937;
+        --muted: #6b7280;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI",
+          Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        color: var(--ink);
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 12px;
+        padding: 14px 20px;
+        background: #0b0f19;
+        color: #fff;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      header p {
+        margin: 0;
+        font-size: 12px;
+        color: #cbd5e1;
+      }
+      #legend {
+        display: flex;
+        gap: 14px;
+        margin-left: auto;
+        font-size: 12px;
+        color: #e2e8f0;
+      }
+      #legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+      }
+      main {
+        position: relative;
+        flex: 1;
+      }
+      #map {
+        position: absolute;
+        inset: 0;
+      }
+      #status {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        z-index: 5;
+        display: none;
+        max-width: 90%;
+        padding: 8px 14px;
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 13px;
+        transform: translateX(-50%);
+      }
+      #status.show {
+        display: block;
+      }
+      #status.error {
+        border-color: #fca5a5;
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .info {
+        min-width: 190px;
+        font-family: system-ui, sans-serif;
+      }
+      .info__tracking {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .info__role {
+        margin: 2px 0 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .info__detail {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Peta Lokasi Pengiriman</h1>
+      <p>Anteraja Instant — Day 19 · Google Maps</p>
+      <div id="legend">
+        <span><i class="dot" style="background: #e00065"></i>Shipment (tujuan)</span>
+        <span><i class="dot" style="background: #0284c7"></i>Kurir</span>
+      </div>
+    </header>
+    <main>
+      <div id="status" role="status"></div>
+      <div id="map"></div>
+    </main>
+
+    <script>
+      // ---------------------------------------------------------------------
+      // Google Maps API key
+      //
+      // Ganti placeholder ini dengan API key Google Maps milikmu yang SUDAH
+      // DIBATASI (restricted):
+      //   - Application restriction : HTTP referrers -> http://localhost/* ,
+      //                               http://127.0.0.1/*
+      //   - API restriction         : Maps JavaScript API
+      // Nilai di sini sengaja dibiarkan sebagai placeholder supaya tidak ada
+      // key tanpa pembatasan yang ter-commit. Langkah lengkap ada di README.md.
+      // ---------------------------------------------------------------------
+      const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY";
+
+      // Area layanan: Jakarta, dipakai sebagai titik tengah peta.
+      const JAKARTA = { lat: -6.229, lng: 106.854 };
+      const ZOOM = 12;
+
+      /** @type {google.maps.Map | undefined} */
+      let map;
+      /** @type {google.maps.InfoWindow | undefined} */
+      let infoWindow;
+
+      const statusEl = document.getElementById("status");
+
+      function showStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.classList.toggle("error", isError);
+        statusEl.classList.add("show");
+      }
+
+      // Dipanggil lewat parameter "callback" pada URL Google Maps JS API
+      // setelah library selesai dimuat.
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: JAKARTA,
+          zoom: ZOOM,
+          mapTypeControl: false,
+          streetViewControl: false,
+        });
+        infoWindow = new google.maps.InfoWindow();
+      }
+
+      // Google Maps memanggil ini ketika API key ditolak (mis. referrer tidak
+      // cocok atau API belum diaktifkan).
+      window.gm_authFailure = () => {
+        showStatus(
+          "Google Maps menolak API key ini. Periksa pembatasan HTTP referrer dan API di Google Cloud Console.",
+          true,
+        );
+      };
+
+      function loadGoogleMaps() {
+        if (GOOGLE_MAPS_API_KEY === "YOUR_API_KEY") {
+          showStatus(
+            "Isi GOOGLE_MAPS_API_KEY di shipment-map.html dengan API key Google Maps yang sudah dibatasi. Lihat README.md.",
+            true,
+          );
+        }
+
+        const script = document.createElement("script");
+        script.async = true;
+        script.src =
+          "https://maps.googleapis.com/maps/api/js" +
+          `?key=${encodeURIComponent(GOOGLE_MAPS_API_KEY)}` +
+          "&callback=initMap&loading=async";
+        script.onerror = () =>
+          showStatus(
+            "Gagal memuat Google Maps JavaScript API. Periksa koneksi jaringan.",
+            true,
+          );
+        document.head.appendChild(script);
+      }
+
+      loadGoogleMaps();
+    </script>
+  </body>
+</html>
