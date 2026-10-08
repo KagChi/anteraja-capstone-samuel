@@ -121,6 +121,7 @@
       <div id="legend">
         <span><i class="dot" style="background: #e00065"></i>Shipment (tujuan)</span>
         <span><i class="dot" style="background: #0284c7"></i>Kurir</span>
+        <span><i class="dot" style="background: #7c3aed"></i>Alamat (geocoded)</span>
       </div>
     </header>
     <main>
@@ -166,6 +167,17 @@
         { tracking: "AJ2509000015", status: "delivered", destinationLat: -6.225, destinationLng: 106.799, courierLat: -6.2251, courierLng: 106.7991 },
       ];
 
+      // Bonus: satu data yang hanya punya alamat (tanpa lat/lng). Alamat ini
+      // di-geocode menjadi koordinat lalu ditambahkan sebagai marker.
+      const addressOnlyRecords = [
+        {
+          tracking: "AJ2509000100",
+          status: "pending",
+          address:
+            "Jl. Prof. Dr. Satrio No. 18, Kuningan, Jakarta Selatan, DKI Jakarta",
+        },
+      ];
+
       const STATUS_LABELS = {
         delivered: "Terkirim",
         in_transit: "Dalam perjalanan",
@@ -176,6 +188,7 @@
       const MARKER_COLORS = {
         shipment: "#e00065",
         courier: "#0284c7",
+        geocoded: "#7c3aed",
       };
 
       /** @type {google.maps.Map | undefined} */
@@ -202,6 +215,7 @@
         });
         infoWindow = new google.maps.InfoWindow();
         addShipmentMarkers();
+        geocodeAddressOnlyRecords();
       }
 
       // Ikon marker berbentuk pin, dibuat dari SVG inline agar tidak perlu
@@ -279,6 +293,32 @@
         });
 
         map.fitBounds(bounds);
+      }
+
+      // Bonus Day 19: konversi alamat menjadi koordinat lewat layanan Geocoding
+      // (tersedia melalui Maps JavaScript API). Kalau gagal, hanya dicatat di
+      // console sehingga marker dari lat/lng tetap tampil.
+      function geocodeAddressOnlyRecords() {
+        const geocoder = new google.maps.Geocoder();
+
+        addressOnlyRecords.forEach((record) => {
+          geocoder.geocode({ address: record.address }, (results, status) => {
+            if (status !== "OK" || !results || !results[0]) {
+              console.warn(
+                `Geocoding gagal untuk ${record.tracking} (${status}): ${record.address}`,
+              );
+              return;
+            }
+
+            const result = results[0];
+            addMarker(result.geometry.location, "geocoded", {
+              tracking: record.tracking,
+              status: record.status,
+              role: "Shipment — hasil geocoding alamat",
+              detail: result.formatted_address,
+            });
+          });
+        });
       }
 
       // Google Maps memanggil ini ketika API key ditolak (mis. referrer tidak
