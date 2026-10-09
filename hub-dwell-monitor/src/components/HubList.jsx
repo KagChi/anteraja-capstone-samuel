@@ -1,4 +1,10 @@
-import { SEVERITY_META, formatHours, formatInteger, severityFor } from "../lib/metrics.js";
+import {
+  SEVERITY_META,
+  barPercent,
+  formatHours,
+  formatInteger,
+  severityFor,
+} from "../lib/metrics.js";
 
 export default function HubList({
   hubs,
@@ -8,24 +14,38 @@ export default function HubList({
   onSelect,
   totalHubs,
   priorityOnly,
+  scale,
 }) {
   return (
     <section className="panel hub-list" aria-label="Hub list">
-      <header className="panel__header">
-        <h2 className="panel__title">Hub List</h2>
-        <p className="panel__subtitle">
-          {formatInteger(hubs.length)} dari {formatInteger(totalHubs)} hub tampil
-          {priorityOnly ? " (filter: priority only)" : " (filter: all hubs)"}.
+      <header className="panel__head">
+        <h2 className="panel__title">
+          <span className="panel__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M4 6h16M4 12h16M4 18h10" />
+            </svg>
+          </span>
+          Hub List
+        </h2>
+        <p className="panel__hint">
+          {formatInteger(hubs.length)}/{formatInteger(totalHubs)} hub
+          {priorityOnly ? " · priority only" : " · all hubs"}
         </p>
       </header>
 
       <label className="search">
-        <span className="search__label">Cari hub</span>
+        <span className="search__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+        </span>
+        <span className="sr-only">Cari hub</span>
         <input
           type="search"
           className="search__input"
           value={query}
-          placeholder="Cari nama, kode hub, atau kota…"
+          placeholder="Cari hub, kode, atau kota…"
           onChange={(event) => onQueryChange(event.target.value)}
           data-testid="hub-search"
         />
@@ -41,34 +61,38 @@ export default function HubList({
         <ul className="hub-rows" data-testid="hub-rows">
           {hubs.map((hub) => {
             const severity = hub.severity ?? severityFor(hub);
+            const selected = hub.hub_id === selectedHubId;
             return (
               <li key={hub.hub_id}>
                 <button
                   type="button"
-                  className={"hub-row" + (hub.hub_id === selectedHubId ? " is-selected" : "")}
+                  className={"hub-row" + (selected ? " is-selected" : "")}
                   onClick={() => onSelect(hub.hub_id)}
-                  aria-pressed={hub.hub_id === selectedHubId}
+                  aria-pressed={selected}
                   data-testid={"hub-row-" + hub.hub_id}
                 >
-                  <span className="hub-row__top">
+                  <span className="hub-row__head">
                     <span className="hub-row__name">{hub.hub_name}</span>
-                    <span className={"badge badge--" + severity}>
+                    <span className={"status status--" + severity}>
+                      <i aria-hidden="true" />
                       {SEVERITY_META[severity].label}
                     </span>
-                    <span className="hub-row__code">{hub.hub_id}</span>
                   </span>
-                  <span className="hub-row__meta">
-                    {hub.city}, {hub.province} · {formatInteger(hub.completed_visits)} kunjungan
-                    selesai
+                  <span className="hub-row__sub">
+                    {hub.hub_id} · {hub.city}
                   </span>
-                  <span className="hub-row__metrics">
-                    <span>
-                      dwell <strong>{formatHours(hub.mean_dwell_hours)}</strong>
+                  <span className="hub-row__stats">
+                    <span className="hub-row__dwell">
+                      {formatHours(hub.mean_dwell_hours, { withUnit: false, decimals: 1 })}
+                      <em>jam</em>
                     </span>
-                    <span>median {formatHours(hub.median_dwell_hours)}</span>
-                    <span>
-                      min {formatHours(hub.min_dwell_hours)} · max {formatHours(hub.max_dwell_hours)}
+                    <span className="hub-row__extra">
+                      median {formatHours(hub.median_dwell_hours, { withUnit: false, decimals: 1 })} jam ·{" "}
+                      {formatInteger(hub.completed_visits)} kunjungan
                     </span>
+                  </span>
+                  <span className="hub-row__bar" aria-hidden="true">
+                    <i style={{ width: barPercent(hub.mean_dwell_hours, scale) + "%" }} />
                   </span>
                 </button>
               </li>

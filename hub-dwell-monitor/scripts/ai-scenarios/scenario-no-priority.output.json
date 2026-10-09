@@ -5,10 +5,10 @@
     "title": "Test 2 - No priority hub",
     "expect": "none"
   },
-  "provider": "mock",
-  "model": "mock-rule-based-v1 (offline stand-in)",
-  "generated_at": "2026-10-09T07:19:50.987Z",
-  "attempts": 0,
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "generated_at": "2026-10-09T08:01:33.469Z",
+  "attempts": 1,
   "input_digest": {
     "hub_count": 12,
     "completed_visits": 21036,
@@ -29,15 +29,15 @@
     ]
   },
   "output": {
-    "summary": "Ada 12 hub dengan total 21.036 completed visit (open visit tanpa DEPARTURE tidak dihitung). Mean dwell time global 3,55 jam dan median 3,19 jam. Hub dengan mean tertinggi adalah Hub Ambon sebesar 5,90 jam dari 36 kunjungan selesai. Tidak ada hub yang melewati ambang prioritas 6 jam dengan minimal 100 kunjungan, sehingga priority_hubs kosong dan investigasi cukup lewat pemantauan rutin. Catatan sampel (tidak dipakai sebagai dasar prioritas): HUB_AMB 5,90 jam dari hanya 36 kunjungan selesai.",
+    "summary": "Analisis dwell time melibatkan total 12 hub dengan 21,036 completed visits dan mean dwell time global sebesar 3.55 jam. Hub Makassar mencatatkan mean dwell time tertinggi sebesar 5.35 jam di antara hub dengan sampel yang cukup. Berdasarkan kriteria mean dwell time minimal 6 jam dan completed visits minimal 100, tidak ada hub yang masuk dalam kategori prioritas investigasi.",
     "priority_hubs": [],
     "next_checks": [
-      "Audit alur inbound/outbound dan kapasitas sorting di Hub Ambon (HUB_AMB) karena mean dwell time-nya 5,90 jam dari 36 kunjungan selesai.",
-      "Perbaiki kualitas scan: 885 pasangan tanpa ARRIVAL, 848 tanpa DEPARTURE, dan 412 timestamp rusak, supaya dwell time tidak bias.",
-      "Pantau ulang metrik ini secara berkala dan validasi apakah dwell tinggi berasal dari proses hub atau dari scan DEPARTURE yang terlambat dicatat; ambang 6 jam hanya aturan simulasi latihan, bukan SLA."
+      "Periksa validitas timestamp pada event mentah",
+      "Analisis penyebab missing arrival dan missing departure",
+      "Evaluasi hub dengan dwell time mendekati ambang batas 6 jam"
     ]
   },
-  "raw_response_text": null,
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Analisis dwell time melibatkan total 12 hub dengan 21,036 completed visits dan mean dwell time global sebesar 3.55 jam. Hub Makassar mencatatkan mean dwell time tertinggi sebesar 5.35 jam di antara hub dengan sampel yang cukup. Berdasarkan kriteria mean dwell time minimal 6 jam dan completed visits minimal 100, tidak ada hub yang masuk dalam kategori prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": [\\n    \\\"Periksa validitas timestamp pada event mentah\\\",\\n    \\\"Analisis penyebab missing arrival dan missing departure\\\",\\n    \\\"Evaluasi hub dengan dwell time mendekati ambang batas 6 jam\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EmAKXgFpFH0TaHusoeI+HJpx/w4R7ubd6YSAKWxs1smQivo4V1fKztRTuqrHxem+klNBx5HhgkPEXzdtwEPmWziugwT7jyPZw+nnDCuydk1B2Amd7ZENcCNWsTwTW74BO9A=\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2091,\"candidatesTokenCount\":161,\"totalTokenCount\":2252,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2091}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.5-flash-lite\",\"responseId\":\"XJ_Iaq2DGOT_g8UPrO2GyA0\"}",
   "validation": {
     "ok": true,
     "errors": [],

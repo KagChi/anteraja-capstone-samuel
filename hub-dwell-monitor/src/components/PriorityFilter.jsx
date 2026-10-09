@@ -22,7 +22,7 @@ export default function PriorityFilter({ priorityOnly, onChange, totalCount, pri
           Priority Only <span className="chip__count">{priorityCount}</span>
         </button>
       </div>
-      <p className="filter__hint">Filter ini dipakai bersama oleh hub list dan Leaflet map.</p>
+      <p className="filter__hint">Satu filter untuk hub list & map</p>
     </div>
   );
 }

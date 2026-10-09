@@ -14,6 +14,7 @@ import {
   SEVERITY_ORDER,
   applyPriorityFilter,
   datasetStats,
+  dwellScale,
   excludedLowSampleHubs,
   filterHubList,
   formatInteger,
@@ -43,8 +44,9 @@ export default function App() {
   const topHubs = useMemo(() => topHubsByMean(views, 3), [views]);
   const excluded = useMemo(() => excludedLowSampleHubs(views, 3), [views]);
   const stats = useMemo(() => datasetStats(views), [views]);
-  const priorityCount = useMemo(() => views.filter((hub) => hub.is_priority).length, [views]);
   const severity = useMemo(() => severityCounts(views), [views]);
+  const scale = useMemo(() => dwellScale(views), [views]);
+  const priorityCount = useMemo(() => views.filter((hub) => hub.is_priority).length, [views]);
   const selectedHub = useMemo(
     () => views.find((hub) => hub.hub_id === selectedHubId) ?? null,
     [views, selectedHubId],
@@ -56,24 +58,37 @@ export default function App() {
   return (
     <div className="app">
       <header className="app__header">
-        <div className="app__identity">
-          <p className="app__eyebrow">Anteraja · Capstone Day 19</p>
-          <h1 className="app__title">Hub Dwell Monitor</h1>
-          <p className="app__subtitle">
-            Pantau dwell time tiap hub, temukan hub prioritas investigasi, dan lihat sebaran
-            lokasinya pada peta.
-          </p>
+        <div className="app__brand">
+          <span className="app__mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" />
+              <circle cx="12" cy="10" r="2.6" />
+            </svg>
+          </span>
+          <div>
+            <p className="app__eyebrow">Anteraja · Capstone Day 19</p>
+            <h1 className="app__title">Hub Dwell Monitor</h1>
+            <p className="app__subtitle">
+              Pantau dwell time tiap hub, temukan hub prioritas investigasi, dan lihat sebaran
+              lokasinya pada peta.
+            </p>
+          </div>
         </div>
-        <dl className="app__meta">
-          <div>
-            <dt>Sumber data</dt>
-            <dd>{metrics?.source ?? "scan_events.csv Day 18"}</dd>
-          </div>
-          <div>
-            <dt>Aturan prioritas</dt>
-            <dd>{PRIORITY_RULES.label}</dd>
-          </div>
-        </dl>
+
+        <ul className="app__chips">
+          <li>
+            <span>Sumber data</span>
+            <strong>scan_events · Day 18</strong>
+          </li>
+          <li>
+            <span>Aturan prioritas</span>
+            <strong>mean ≥ 6 jam &amp; ≥ 100 kunjungan</strong>
+          </li>
+          <li>
+            <span>Metrics diperbarui</span>
+            <strong>{generatedAt ?? "—"}</strong>
+          </li>
+        </ul>
       </header>
 
       <main className="app__main">
@@ -85,7 +100,7 @@ export default function App() {
           <>
             <KpiDashboard stats={stats} rules={PRIORITY_RULES} />
 
-            <div className="toolbar">
+            <section className="panel toolbar" aria-label="Filter dan ringkasan status">
               <div className="toolbar__row">
                 <PriorityFilter
                   priorityOnly={priorityOnly}
@@ -101,20 +116,22 @@ export default function App() {
               <ul className="severity-strip" aria-label="Sebaran status keparahan hub">
                 {SEVERITY_ORDER.map((id) => (
                   <li key={id}>
-                    <span className={"legend-dot legend-dot--" + id} />
-                    <strong>{SEVERITY_META[id].label}</strong>
-                    <span className="severity-strip__count">{numberFormat.format(severity[id])}</span>
-                    <span className="severity-strip__hint">{SEVERITY_META[id].hint}</span>
+                    <span className={"legend-chip legend-chip--" + id}>
+                      <i aria-hidden="true" />
+                      <b>{numberFormat.format(severity[id])}</b>
+                      {SEVERITY_META[id].label}
+                    </span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
 
             <TopHubList
               hubs={topHubs}
               excluded={excluded}
               selectedHubId={selectedHubId}
               onSelect={selectHub}
+              scale={scale}
             />
 
             <div className="layout">
@@ -124,6 +141,7 @@ export default function App() {
                   hub={selectedHub}
                   onClose={() => setSelectedHubId(null)}
                   onFocus={selectHub}
+                  totalVisits={stats.completed_visits}
                 />
                 <HubList
                   hubs={listHubs}
@@ -133,6 +151,7 @@ export default function App() {
                   onSelect={selectHub}
                   totalHubs={views.length}
                   priorityOnly={priorityOnly}
+                  scale={scale}
                 />
               </div>
             </div>
@@ -142,9 +161,11 @@ export default function App() {
             <footer className="app__footer">
               <span>
                 {formatInteger(stats.completed_visits)} completed visits dari{" "}
-                {formatInteger(stats.hub_count)} hub · metrics diperbarui {generatedAt ?? "-"}
+                {formatInteger(stats.hub_count)} hub · pipeline: scan_events → metrics.json
               </span>
-              <span>Basemap &copy; OpenStreetMap contributors · Dwelling dihitung per kunjungan paket</span>
+              <span>
+                Basemap © OpenStreetMap contributors · ambang 6 jam = aturan simulasi latihan
+              </span>
             </footer>
           </>
         ) : null}
@@ -152,3 +173,4 @@ export default function App() {
     </div>
   );
 }
+

@@ -152,6 +152,12 @@ Perubahan v1 → v2: keputusan utama dipindahkan ke atas (KPI + Top 3), filter d
 peta dan list, penjaga sampel 100 kunjungan ditambahkan, dan detail hub tidak lagi modal terpisah
 supaya tetap terlihat bersama peta saat marker diklik.
 
+Kedua mockup di atas adalah kerangka layout (wireframe). Tampilan akhir aplikasi memakai polish
+visual penuh dari design system Stitch: kartu KPI beraksen ikon dan warna status, badge
+Kritis/Tinggi/Waspada/Normal, strip sebaran status di toolbar, marker pil berisi angka jam untuk hub
+terparah, bar dwell pada hub list, dan bar telemetri pada detail hub — lihat `screenshots/desktop.png`,
+`screenshots/desktop-hub-detail.png`, dan `screenshots/mobile.png`.
+
 ## 4. AI Testing
 
 ### 4.1 Kontrak keluaran dan prompt

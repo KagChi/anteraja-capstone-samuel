@@ -1,15 +1,36 @@
 import L from "leaflet";
-import { SEVERITY_META, formatHours, severityFor } from "./metrics.js";
+import { LABELLED_SEVERITIES, SEVERITY_META, formatHours, severityFor } from "./metrics.js";
 
-/** Marker berbentuk pil berisi angka dwell, mengikuti pola desain Stitch (Kritis/Waspada/Normal). */
-export function createHubIcon(hub) {
+/**
+ * Marker peta mengikuti pola desain Stitch, dengan dua bentuk supaya peta tidak penuh:
+ *   - pil berisi angka dwell untuk hub Kritis/Tinggi (dan hub prioritas lain saat zoom dekat);
+ *   - titik berwarna untuk hub Waspada/Normal, kotak untuk sampel kecil.
+ */
+export function createHubIcon(hub, options = {}) {
+  const zoom = options.zoom ?? 5;
   const severity = hub.severity ?? severityFor(hub);
   const meta = SEVERITY_META[severity];
+  const showLabel = LABELLED_SEVERITIES.has(severity) || (hub.is_priority && zoom >= 7);
 
-  if (severity === "low-sample") {
+  if (severity === "low-sample" || !showLabel) {
+    const size = severity === "low-sample" ? 12 : hub.is_priority ? 16 : 13;
+    const shape = severity === "low-sample" ? "square" : "dot";
     return L.divIcon({
       className: "hub-marker-wrapper",
-      html: '<span class="hub-pill hub-pill--dot hub-pill--low-sample" title="' + meta.label + '"></span>',
+      html:
+        '<span class="map-dot map-dot--' +
+        severity +
+        " map-dot--" +
+        shape +
+        '" style="width:' +
+        size +
+        "px;height:" +
+        size +
+        'px" title="' +
+        meta.label +
+        " · " +
+        formatHours(hub.mean_dwell_hours) +
+        '"></span>',
       iconSize: null,
       iconAnchor: null,
     });
@@ -18,9 +39,9 @@ export function createHubIcon(hub) {
   return L.divIcon({
     className: "hub-marker-wrapper",
     html:
-      '<span class="hub-pill hub-pill--' +
+      '<span class="map-pill map-pill--' +
       severity +
-      '">' +
+      '"><i class="map-pill__dot"></i>' +
       formatHours(hub.mean_dwell_hours, { decimals: 1 }) +
       "</span>",
     iconSize: null,
@@ -29,10 +50,10 @@ export function createHubIcon(hub) {
 }
 
 export const MAP_LEGEND = [
-  { severity: "critical", label: "Kritis — mean ≥ 10 jam" },
-  { severity: "high", label: "Tinggi — mean 8–10 jam" },
-  { severity: "watch", label: "Waspada — mean 6–8 jam" },
-  { severity: "normal", label: "Normal — mean < 6 jam" },
-  { severity: "low-sample", label: "Sampel < 100 kunjungan" },
+  { severity: "critical", label: "Kritis ≥ 10 jam" },
+  { severity: "high", label: "Tinggi 8–10 jam" },
+  { severity: "watch", label: "Waspada 6–8 jam" },
+  { severity: "normal", label: "Normal < 6 jam" },
+  { severity: "low-sample", label: "Sampel < 100" },
 ];
 

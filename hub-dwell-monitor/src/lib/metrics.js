@@ -54,11 +54,10 @@ export function formatInteger(value) {
   return idNumber.format(numeric);
 }
 
-export function formatHubs(hubs, limit = 3) {
-  return hubs
-    .slice(0, limit)
-    .map((hub) => hub.hub_name)
-    .join(", ");
+export function formatPercent(value, digits = 1) {
+  const numeric = toNumber(value);
+  if (Number.isNaN(numeric)) return "—";
+  return decimalFormatter(digits).format(numeric * 100) + "%";
 }
 
 export function sampleIsSufficient(hub, rules = PRIORITY_RULES) {
@@ -73,14 +72,17 @@ export function isPriorityHub(hub, rules = PRIORITY_RULES) {
 
 /** Tingkat keparahan yang dipakai untuk badge, marker peta, dan legenda. */
 export const SEVERITY_META = {
-  critical: { id: "critical", label: "Kritis", hint: "mean ≥ 10 jam" },
-  high: { id: "high", label: "Tinggi", hint: "mean 8–10 jam" },
-  watch: { id: "watch", label: "Waspada", hint: "mean 6–8 jam" },
-  normal: { id: "normal", label: "Normal", hint: "mean < 6 jam" },
-  "low-sample": { id: "low-sample", label: "Sampel kecil", hint: "< 100 kunjungan selesai" },
+  critical: { id: "critical", label: "Kritis", hint: "mean ≥ 10 jam", order: 1 },
+  high: { id: "high", label: "Tinggi", hint: "mean 8–10 jam", order: 2 },
+  watch: { id: "watch", label: "Waspada", hint: "mean 6–8 jam", order: 3 },
+  normal: { id: "normal", label: "Normal", hint: "mean < 6 jam", order: 4 },
+  "low-sample": { id: "low-sample", label: "Sampel kecil", hint: "< 100 kunjungan selesai", order: 5 },
 };
 
 export const SEVERITY_ORDER = ["critical", "high", "watch", "normal", "low-sample"];
+
+/** Hub yang dwell-nya perlu ditekankan di peta (label angka selalu tampil). */
+export const LABELLED_SEVERITIES = new Set(["critical", "high"]);
 
 export function severityFor(hub, rules = PRIORITY_RULES) {
   if (!sampleIsSufficient(hub, rules)) return "low-sample";
@@ -194,3 +196,17 @@ export function shareOfVisits(hub, totalVisits) {
   if (Number.isNaN(visits) || !totalVisits) return null;
   return visits / totalVisits;
 }
+
+/** Skala bar dwell: minimal 12 jam atau mean tertinggi, supaya bar antar hub bisa dibandingkan. */
+export function dwellScale(views = [], rules = PRIORITY_RULES) {
+  const maxMean = views.reduce((max, hub) => Math.max(max, toNumber(hub.mean_dwell_hours) || 0), 0);
+  return Math.max(rules.criticalMinMeanDwellHours, maxMean * 1.05, rules.minMeanDwellHours * 1.5);
+}
+
+export function barPercent(value, scale) {
+  const numeric = toNumber(value);
+  const total = toNumber(scale);
+  if (Number.isNaN(numeric) || Number.isNaN(total) || total <= 0) return 0;
+  return Math.max(0, Math.min(100, (numeric / total) * 100));
+}
+

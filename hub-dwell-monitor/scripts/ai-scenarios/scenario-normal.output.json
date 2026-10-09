@@ -5,10 +5,10 @@
     "title": "Test 1 - Normal data",
     "expect": "priority"
   },
-  "provider": "mock",
-  "model": "mock-rule-based-v1 (offline stand-in)",
-  "generated_at": "2026-10-09T07:19:50.984Z",
-  "attempts": 0,
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "generated_at": "2026-10-09T08:01:31.894Z",
+  "attempts": 1,
   "input_digest": {
     "hub_count": 12,
     "completed_visits": 21036,
@@ -29,7 +29,7 @@
     ]
   },
   "output": {
-    "summary": "Ada 12 hub dengan total 21.036 completed visit (open visit tanpa DEPARTURE tidak dihitung). Mean dwell time global 7,10 jam dan median 6,61 jam. Hub dengan mean tertinggi adalah Hub Ambon sebesar 12,32 jam dari 36 kunjungan selesai. 9 hub melewati ambang prioritas (6 jam dan minimal 100 kunjungan), dipimpin oleh Hub Makassar (10,70 jam), Hub Denpasar (9,48 jam), Hub Medan (8,96 jam). Catatan sampel (tidak dipakai sebagai dasar prioritas): HUB_AMB 12,32 jam dari hanya 36 kunjungan selesai.",
+    "summary": "Analisis dwell time dari 12 hub mencakup total 21036 kunjungan selesai dengan rata-rata dwell time global sebesar 7.0967 jam. Hub Makassar mencatat rata-rata dwell time tertinggi sebesar 10.7002 jam dengan completed visits mencapai 1928. Sebanyak 9 hub memenuhi kriteria prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dan kunjungan selesai minimal 100 kunjungan.",
     "priority_hubs": [
       "HUB_MKS",
       "HUB_DPS",
@@ -42,13 +42,12 @@
       "HUB_SMG"
     ],
     "next_checks": [
-      "Audit alur inbound/outbound dan kapasitas sorting di Hub Makassar (HUB_MKS) karena mean dwell time-nya 10,70 jam dari 1.928 kunjungan selesai.",
-      "Bandingkan proses scan dan kapasitas sorting HUB_DPS (9,48 jam) dan HUB_MDN (8,96 jam) terhadap hub dengan dwell time terendah pada data ini.",
-      "Perbaiki kualitas scan: 885 pasangan tanpa ARRIVAL, 848 tanpa DEPARTURE, dan 412 timestamp rusak, supaya dwell time tidak bias.",
-      "Pantau ulang metrik ini secara berkala dan validasi apakah dwell tinggi berasal dari proses hub atau dari scan DEPARTURE yang terlambat dicatat; ambang 6 jam hanya aturan simulasi latihan, bukan SLA."
+      "Periksa operasional Hub Makassar untuk mengidentifikasi penyebab dwell time tertinggi",
+      "Analisis hambatan proses bongkar muat di Hub Denpasar dan Hub Medan",
+      "Evaluasi kualitas data pada hub dengan kunjungan di bawah 100 seperti Hub Ambon"
     ]
   },
-  "raw_response_text": null,
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Analisis dwell time dari 12 hub mencakup total 21036 kunjungan selesai dengan rata-rata dwell time global sebesar 7.0967 jam. Hub Makassar mencatat rata-rata dwell time tertinggi sebesar 10.7002 jam dengan completed visits mencapai 1928. Sebanyak 9 hub memenuhi kriteria prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dan kunjungan selesai minimal 100 kunjungan.\\\",\\n  \\\"priority_hubs\\\": [\\n    \\\"HUB_MKS\\\",\\n    \\\"HUB_DPS\\\",\\n    \\\"HUB_MDN\\\",\\n    \\\"HUB_BJM\\\",\\n    \\\"HUB_PLM\\\",\\n    \\\"HUB_PDG\\\",\\n    \\\"HUB_SBY\\\",\\n    \\\"HUB_JOG\\\",\\n    \\\"HUB_SMG\\\"\\n  ],\\n  \\\"next_checks\\\": [\\n    \\\"Periksa operasional Hub Makassar untuk mengidentifikasi penyebab dwell time tertinggi\\\",\\n    \\\"Analisis hambatan proses bongkar muat di Hub Denpasar dan Hub Medan\\\",\\n    \\\"Evaluasi kualitas data pada hub dengan kunjungan di bawah 100 seperti Hub Ambon\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EmAKXgFpFH0TwJSP2tBnCRYea43MqqRBo5Uqw80yzlFUpDo5cEK2JjhH4tolN9+ReTkrgHxyxMD/5mzOdlWDgKc3m25BbBs1QFXlf7p/3h36CGg5bL5TS7xRtW40TtpanEg=\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2229,\"candidatesTokenCount\":267,\"totalTokenCount\":2496,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2229}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.5-flash-lite\",\"responseId\":\"WZ_IatfQM7GejuMPwejm-QQ\"}",
   "validation": {
     "ok": true,
     "errors": [],
