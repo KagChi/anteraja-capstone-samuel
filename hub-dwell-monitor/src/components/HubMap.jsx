@@ -5,10 +5,20 @@ import { MAP_LEGEND, createHubIcon } from "../lib/mapIcons.js";
 import { SEVERITY_META, formatHours, formatInteger } from "../lib/metrics.js";
 
 const INDONESIA_CENTER = [-2.5489, 118.0149];
+// Perkiraan kotak wilayah Indonesia (Sabang sampai Merauke), supaya peta tidak bisa digeser ke luar negeri.
+const INDONESIA_BOUNDS = [
+  [-11.5, 94.0],
+  [6.5, 141.5],
+];
+const INDONESIA_MIN_ZOOM = 4;
 
 /** Pengendali peta: ukuran ulang, fit bounds saat filter berubah, fly-to, dan pelacak zoom. */
 function MapController({ hubs, selectedHub, onZoomChange }) {
   const map = useMap();
+
+  useEffect(() => {
+    map.setMaxBounds(L.latLngBounds(INDONESIA_BOUNDS));
+  }, [map]);
 
   useEffect(() => {
     const container = map.getContainer();
@@ -74,8 +84,10 @@ export default function HubMap({ hubs, selectedHub, onSelect }) {
         <MapContainer
           center={INDONESIA_CENTER}
           zoom={5}
-          minZoom={4}
+          minZoom={INDONESIA_MIN_ZOOM}
           maxZoom={18}
+          maxBounds={INDONESIA_BOUNDS}
+          maxBoundsViscosity={1.0}
           scrollWheelZoom
           zoomControl={false}
           className="map"
@@ -159,4 +171,3 @@ function ZoomControl() {
   }, [map]);
   return null;
 }
-
