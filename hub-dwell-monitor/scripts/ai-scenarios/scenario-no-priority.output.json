@@ -6,8 +6,8 @@
     "expect": "none"
   },
   "provider": "gemini",
-  "model": "gemini-3.5-flash-lite",
-  "generated_at": "2026-10-09T08:01:33.469Z",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:40.983Z",
   "attempts": 1,
   "input_digest": {
     "hub_count": 12,
@@ -29,15 +29,15 @@
     ]
   },
   "output": {
-    "summary": "Analisis dwell time melibatkan total 12 hub dengan 21,036 completed visits dan mean dwell time global sebesar 3.55 jam. Hub Makassar mencatatkan mean dwell time tertinggi sebesar 5.35 jam di antara hub dengan sampel yang cukup. Berdasarkan kriteria mean dwell time minimal 6 jam dan completed visits minimal 100, tidak ada hub yang masuk dalam kategori prioritas investigasi.",
+    "summary": "Terdapat 12 hub yang dianalisis dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 3,55 jam. Hub Ambon mencatatkan mean dwell time tertinggi sebesar 5,9 jam, namun tidak memenuhi syarat jumlah kunjungan untuk prioritas. Berdasarkan kriteria mean dwell time minimal 6 jam dan minimal 100 kunjungan, tidak ada hub yang masuk dalam daftar prioritas investigasi saat ini.",
     "priority_hubs": [],
     "next_checks": [
-      "Periksa validitas timestamp pada event mentah",
-      "Analisis penyebab missing arrival dan missing departure",
-      "Evaluasi hub dengan dwell time mendekati ambang batas 6 jam"
+      "Verifikasi data pada hub dengan mean dwell time mendekati ambang batas 6 jam",
+      "Investigasi penyebab missing arrival dan missing departure pada data kualitas",
+      "Monitoring rutin untuk memastikan tidak ada hub yang melampaui ambang batas di periode berikutnya"
     ]
   },
-  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Analisis dwell time melibatkan total 12 hub dengan 21,036 completed visits dan mean dwell time global sebesar 3.55 jam. Hub Makassar mencatatkan mean dwell time tertinggi sebesar 5.35 jam di antara hub dengan sampel yang cukup. Berdasarkan kriteria mean dwell time minimal 6 jam dan completed visits minimal 100, tidak ada hub yang masuk dalam kategori prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": [\\n    \\\"Periksa validitas timestamp pada event mentah\\\",\\n    \\\"Analisis penyebab missing arrival dan missing departure\\\",\\n    \\\"Evaluasi hub dengan dwell time mendekati ambang batas 6 jam\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EmAKXgFpFH0TaHusoeI+HJpx/w4R7ubd6YSAKWxs1smQivo4V1fKztRTuqrHxem+klNBx5HhgkPEXzdtwEPmWziugwT7jyPZw+nnDCuydk1B2Amd7ZENcCNWsTwTW74BO9A=\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2091,\"candidatesTokenCount\":161,\"totalTokenCount\":2252,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2091}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.5-flash-lite\",\"responseId\":\"XJ_Iaq2DGOT_g8UPrO2GyA0\"}",
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Terdapat 12 hub yang dianalisis dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 3,55 jam. Hub Ambon mencatatkan mean dwell time tertinggi sebesar 5,9 jam, namun tidak memenuhi syarat jumlah kunjungan untuk prioritas. Berdasarkan kriteria mean dwell time minimal 6 jam dan minimal 100 kunjungan, tidak ada hub yang masuk dalam daftar prioritas investigasi saat ini.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": [\\n    \\\"Verifikasi data pada hub dengan mean dwell time mendekati ambang batas 6 jam\\\",\\n    \\\"Investigasi penyebab missing arrival dan missing departure pada data kualitas\\\",\\n    \\\"Monitoring rutin untuk memastikan tidak ada hub yang melampaui ambang batas di periode berikutnya\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0TuIuNv4cJqusLn0lZl38R4Pu5VbN9pshFlstibZoRSzk0llTWwZw0Edqls+q9CrAH8kDjwHqQWTizVqxYMKafD+b96TSKnuIKRQKkXAl9s9HMtdDYxOS2jwtOaJoc9LEceQ+iLsTnRe0jXCNS\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2091,\"candidatesTokenCount\":187,\"totalTokenCount\":2278,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2091}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"HqPIaryPPLyAg8UPuYfOoAY\"}",
   "validation": {
     "ok": true,
     "errors": [],

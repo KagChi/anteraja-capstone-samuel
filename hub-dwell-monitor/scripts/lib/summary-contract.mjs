@@ -365,7 +365,9 @@ export function validateSummary(raw, payload, expectations = {}) {
     errors.push("next_checks harus array string.");
   }
   if (errors.length > 0) return { ok: false, errors, warnings };
-  if (raw.next_checks.length < MIN_NEXT_CHECKS) {
+  // Skenario data-kosong cukup menyatakan data tidak tersedia (sesuai spec Day 19),
+  // jadi syarat minimal next_checks tidak dipaksakan ketika daftar hub kosong.
+  if (expectations.expectDataUnavailable !== true && raw.next_checks.length < MIN_NEXT_CHECKS) {
     errors.push("next_checks minimal " + MIN_NEXT_CHECKS + " item.");
   }
 

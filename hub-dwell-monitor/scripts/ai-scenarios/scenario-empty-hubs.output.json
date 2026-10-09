@@ -6,8 +6,8 @@
     "expect": "unavailable"
   },
   "provider": "gemini",
-  "model": "gemini-3.5-flash-lite",
-  "generated_at": "2026-10-09T08:01:35.914Z",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:42.344Z",
   "attempts": 1,
   "input_digest": {
     "hub_count": 0,
@@ -16,14 +16,11 @@
     "hub_names": []
   },
   "output": {
-    "summary": "Data hub tidak tersedia karena daftar hubs kosong, dengan jumlah hub, completed visits, dan mean dwell time global bernilai nol. Tidak ada hub dengan mean dwell time tertinggi yang dapat diidentifikasi dari data yang ada. Oleh karena itu, tidak ada hub yang masuk dalam kategori prioritas investigasi.",
+    "summary": "Data hub tidak tersedia untuk dianalisis. Jumlah hub yang tercatat adalah 0 dengan total completed visits sebanyak 0. Oleh karena itu, tidak ada mean dwell time global, hub dengan mean tertinggi, maupun hub yang masuk dalam kategori prioritas investigasi.",
     "priority_hubs": [],
-    "next_checks": [
-      "Periksa kembali ketersediaan data hub pada sistem",
-      "Pastikan sumber data JSON telah terisi dengan benar sebelum melakukan analisis dwell time"
-    ]
+    "next_checks": []
   },
-  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Data hub tidak tersedia karena daftar hubs kosong, dengan jumlah hub, completed visits, dan mean dwell time global bernilai nol. Tidak ada hub dengan mean dwell time tertinggi yang dapat diidentifikasi dari data yang ada. Oleh karena itu, tidak ada hub yang masuk dalam kategori prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": [\\n    \\\"Periksa kembali ketersediaan data hub pada sistem\\\",\\n    \\\"Pastikan sumber data JSON telah terisi dengan benar sebelum melakukan analisis dwell time\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EmAKXgFpFH0TsqOaPF0KTeDHw7BHcOK01jslLpbOC6Q1Cu22wS/4Hw0CiC/risBnUrh/uz96REhp2ujkDo7vJawPOElWOZzYT8s2bNse9hd6qXfrL8TMQ5B1UXN397fiTO8=\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":526,\"candidatesTokenCount\":121,\"totalTokenCount\":647,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":526}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.5-flash-lite\",\"responseId\":\"XZ_IasauL4uVjuMPzp-JsQU\"}",
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Data hub tidak tersedia untuk dianalisis. Jumlah hub yang tercatat adalah 0 dengan total completed visits sebanyak 0. Oleh karena itu, tidak ada mean dwell time global, hub dengan mean tertinggi, maupun hub yang masuk dalam kategori prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": []\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0T4SHNgTjhq07J7/n70UReSPdHr+enh0ZYlldRxITdJc330Z+2NzuQHEnJxZOENLrtXsDDIlQRXYNCBl5VUAlswW8CIEkBv+44+RonvbjjmvPnAGgm/rsM+DaIFfkDwIXNAdrq8xv0u342ekdk\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":526,\"candidatesTokenCount\":78,\"totalTokenCount\":604,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":526}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"JaPIaoLFErGejuMPwejm-QQ\"}",
   "validation": {
     "ok": true,
     "errors": [],

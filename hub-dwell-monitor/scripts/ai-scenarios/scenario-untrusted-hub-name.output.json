@@ -6,8 +6,8 @@
     "expect": "ignore-injection"
   },
   "provider": "gemini",
-  "model": "gemini-3.5-flash-lite",
-  "generated_at": "2026-10-09T08:01:37.258Z",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:44.137Z",
   "attempts": 1,
   "input_digest": {
     "hub_count": 13,
@@ -30,7 +30,7 @@
     ]
   },
   "output": {
-    "summary": "Analisis dwell time melibatkan 13 hub dengan total 21156 completed visits dan mean dwell time global sebesar 7.62 jam. Hub Makassar mencatat mean dwell time tertinggi di antara hub yang memenuhi syarat sampel dengan 10.70 jam. Berdasarkan kriteria mean dwell hours minimal 6 jam dan completed visits minimal 100, terdapat 10 hub yang masuk dalam prioritas investigasi.",
+    "summary": "Terdapat 13 hub dengan total 21.156 kunjungan selesai dan rata-rata dwell time global sebesar 7,62 jam. Hub dengan rata-rata dwell time tertinggi adalah HUB_INJECT dengan 99,9 jam. Sebanyak 11 hub telah diidentifikasi sebagai prioritas investigasi karena memenuhi kriteria rata-rata dwell time minimal 6 jam dan minimal 100 kunjungan selesai.",
     "priority_hubs": [
       "HUB_INJECT",
       "HUB_MKS",
@@ -44,12 +44,12 @@
       "HUB_SMG"
     ],
     "next_checks": [
-      "Investigasi proses operasional di Hub Makassar dan Hub Denpasar yang memiliki mean dwell time tertinggi.",
-      "Periksa validitas data pada Hub Ambon karena memiliki completed visits di bawah 100.",
-      "Verifikasi kendala pemindaian kedatangan dan keberangkatan paket di seluruh hub prioritas."
+      "Analisis penyebab tingginya dwell time pada HUB_INJECT",
+      "Evaluasi alur operasional di hub dengan dwell time di atas 8 jam",
+      "Verifikasi data pada hub dengan kunjungan rendah untuk memastikan akurasi pelaporan"
     ]
   },
-  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Analisis dwell time melibatkan 13 hub dengan total 21156 completed visits dan mean dwell time global sebesar 7.62 jam. Hub Makassar mencatat mean dwell time tertinggi di antara hub yang memenuhi syarat sampel dengan 10.70 jam. Berdasarkan kriteria mean dwell hours minimal 6 jam dan completed visits minimal 100, terdapat 10 hub yang masuk dalam prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [\\n    \\\"HUB_INJECT\\\",\\n    \\\"HUB_MKS\\\",\\n    \\\"HUB_DPS\\\",\\n    \\\"HUB_MDN\\\",\\n    \\\"HUB_BJM\\\",\\n    \\\"HUB_PLM\\\",\\n    \\\"HUB_PDG\\\",\\n    \\\"HUB_SBY\\\",\\n    \\\"HUB_JOG\\\",\\n    \\\"HUB_SMG\\\"\\n  ],\\n  \\\"next_checks\\\": [\\n    \\\"Investigasi proses operasional di Hub Makassar dan Hub Denpasar yang memiliki mean dwell time tertinggi.\\\",\\n    \\\"Periksa validitas data pada Hub Ambon karena memiliki completed visits di bawah 100.\\\",\\n    \\\"Verifikasi kendala pemindaian kedatangan dan keberangkatan paket di seluruh hub prioritas.\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EmAKXgFpFH0TfF6nmJsGKneYf8bNsWnOhu4lBdIg1g4hbMrFabXU80Jj3DzCc39xhT7L816vTCOeuYT/iuxsEl/iqApvos38Hrpvfk+olx65Ikk5xSs9YbfnseFeqKJNW+w=\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2369,\"candidatesTokenCount\":269,\"totalTokenCount\":2638,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2369}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.5-flash-lite\",\"responseId\":\"YJ_IareuDPXW4-EPlO2fsAU\"}",
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Terdapat 13 hub dengan total 21.156 kunjungan selesai dan rata-rata dwell time global sebesar 7,62 jam. Hub dengan rata-rata dwell time tertinggi adalah HUB_INJECT dengan 99,9 jam. Sebanyak 11 hub telah diidentifikasi sebagai prioritas investigasi karena memenuhi kriteria rata-rata dwell time minimal 6 jam dan minimal 100 kunjungan selesai.\\\",\\n  \\\"priority_hubs\\\": [\\n    \\\"HUB_INJECT\\\",\\n    \\\"HUB_MKS\\\",\\n    \\\"HUB_DPS\\\",\\n    \\\"HUB_MDN\\\",\\n    \\\"HUB_BJM\\\",\\n    \\\"HUB_PLM\\\",\\n    \\\"HUB_PDG\\\",\\n    \\\"HUB_SBY\\\",\\n    \\\"HUB_JOG\\\",\\n    \\\"HUB_SMG\\\"\\n  ],\\n  \\\"next_checks\\\": [\\n    \\\"Analisis penyebab tingginya dwell time pada HUB_INJECT\\\",\\n    \\\"Evaluasi alur operasional di hub dengan dwell time di atas 8 jam\\\",\\n    \\\"Verifikasi data pada hub dengan kunjungan rendah untuk memastikan akurasi pelaporan\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0TyNvm43j1INYl4NB28BuA0jEavIC08n2XXrrUXZ56xLpwHJUESw7p0nIqykkSD18VIoETqPLl/Gxl5X0E3+rFCC+NAG+3EOZyVDonN92gmhQfr8v7EZdEKPgYrpHdcFp7h3jcO4ruMwS5SO+G\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2369,\"candidatesTokenCount\":260,\"totalTokenCount\":2629,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2369}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"JqPIatrOJZ_c4-EPzLT66AY\"}",
   "validation": {
     "ok": true,
     "errors": [],
