@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-10-09T08:17:44.138Z",
+  "model": "gemini-3.1-flash-lite",
+  "provider": "gemini",
+  "prompt_version": "hub-dwell-summary-v1",
+  "source_scenario": "1-normal (data metrics.json produksi)",
+  "disclaimer": "Ambang 6 jam adalah aturan simulasi latihan Day 19, bukan SLA resmi Anteraja.",
+  "summary": "Terdapat 12 hub yang dipantau dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 7,09 jam. Hub Makassar mencatatkan rata-rata dwell time tertinggi sebesar 10,70 jam. Sebanyak 10 hub telah diidentifikasi sebagai prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dengan jumlah kunjungan yang mencukupi.",
+  "priority_hubs": [
+    "HUB_MKS",
+    "HUB_DPS",
+    "HUB_MDN",
+    "HUB_BJM",
+    "HUB_PLM",
+    "HUB_PDG",
+    "HUB_SBY",
+    "HUB_JOG",
+    "HUB_SMG"
+  ],
+  "next_checks": [
+    "Analisis penyebab keterlambatan di Hub Makassar",
+    "Evaluasi alur operasional di hub dengan dwell time di atas 8 jam",
+    "Verifikasi data pada Hub Ambon karena jumlah kunjungan belum memenuhi syarat minimum"
+  ]
+}

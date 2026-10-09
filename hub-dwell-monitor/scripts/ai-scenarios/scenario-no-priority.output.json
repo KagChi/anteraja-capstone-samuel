@@ -1,0 +1,46 @@
+{
+  "scenario": {
+    "id": "2-no-priority",
+    "slug": "no-priority",
+    "title": "Test 2 - No priority hub",
+    "expect": "none"
+  },
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:40.983Z",
+  "attempts": 1,
+  "input_digest": {
+    "hub_count": 12,
+    "completed_visits": 21036,
+    "priority_rule": "mean_dwell_hours >= 6 DAN completed_visits >= 100",
+    "hub_names": [
+      "Hub Ambon",
+      "Hub Makassar",
+      "Hub Denpasar",
+      "Hub Medan",
+      "Hub Banjarmasin",
+      "Hub Palembang",
+      "Hub Padang",
+      "Hub Surabaya",
+      "Hub Yogyakarta",
+      "Hub Semarang",
+      "Hub Bandung",
+      "Hub Cengkareng"
+    ]
+  },
+  "output": {
+    "summary": "Terdapat 12 hub yang dianalisis dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 3,55 jam. Hub Ambon mencatatkan mean dwell time tertinggi sebesar 5,9 jam, namun tidak memenuhi syarat jumlah kunjungan untuk prioritas. Berdasarkan kriteria mean dwell time minimal 6 jam dan minimal 100 kunjungan, tidak ada hub yang masuk dalam daftar prioritas investigasi saat ini.",
+    "priority_hubs": [],
+    "next_checks": [
+      "Verifikasi data pada hub dengan mean dwell time mendekati ambang batas 6 jam",
+      "Investigasi penyebab missing arrival dan missing departure pada data kualitas",
+      "Monitoring rutin untuk memastikan tidak ada hub yang melampaui ambang batas di periode berikutnya"
+    ]
+  },
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Terdapat 12 hub yang dianalisis dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 3,55 jam. Hub Ambon mencatatkan mean dwell time tertinggi sebesar 5,9 jam, namun tidak memenuhi syarat jumlah kunjungan untuk prioritas. Berdasarkan kriteria mean dwell time minimal 6 jam dan minimal 100 kunjungan, tidak ada hub yang masuk dalam daftar prioritas investigasi saat ini.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": [\\n    \\\"Verifikasi data pada hub dengan mean dwell time mendekati ambang batas 6 jam\\\",\\n    \\\"Investigasi penyebab missing arrival dan missing departure pada data kualitas\\\",\\n    \\\"Monitoring rutin untuk memastikan tidak ada hub yang melampaui ambang batas di periode berikutnya\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0TuIuNv4cJqusLn0lZl38R4Pu5VbN9pshFlstibZoRSzk0llTWwZw0Edqls+q9CrAH8kDjwHqQWTizVqxYMKafD+b96TSKnuIKRQKkXAl9s9HMtdDYxOS2jwtOaJoc9LEceQ+iLsTnRe0jXCNS\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2091,\"candidatesTokenCount\":187,\"totalTokenCount\":2278,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2091}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"HqPIaryPPLyAg8UPuYfOoAY\"}",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  }
+}

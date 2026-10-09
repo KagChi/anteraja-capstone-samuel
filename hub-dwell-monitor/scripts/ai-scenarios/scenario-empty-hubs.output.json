@@ -1,0 +1,29 @@
+{
+  "scenario": {
+    "id": "3-empty-hubs",
+    "slug": "empty-hubs",
+    "title": "Test 3 - Empty hubs",
+    "expect": "unavailable"
+  },
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:42.344Z",
+  "attempts": 1,
+  "input_digest": {
+    "hub_count": 0,
+    "completed_visits": 0,
+    "priority_rule": "mean_dwell_hours >= 6 DAN completed_visits >= 100",
+    "hub_names": []
+  },
+  "output": {
+    "summary": "Data hub tidak tersedia untuk dianalisis. Jumlah hub yang tercatat adalah 0 dengan total completed visits sebanyak 0. Oleh karena itu, tidak ada mean dwell time global, hub dengan mean tertinggi, maupun hub yang masuk dalam kategori prioritas investigasi.",
+    "priority_hubs": [],
+    "next_checks": []
+  },
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Data hub tidak tersedia untuk dianalisis. Jumlah hub yang tercatat adalah 0 dengan total completed visits sebanyak 0. Oleh karena itu, tidak ada mean dwell time global, hub dengan mean tertinggi, maupun hub yang masuk dalam kategori prioritas investigasi.\\\",\\n  \\\"priority_hubs\\\": [],\\n  \\\"next_checks\\\": []\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0T4SHNgTjhq07J7/n70UReSPdHr+enh0ZYlldRxITdJc330Z+2NzuQHEnJxZOENLrtXsDDIlQRXYNCBl5VUAlswW8CIEkBv+44+RonvbjjmvPnAGgm/rsM+DaIFfkDwIXNAdrq8xv0u342ekdk\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":526,\"candidatesTokenCount\":78,\"totalTokenCount\":604,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":526}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"JaPIaoLFErGejuMPwejm-QQ\"}",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  }
+}

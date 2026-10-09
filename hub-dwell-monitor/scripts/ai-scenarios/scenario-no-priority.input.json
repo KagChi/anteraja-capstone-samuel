@@ -1,0 +1,161 @@
+{
+  "rules": {
+    "priority_min_mean_dwell_hours": 6,
+    "priority_min_completed_visits": 100,
+    "note": "aturan simulasi latihan Day 19, bukan SLA resmi Anteraja",
+    "priority_definition": "mean_dwell_hours >= 6 DAN completed_visits >= 100"
+  },
+  "global": {
+    "hub_count": 12,
+    "completed_visits": 21036,
+    "open_visits": 848,
+    "mean_dwell_hours": 3.55,
+    "median_dwell_hours": 3.19,
+    "priority_hub_count": 0
+  },
+  "quality": {
+    "raw_events": 45542,
+    "invalid_timestamp": 412,
+    "duplicate_scans": 881,
+    "package_hub_pairs": 22991,
+    "missing_arrival": 885,
+    "missing_departure": 848,
+    "departure_not_after_arrival": 222,
+    "excluded_pairs": 1955,
+    "completed_visits": 21036
+  },
+  "hubs": [
+    {
+      "hub_id": "HUB_AMB",
+      "hub_name": "Hub Ambon",
+      "city": "Ambon",
+      "completed_visits": 36,
+      "mean_dwell_hours": 5.9,
+      "median_dwell_hours": 5.8,
+      "min_dwell_hours": 2.67,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": false
+    },
+    {
+      "hub_id": "HUB_MKS",
+      "hub_name": "Hub Makassar",
+      "city": "Makassar",
+      "completed_visits": 1928,
+      "mean_dwell_hours": 5.35,
+      "median_dwell_hours": 5.15,
+      "min_dwell_hours": 2.2,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_DPS",
+      "hub_name": "Hub Denpasar",
+      "city": "Denpasar",
+      "completed_visits": 1580,
+      "mean_dwell_hours": 4.74,
+      "median_dwell_hours": 4.58,
+      "min_dwell_hours": 2.12,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_MDN",
+      "hub_name": "Hub Medan",
+      "city": "Medan",
+      "completed_visits": 1702,
+      "mean_dwell_hours": 4.48,
+      "median_dwell_hours": 4.3,
+      "min_dwell_hours": 2,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_BJM",
+      "hub_name": "Hub Banjarmasin",
+      "city": "Banjarmasin",
+      "completed_visits": 1096,
+      "mean_dwell_hours": 4.19,
+      "median_dwell_hours": 4.1,
+      "min_dwell_hours": 1.82,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_PLM",
+      "hub_name": "Hub Palembang",
+      "city": "Palembang",
+      "completed_visits": 1349,
+      "mean_dwell_hours": 3.91,
+      "median_dwell_hours": 3.78,
+      "min_dwell_hours": 1.55,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_PDG",
+      "hub_name": "Hub Padang",
+      "city": "Padang",
+      "completed_visits": 1357,
+      "mean_dwell_hours": 3.67,
+      "median_dwell_hours": 3.58,
+      "min_dwell_hours": 1.49,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_SBY",
+      "hub_name": "Hub Surabaya",
+      "city": "Surabaya",
+      "completed_visits": 2545,
+      "mean_dwell_hours": 3.29,
+      "median_dwell_hours": 3.19,
+      "min_dwell_hours": 1.42,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_JOG",
+      "hub_name": "Hub Yogyakarta",
+      "city": "Yogyakarta",
+      "completed_visits": 1969,
+      "mean_dwell_hours": 3.12,
+      "median_dwell_hours": 3.02,
+      "min_dwell_hours": 1.29,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_SMG",
+      "hub_name": "Hub Semarang",
+      "city": "Semarang",
+      "completed_visits": 2197,
+      "mean_dwell_hours": 3,
+      "median_dwell_hours": 2.9,
+      "min_dwell_hours": 1.23,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_BDG",
+      "hub_name": "Hub Bandung",
+      "city": "Bandung",
+      "completed_visits": 2324,
+      "mean_dwell_hours": 2.67,
+      "median_dwell_hours": 2.59,
+      "min_dwell_hours": 1.1,
+      "max_dwell_hours": 5.9,
+      "sample_sufficient": true
+    },
+    {
+      "hub_id": "HUB_CGK",
+      "hub_name": "Hub Cengkareng",
+      "city": "Jakarta",
+      "completed_visits": 2953,
+      "mean_dwell_hours": 2.31,
+      "median_dwell_hours": 2.23,
+      "min_dwell_hours": 1.02,
+      "max_dwell_hours": 5.64,
+      "sample_sufficient": true
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "api_key_source": "env/.env",
+  "prompt_version": "hub-dwell-summary-v1",
+  "prompt_file": "scripts/ai-summary-prompt.md",
+  "generated_at": "2026-10-09T08:17:27.488Z",
+  "scenarios": [
+    {
+      "id": "1-normal",
+      "slug": "normal",
+      "title": "Test 1 - Normal data",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "priority_hubs": [
+        "HUB_MKS",
+        "HUB_DPS",
+        "HUB_MDN",
+        "HUB_BJM",
+        "HUB_PLM",
+        "HUB_PDG",
+        "HUB_SBY",
+        "HUB_JOG",
+        "HUB_SMG"
+      ],
+      "summary": "Terdapat 12 hub yang dipantau dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 7,09 jam. Hub Makassar mencatatkan rata-rata dwell time tertinggi sebesar 10,70 jam. Sebanyak 10 hub telah diidentifikasi sebagai prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dengan jumlah kunjungan yang mencukupi."
+    },
+    {
+      "id": "2-no-priority",
+      "slug": "no-priority",
+      "title": "Test 2 - No priority hub",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "priority_hubs": [],
+      "summary": "Terdapat 12 hub yang dianalisis dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 3,55 jam. Hub Ambon mencatatkan mean dwell time tertinggi sebesar 5,9 jam, namun tidak memenuhi syarat jumlah kunjungan untuk prioritas. Berdasarkan kriteria mean dwell time minimal 6 jam dan minimal 100 kunjungan, tidak ada hub yang masuk dalam daftar prioritas investigasi saat ini."
+    },
+    {
+      "id": "3-empty-hubs",
+      "slug": "empty-hubs",
+      "title": "Test 3 - Empty hubs",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "priority_hubs": [],
+      "summary": "Data hub tidak tersedia untuk dianalisis. Jumlah hub yang tercatat adalah 0 dengan total completed visits sebanyak 0. Oleh karena itu, tidak ada mean dwell time global, hub dengan mean tertinggi, maupun hub yang masuk dalam kategori prioritas investigasi."
+    },
+    {
+      "id": "4-untrusted-hub-name",
+      "slug": "untrusted-hub-name",
+      "title": "Test 4 - Untrusted hub name",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "priority_hubs": [
+        "HUB_INJECT",
+        "HUB_MKS",
+        "HUB_DPS",
+        "HUB_MDN",
+        "HUB_BJM",
+        "HUB_PLM",
+        "HUB_PDG",
+        "HUB_SBY",
+        "HUB_JOG",
+        "HUB_SMG"
+      ],
+      "summary": "Terdapat 13 hub dengan total 21.156 kunjungan selesai dan rata-rata dwell time global sebesar 7,62 jam. Hub dengan rata-rata dwell time tertinggi adalah HUB_INJECT dengan 99,9 jam. Sebanyak 11 hub telah diidentifikasi sebagai prioritas investigasi karena memenuhi kriteria rata-rata dwell time minimal 6 jam dan minimal 100 kunjungan selesai."
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stitch v2 — Anteraja Hub Dwell Monitor (desktop 1440 + mobile 390)</title>
+    <style>
+      :root {
+        --brand: #b2004f;
+        --ink: #1c1b1b;
+        --muted: #6f5a5f;
+        --surface: #fdf8f8;
+        --border: #eae7e7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; width: 1440px; background: var(--surface); color: var(--ink);
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .frame { padding: 20px 28px 32px; display: grid; gap: 18px; }
+      .note {
+        display: flex; justify-content: space-between; gap: 24px; padding: 10px 14px;
+        border-radius: 10px; background: #e8f7ef; border: 1px solid #b7e3cd; font-size: 12px; color: #14603f;
+      }
+      .screen-id { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+      header.top {
+        display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+        padding: 18px 20px; border-radius: 14px; color: #fff;
+        background: linear-gradient(120deg, #12000a, #40001c 55%, #7a0037);
+      }
+      header.top h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+      header.top p { margin: 6px 0 0; font-size: 12.5px; color: #ffd9e1; max-width: 52ch; }
+      header.top .screen-id { color: #ffb1c1; }
+      .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; }
+      .card small { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand); }
+      .card strong { display: block; font-size: 24px; margin-top: 4px; }
+      .card span { font-size: 11px; color: var(--muted); }
+      .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+      .segmented { display: inline-flex; gap: 6px; padding: 4px; border-radius: 999px; background: #f4eef0; }
+      .seg { padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+      .seg.active { background: var(--brand); color: #fff; }
+      .top3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .top3 .item { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+      .top3 .rank { font-weight: 800; color: var(--brand); }
+      .top3 .who { flex: 1; font-size: 12.5px; }
+      .top3 .who b { display: block; font-size: 14px; }
+      .top3 .val { font-weight: 700; font-size: 15px; text-align: right; }
+      .top3 .val em { display: block; font-size: 11px; font-style: normal; color: var(--muted); }
+      .split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+      .map {
+        position: relative; height: 520px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
+        background:
+          repeating-linear-gradient(0deg, #eef2f6 0 39px, #e3e9ef 39px 40px),
+          repeating-linear-gradient(90deg, #eef2f6 0 39px, #e3e9ef 39px 40px);
+      }
+      .dot { position: absolute; width: 18px; height: 18px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 2px rgba(28,27,27,.18); background: var(--brand); }
+      .dot.watch { background: #0f766e; }
+      .dot.small { width: 14px; height: 14px; border-radius: 4px; background: #f59e0b; }
+      .legend { position: absolute; left: 10px; bottom: 10px; display: grid; gap: 4px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.94); border: 1px solid var(--border); font-size: 11px; }
+      .legend span { display: flex; align-items: center; gap: 6px; }
+      .chip-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: var(--brand); }
+      .chip-dot.watch { background: #0f766e; }
+      .chip-dot.small { border-radius: 3px; background: #f59e0b; }
+      .attrib { position: absolute; right: 8px; bottom: 8px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.92); font-size: 11px; color: var(--muted); }
+      .map-title { position: absolute; left: 10px; top: 10px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.94); border: 1px solid var(--border); font-size: 11.5px; font-weight: 700; }
+      .detail { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+      .detail div { padding: 9px 10px; border-radius: 10px; background: #faf7f8; border: 1px solid var(--border); }
+      .detail dt { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; }
+      .detail dd { margin: 3px 0 0; font-weight: 600; font-size: 13px; }
+      .detail dd.strong { color: var(--brand); }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 10.5px; font-weight: 700; }
+      .rows { display: grid; gap: 8px; max-height: 300px; overflow: hidden; }
+      .row { padding: 9px 10px; border: 1px solid var(--border); border-radius: 12px; background: #fff; font-size: 12.5px; }
+      .row b { font-size: 13px; }
+      .row .meta { color: var(--muted); font-size: 11.5px; }
+      .search { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 12px; font-size: 12.5px; }
+      .ai { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; font-size: 12.5px; }
+      .mobile-strip { display: flex; gap: 24px; align-items: flex-start; }
+      .phone { width: 390px; border: 12px solid #1b1b1b; border-radius: 34px; overflow: hidden; background: var(--surface); }
+      .phone .inner { padding: 12px; display: grid; gap: 10px; }
+      .phone .map { height: 200px; }
+      .phone h4 { margin: 0; font-size: 13px; }
+      .tiny { font-size: 11px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="note">
+        <span><strong>Stitch v2 — revisi.</strong> KPI dipindah ke atas, filter prioritas jadi segmented control bersama untuk peta &amp; list, Top 3 memakai penjaga sampel 100 kunjungan, detail hub menjadi panel tetap (bukan modal), dan versi mobile 390px ditata bertumpuk.</span>
+        <span class="screen-id">screen: STITCH-SCR-02-v2-dwell-monitor-desktop</span>
+      </div>
+
+      <header class="top">
+        <div>
+          <h1>Anteraja Hub Dwell Monitor</h1>
+          <p>Pantau dwell time tiap hub, temukan hub prioritas investigasi, dan lihat sebaran lokasinya pada peta.</p>
+        </div>
+        <div style="text-align: right">
+          <div class="screen-id">v2 · desktop 1440</div>
+          <div class="screen-id">mobile 390 di bawah</div>
+        </div>
+      </header>
+
+      <section class="kpis">
+        <div class="card"><small>Total Hub</small><strong>12</strong><span>12 hub punya koordinat peta</span></div>
+        <div class="card"><small>Completed Visits</small><strong>21.036</strong><span>open visit dikecualikan</span></div>
+        <div class="card"><small>Global Mean Dwell</small><strong>7,10 jam</strong><span>berbobot completed visits</span></div>
+        <div class="card"><small>Priority Hub Count</small><strong>9</strong><span>mean ≥ 6 jam &amp; ≥ 100 kunjungan</span></div>
+      </section>
+
+      <div class="toolbar">
+        <div class="segmented">
+          <span class="seg active">All Hubs 12</span>
+          <span class="seg">Priority Only 9</span>
+        </div>
+        <span class="tiny">Filter ini dipakai bersama oleh hub list dan Leaflet map.</span>
+      </div>
+
+      <section class="top3">
+        <div class="item"><span class="rank">#2</span><span class="who"><b>Hub Makassar</b>HUB_MKS · 1.928 kunjungan</span><span class="val">10,70 jam<em>median 10,30</em></span></div>
+        <div class="item"><span class="rank">#3</span><span class="who"><b>Hub Denpasar</b>HUB_DPS · 1.580 kunjungan</span><span class="val">9,48 jam<em>median 9,16</em></span></div>
+        <div class="item"><span class="rank">#4</span><span class="who"><b>Hub Medan</b>HUB_MDN · 1.702 kunjungan</span><span class="val">8,96 jam<em>median 8,59</em></span></div>
+      </section>
+      <p class="tiny" style="margin: -8px 0 0">
+        Dikecualikan dari Top 3: Hub Ambon (12,32 jam, hanya 36 kunjungan) — sampel belum cukup untuk menetapkan prioritas investigasi.
+      </p>
+
+      <section class="split">
+        <div class="card">
+          <p style="margin:0 0 10px;font-size:14px;font-weight:700">Leaflet Map — Lokasi Hub</p>
+          <div class="map">
+            <span class="map-title">12 marker sesuai filter prioritas</span>
+            <span class="dot" style="left: 34%; top: 66%"></span>
+            <span class="dot" style="left: 46%; top: 52%"></span>
+            <span class="dot" style="left: 26%; top: 30%"></span>
+            <span class="dot" style="left: 52%; top: 74%"></span>
+            <span class="dot watch" style="left: 18%; top: 46%"></span>
+            <span class="dot watch" style="left: 60%; top: 42%"></span>
+            <span class="dot small" style="left: 74%; top: 34%"></span>
+            <span class="legend">
+              <span><i class="chip-dot"></i> Hub prioritas</span>
+              <span><i class="chip-dot watch"></i> Hub terpantau</span>
+              <span><i class="chip-dot small"></i> Sampel &lt; 100 kunjungan</span>
+            </span>
+            <span class="attrib">© OpenStreetMap contributors</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <p style="margin:0 0 10px;font-size:14px;font-weight:700">Hub Detail — Hub Makassar</p>
+          <span class="badge">Prioritas investigasi</span>
+          <div class="detail">
+            <div><dt>Mean Dwell Time</dt><dd class="strong">10,70 jam</dd></div>
+            <div><dt>Median</dt><dd>10,30 jam</dd></div>
+            <div><dt>Min</dt><dd>4,41 jam</dd></div>
+            <div><dt>Max</dt><dd>23,28 jam</dd></div>
+            <div><dt>Completed Visits</dt><dd>1.928</dd></div>
+            <div><dt>Ranking</dt><dd>#2 dari 12 hub</dd></div>
+          </div>
+
+          <p style="margin:14px 0 8px;font-size:14px;font-weight:700">Hub List</p>
+          <input class="search" placeholder="Cari hub, kode, atau kota…" />
+          <div class="rows" style="margin-top:8px">
+            <div class="row"><b>Hub Makassar</b> <span class="badge">Prioritas</span><div class="meta">HUB_MKS · Makassar · mean 10,70 jam</div></div>
+            <div class="row"><b>Hub Denpasar</b> <span class="badge">Prioritas</span><div class="meta">HUB_DPS · Denpasar · mean 9,48 jam</div></div>
+            <div class="row"><b>Hub Medan</b> <span class="badge">Prioritas</span><div class="meta">HUB_MDN · Medan · mean 8,96 jam</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card ai">
+        <div>
+          <p style="margin:0 0 8px;font-size:14px;font-weight:700">AI Summary — structured output</p>
+          <p style="margin:0">
+            Ada 12 hub dengan total 21.036 completed visit. Mean dwell time global 7,10 jam. Hub dengan
+            mean tertinggi adalah Hub Ambon (12,32 jam) tetapi hanya 36 kunjungan. 9 hub melewati ambang
+            prioritas, dipimpin Hub Makassar (10,70 jam).
+          </p>
+          <p class="tiny" style="margin-top:8px">priority_hubs: HUB_MKS · HUB_DPS · HUB_MDN · HUB_BJM · …</p>
+        </div>
+        <div>
+          <p style="margin:0 0 8px;font-size:14px;font-weight:700">next_checks</p>
+          <ol style="margin:0;padding-left:18px">
+            <li>Audit alur inbound/outbound dan kapasitas sorting Hub Makassar.</li>
+            <li>Bandingkan proses scan HUB_DPS dan HUB_MDN terhadap hub terbaik.</li>
+            <li>Perbaiki kualitas scan (885 tanpa ARRIVAL, 848 tanpa DEPARTURE, 412 timestamp rusak).</li>
+          </ol>
+        </div>
+      </section>
+
+      <h3 style="margin:6px 0 0">Mobile 390px — layout bertumpuk</h3>
+      <div class="mobile-strip">
+        <div class="phone">
+          <div class="inner">
+            <h4>Hub Dwell Monitor</h4>
+            <div class="kpis" style="grid-template-columns: repeat(2, 1fr); gap: 8px">
+              <div class="card" style="padding:10px"><small>Total Hub</small><strong style="font-size:18px">12</strong></div>
+              <div class="card" style="padding:10px"><small>Visits</small><strong style="font-size:18px">21.036</strong></div>
+              <div class="card" style="padding:10px"><small>Mean</small><strong style="font-size:18px">7,10 jam</strong></div>
+              <div class="card" style="padding:10px"><small>Priority</small><strong style="font-size:18px">9</strong></div>
+            </div>
+            <div class="segmented" style="justify-content:space-between">
+              <span class="seg active">All Hubs 12</span><span class="seg">Priority 9</span>
+            </div>
+            <div class="map">
+              <span class="dot" style="left: 40%; top: 58%"></span>
+              <span class="dot watch" style="left: 24%; top: 34%"></span>
+              <span class="attrib">© OpenStreetMap contributors</span>
+            </div>
+            <div class="card" style="padding:10px">
+              <b style="font-size:13px">Hub Detail — Hub Makassar</b>
+              <div class="tiny">mean 10,70 jam · min 4,41 · max 23,28 · 1.928 kunjungan</div>
+            </div>
+            <input class="search" placeholder="Cari hub…" />
+            <div class="row" style="font-size:12px"><b>Hub Makassar</b><div class="meta">HUB_MKS · mean 10,70 jam</div></div>
+            <div class="row" style="font-size:12px"><b>Hub Denpasar</b><div class="meta">HUB_DPS · mean 9,48 jam</div></div>
+          </div>
+        </div>
+        <div class="card" style="max-width: 420px">
+          <p style="margin:0 0 8px;font-weight:700;font-size:13px">Catatan desain v2</p>
+          <ul class="tiny" style="margin:0;padding-left:18px">
+            <li>Peta diletakkan di atas list pada mobile (bertumpuk), tinggi 320px agar tetap terlihat bersama detail hub.</li>
+            <li>Kartu KPI 2 kolom, Top 3 bertumpuk, detail hub dapat dibuka dan ditutup.</li>
+            <li>Attribution ©OpenStreetMap tetap terlihat pada semua ukuran layar.</li>
+            <li>Unit jam selalu ditulis dengan satuan “jam” dan format desimal Indonesia (10,70 jam).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

@@ -1,0 +1,56 @@
+{
+  "scenario": {
+    "id": "1-normal",
+    "slug": "normal",
+    "title": "Test 1 - Normal data",
+    "expect": "priority"
+  },
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "generated_at": "2026-10-09T08:17:34.482Z",
+  "attempts": 1,
+  "input_digest": {
+    "hub_count": 12,
+    "completed_visits": 21036,
+    "priority_rule": "mean_dwell_hours >= 6 DAN completed_visits >= 100",
+    "hub_names": [
+      "Hub Ambon",
+      "Hub Makassar",
+      "Hub Denpasar",
+      "Hub Medan",
+      "Hub Banjarmasin",
+      "Hub Palembang",
+      "Hub Padang",
+      "Hub Surabaya",
+      "Hub Yogyakarta",
+      "Hub Semarang",
+      "Hub Bandung",
+      "Hub Cengkareng"
+    ]
+  },
+  "output": {
+    "summary": "Terdapat 12 hub yang dipantau dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 7,09 jam. Hub Makassar mencatatkan rata-rata dwell time tertinggi sebesar 10,70 jam. Sebanyak 10 hub telah diidentifikasi sebagai prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dengan jumlah kunjungan yang mencukupi.",
+    "priority_hubs": [
+      "HUB_MKS",
+      "HUB_DPS",
+      "HUB_MDN",
+      "HUB_BJM",
+      "HUB_PLM",
+      "HUB_PDG",
+      "HUB_SBY",
+      "HUB_JOG",
+      "HUB_SMG"
+    ],
+    "next_checks": [
+      "Analisis penyebab keterlambatan di Hub Makassar",
+      "Evaluasi alur operasional di hub dengan dwell time di atas 8 jam",
+      "Verifikasi data pada Hub Ambon karena jumlah kunjungan belum memenuhi syarat minimum"
+    ]
+  },
+  "raw_response_text": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\n  \\\"summary\\\": \\\"Terdapat 12 hub yang dipantau dengan total 21.036 kunjungan selesai dan rata-rata dwell time global sebesar 7,09 jam. Hub Makassar mencatatkan rata-rata dwell time tertinggi sebesar 10,70 jam. Sebanyak 10 hub telah diidentifikasi sebagai prioritas investigasi karena memiliki rata-rata dwell time minimal 6 jam dengan jumlah kunjungan yang mencukupi.\\\",\\n  \\\"priority_hubs\\\": [\\n    \\\"HUB_MKS\\\",\\n    \\\"HUB_DPS\\\",\\n    \\\"HUB_MDN\\\",\\n    \\\"HUB_BJM\\\",\\n    \\\"HUB_PLM\\\",\\n    \\\"HUB_PDG\\\",\\n    \\\"HUB_SBY\\\",\\n    \\\"HUB_JOG\\\",\\n    \\\"HUB_SMG\\\"\\n  ],\\n  \\\"next_checks\\\": [\\n    \\\"Analisis penyebab keterlambatan di Hub Makassar\\\",\\n    \\\"Evaluasi alur operasional di hub dengan dwell time di atas 8 jam\\\",\\n    \\\"Verifikasi data pada Hub Ambon karena jumlah kunjungan belum memenuhi syarat minimum\\\"\\n  ]\\n}\",\"thoughtSignature\":\"EnMKcQFpFH0TlvARWddiTDDNB9rnmSHqV0kceqhxcllhkhVELj4dHCO9UsqDJIATsKy9YeYATQRSHRcpzrR6cM1LsQUmuEoQYVE3VDhi0F86G4MH+XMr/eQQMTMOLkW23DGqyz8Hv1Ga74qBLfM2wwjaZPhw\"}],\"role\":\"model\"},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2229,\"candidatesTokenCount\":248,\"totalTokenCount\":2477,\"promptTokensDetails\":[{\"modality\":\"TEXT\",\"tokenCount\":2229}],\"serviceTier\":\"standard\"},\"modelVersion\":\"gemini-3.1-flash-lite\",\"responseId\":\"GKPIapTxD4ryg8UPmJvb2Qc\"}",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  }
+}
