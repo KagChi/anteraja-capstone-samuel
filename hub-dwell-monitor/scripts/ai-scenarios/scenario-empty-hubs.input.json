@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "priority_min_mean_dwell_hours": 6,
+    "priority_min_completed_visits": 100,
+    "note": "aturan simulasi latihan Day 19, bukan SLA resmi Anteraja",
+    "priority_definition": "mean_dwell_hours >= 6 DAN completed_visits >= 100"
+  },
+  "global": {
+    "hub_count": 0,
+    "completed_visits": 0,
+    "open_visits": 0,
+    "mean_dwell_hours": null,
+    "median_dwell_hours": null,
+    "priority_hub_count": 0
+  },
+  "quality": {},
+  "hubs": []
+}

@@ -2,17 +2,22 @@
 /**
  * run-ai-scenarios.mjs - menjalankan 4 test scenario ringkasan AI lalu menyimpan bukti output.
  *
- *   npm run ai:test                          # provider mock (tanpa jaringan, deterministik)
- *   GEMINI_API_KEY=... npm run ai:test -- --provider=gemini   # Google AI Studio / Gemini API
+ *   npm run ai:test                                        # provider mock (offline, deterministik)
+ *   GEMINI_API_KEY=... npm run ai:test -- --provider=gemini  # Google AI Studio / Gemini API
+ *   npm run ai:test -- --provider=gemini --api-key=... --model=gemini-2.5-flash
+ *
+ * Kunci API juga bisa diletakkan di hub-dwell-monitor/.env (lihat .env.example).
  *
  * Hasil:
- *   scripts/ai-scenarios/scenario-<slug>.output.json  (output tiap skenario + validasi)
+ *   scripts/ai-scenarios/scenario-<slug>.input.json   (payload yang dikirim)
+ *   scripts/ai-scenarios/scenario-<slug>.output.json  (output + validasi tiap skenario)
  *   scripts/ai-scenarios/validation-report.json       (rekap 4 skenario)
  *   public/data/ai-summary.json                       (dipakai aplikasi, dari skenario normal)
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEFAULT_MODEL, generateSummary, loadDotEnv, resolveApiKey } from "./lib/gemini-client.mjs";
 import {
   PROMPT_VERSION,
   SCENARIOS,
@@ -20,7 +25,6 @@ import {
   buildScenarioPayload,
   loadPrompt,
   mockSummarize,
-  parseModelJson,
   renderUserPrompt,
   validateSummary,
 } from "./lib/summary-contract.mjs";
@@ -30,53 +34,36 @@ const root = resolve(here, "..");
 const OUT_DIR = resolve(here, "ai-scenarios");
 const APP_SUMMARY = resolve(root, "public/data/ai-summary.json");
 
-const providerArg = process.argv.slice(2).find((arg) => arg.startsWith("--provider="));
-const provider = providerArg
-  ? providerArg.split("=")[1]
-  : process.env.GEMINI_API_KEY
-    ? "gemini"
-    : "mock";
-const geminiModel = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+function argValue(name) {
+  const prefix = "--" + name + "=";
+  const found = process.argv.slice(2).find((arg) => arg.startsWith(prefix));
+  return found ? found.slice(prefix.length) : null;
+}
+
+const dotEnv = loadDotEnv();
+const apiKey = resolveApiKey({
+  flagValue: argValue("api-key"),
+  env: { ...dotEnv, ...process.env },
+});
+const model = argValue("model") ?? process.env.GEMINI_MODEL ?? dotEnv.GEMINI_MODEL ?? DEFAULT_MODEL;
+const providerFlag = argValue("provider");
+const provider = providerFlag ?? (apiKey ? "gemini" : "mock");
+
+if (provider !== "mock" && provider !== "gemini") {
+  console.error("Provider tidak dikenal: " + provider + " (pakai mock atau gemini).");
+  process.exit(1);
+}
+if (provider === "gemini" && !apiKey) {
+  console.error(
+    "Provider gemini dipilih tetapi kunci API belum ada.\n" +
+      "  1. Ambil kunci di https://aistudio.google.com/apikey\n" +
+      "  2. Simpan sebagai GEMINI_API_KEY di hub-dwell-monitor/.env (lihat .env.example)\n" +
+      "     atau jalankan: npm run ai:test -- --provider=gemini --api-key=KUNCI_KAMU",
+  );
+  process.exit(1);
+}
 
 const READER = (path) => JSON.parse(readFileSync(path, "utf8"));
-
-async function callGemini(systemInstruction, userPrompt) {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY belum diisi untuk provider gemini.");
-  const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    geminiModel +
-    ":generateContent?key=" +
-    key;
-  const body = {
-    systemInstruction: { parts: [{ text: systemInstruction }] },
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-    generationConfig: {
-      temperature: 0,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "object",
-        properties: {
-          summary: { type: "string" },
-          priority_hubs: { type: "array", items: { type: "string" } },
-          next_checks: { type: "array", items: { type: "string" } },
-        },
-        required: ["summary", "priority_hubs", "next_checks"],
-      },
-    },
-  };
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error("Gemini API gagal (" + response.status + "): " + (await response.text()));
-  }
-  const json = await response.json();
-  const text = json?.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
-  return parseModelJson(text);
-}
 
 function expectationsFor(scenario) {
   switch (scenario.expect) {
@@ -91,6 +78,25 @@ function expectationsFor(scenario) {
   }
 }
 
+async function runScenario(scenario, prompt, payload) {
+  const userPrompt = renderUserPrompt(prompt.userTemplate, payload);
+  if (provider === "mock") {
+    return { output: mockSummarize(payload), rawText: null, attempts: 0 };
+  }
+  const result = await generateSummary({
+    apiKey,
+    model,
+    systemInstruction: prompt.systemInstruction,
+    userPrompt,
+    temperature: Number(argValue("temperature") ?? 0),
+  });
+  return {
+    output: result.output,
+    rawText: JSON.stringify(result.raw).slice(0, 8000),
+    attempts: result.attempts,
+  };
+}
+
 async function main() {
   const prompt = loadPrompt();
   const metrics = READER(resolve(root, "public/data/metrics.json"));
@@ -98,9 +104,11 @@ async function main() {
   const basePayload = buildAiPayload(metrics, locations);
   mkdirSync(OUT_DIR, { recursive: true });
 
+  const modelLabel = provider === "gemini" ? model : "mock-rule-based-v1 (offline stand-in)";
   const report = {
     provider,
-    model: provider === "gemini" ? geminiModel : "mock-rule-based-v1 (offline stand-in)",
+    model: modelLabel,
+    api_key_source: provider === "gemini" ? (argValue("api-key") ? "--api-key flag" : "env/.env") : null,
     prompt_version: prompt.version ?? PROMPT_VERSION,
     prompt_file: "scripts/ai-summary-prompt.md",
     generated_at: new Date().toISOString(),
@@ -109,33 +117,38 @@ async function main() {
 
   for (const scenario of SCENARIOS) {
     const payload = buildScenarioPayload(basePayload, scenario.id);
-    const userPrompt = renderUserPrompt(prompt.userTemplate, payload);
-    let raw;
+    writeFileSync(
+      resolve(OUT_DIR, "scenario-" + scenario.slug + ".input.json"),
+      JSON.stringify(payload, null, 2) + "\n",
+      "utf8",
+    );
+
+    let result = null;
     let error = null;
     try {
-      raw =
-        provider === "gemini"
-          ? await callGemini(prompt.systemInstruction, userPrompt)
-          : mockSummarize(payload);
+      result = await runScenario(scenario, prompt, payload);
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
-      raw = null;
     }
+
     const validation = error
       ? { ok: false, errors: [error], warnings: [] }
-      : validateSummary(raw, payload, expectationsFor(scenario));
+      : validateSummary(result.output, payload, expectationsFor(scenario));
 
     const record = {
       scenario: { id: scenario.id, slug: scenario.slug, title: scenario.title, expect: scenario.expect },
-      provider: report.model,
+      provider,
+      model: modelLabel,
       generated_at: new Date().toISOString(),
+      attempts: result?.attempts ?? 0,
       input_digest: {
         hub_count: payload.hubs.length,
         completed_visits: payload.global?.completed_visits ?? 0,
         priority_rule: payload.rules?.priority_definition,
         hub_names: payload.hubs.map((hub) => hub.hub_name),
       },
-      output: raw,
+      output: result?.output ?? null,
+      raw_response_text: result?.rawText ?? null,
       validation,
     };
     writeFileSync(
@@ -151,13 +164,11 @@ async function main() {
       ok: validation.ok,
       errors: validation.errors,
       warnings: validation.warnings,
-      priority_hubs: raw?.priority_hubs ?? null,
-      summary: raw?.summary ?? null,
+      priority_hubs: result?.output?.priority_hubs ?? null,
+      summary: result?.output?.summary ?? null,
     });
 
-    console.log(
-      (validation.ok ? "PASS" : "FAIL") + "  " + scenario.title + "  (" + scenario.id + ")",
-    );
+    console.log((validation.ok ? "PASS" : "FAIL") + "  " + scenario.title + "  (" + scenario.id + ")");
     if (!validation.ok) validation.errors.forEach((message) => console.log("      - " + message));
   }
 
@@ -169,15 +180,13 @@ async function main() {
 
   const normalScenario = report.scenarios.find((entry) => entry.slug === "normal");
   if (normalScenario && normalScenario.ok) {
-    const normalOutput = JSON.parse(
-      readFileSync(resolve(OUT_DIR, "scenario-normal.output.json"), "utf8"),
-    );
+    const normalOutput = READER(resolve(OUT_DIR, "scenario-normal.output.json"));
     writeFileSync(
       APP_SUMMARY,
       JSON.stringify(
         {
           generated_at: new Date().toISOString(),
-          model: report.model,
+          model: modelLabel,
           provider,
           prompt_version: report.prompt_version,
           source_scenario: "1-normal (data metrics.json produksi)",
@@ -195,7 +204,7 @@ async function main() {
   }
 
   const failed = report.scenarios.filter((entry) => !entry.ok);
-  console.log("Provider: " + report.model);
+  console.log("Provider: " + modelLabel + (provider === "gemini" ? " (kunci API terdeteksi)" : ""));
   console.log("Skenario lulus: " + (report.scenarios.length - failed.length) + "/" + report.scenarios.length);
   if (failed.length > 0) process.exitCode = 1;
 }

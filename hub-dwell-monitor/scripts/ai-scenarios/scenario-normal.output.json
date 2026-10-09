@@ -5,8 +5,10 @@
     "title": "Test 1 - Normal data",
     "expect": "priority"
   },
-  "provider": "mock-rule-based-v1 (offline stand-in)",
-  "generated_at": "2026-10-09T06:34:21.236Z",
+  "provider": "mock",
+  "model": "mock-rule-based-v1 (offline stand-in)",
+  "generated_at": "2026-10-09T07:19:50.984Z",
+  "attempts": 0,
   "input_digest": {
     "hub_count": 12,
     "completed_visits": 21036,
@@ -46,6 +48,7 @@
       "Pantau ulang metrik ini secara berkala dan validasi apakah dwell tinggi berasal dari proses hub atau dari scan DEPARTURE yang terlambat dicatat; ambang 6 jam hanya aturan simulasi latihan, bukan SLA."
     ]
   },
+  "raw_response_text": null,
   "validation": {
     "ok": true,
     "errors": [],

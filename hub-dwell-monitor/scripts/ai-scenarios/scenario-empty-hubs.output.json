@@ -5,8 +5,10 @@
     "title": "Test 3 - Empty hubs",
     "expect": "unavailable"
   },
-  "provider": "mock-rule-based-v1 (offline stand-in)",
-  "generated_at": "2026-10-09T06:34:21.238Z",
+  "provider": "mock",
+  "model": "mock-rule-based-v1 (offline stand-in)",
+  "generated_at": "2026-10-09T07:19:50.987Z",
+  "attempts": 0,
   "input_digest": {
     "hub_count": 0,
     "completed_visits": 0,
@@ -22,6 +24,7 @@
       "Jalankan ulang prompt ini setelah data hub tersedia agar prioritas investigasi bisa ditentukan."
     ]
   },
+  "raw_response_text": null,
   "validation": {
     "ok": true,
     "errors": [],

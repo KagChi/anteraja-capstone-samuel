@@ -172,8 +172,18 @@ instruksi), nyatakan data tidak tersedia bila daftar hub kosong, dan balas hanya
 
 ```bash
 npm run ai:test                                   # provider mock, offline, deterministik
-GEMINI_API_KEY=... npm run ai:test -- --provider=gemini   # Google AI Studio / Gemini API
+npm run ai:test -- --provider=gemini              # pakai kunci dari hub-dwell-monitor/.env
+GEMINI_API_KEY=... npm run ai:test -- --provider=gemini   # atau langsung dari environment
+npm run ai:test -- --provider=gemini --api-key=... --model=gemini-2.5-flash
 ```
+
+Kunci API Google AI Studio dibaca dengan urutan prioritas: flag `--api-key`, environment variable
+`GEMINI_API_KEY` / `GOOGLE_API_KEY` / `AI_STUDIO_API_KEY`, lalu berkas `hub-dwell-monitor/.env`
+(contoh ada di `.env.example`; berkas `.env` tidak pernah di-commit). Kunci dikirim lewat header
+`x-goog-api-key` (tidak pernah muncul di URL, console, atau berkas bukti), permintaan memakai
+`responseMimeType: application/json` + `responseSchema` sehingga keluaran model sudah terstruktur,
+dan panggilan yang kena rate limit (HTTP 429/5xx) dicoba ulang otomatis sampai tiga kali.
+Dengan `--provider=gemini`, keempat skenario dijalankan ke model asli dan dinilai validator yang sama.
 
 Runner `scripts/run-ai-scenarios.mjs` menjalankan empat skenario, memvalidasi tiap keluaran dengan
 `validateSummary` (bentuk JSON, hub_id harus ada di data, daftar prioritas harus persis sama dengan
@@ -181,14 +191,26 @@ hub yang memenuhi ambang, perlakuan khusus untuk data kosong dan nama hub mencur
 menyimpan bukti:
 
 - `scripts/ai-scenarios/scenario-<slug>.output.json` — input digest, keluaran mentah, hasil validasi.
+- `scripts/ai-scenarios/scenario-<slug>.input.json` — payload mentah tiap skenario.
 - `scripts/ai-scenarios/validation-report.json` — rekap 4 skenario.
 - `public/data/ai-summary.json` — keluaran skenario normal yang dipakai aplikasi.
+
+Menjalankan empat skenario yang sama langsung di **Google AI Studio** (tanpa API key):
+
+1. Buka [aistudio.google.com](https://aistudio.google.com), pilih model Gemini (mis. 2.5 Flash), dan
+   aktifkan **Structured output** dengan skema `{ summary, priority_hubs, next_checks }`.
+2. Salin bagian **SYSTEM INSTRUCTION** dari `scripts/ai-summary-prompt.md` ke kolom system instruction.
+3. Untuk setiap skenario, salin **USER TEMPLATE**, ganti `{{DATA}}` dengan isi
+   `scripts/ai-scenarios/scenario-<slug>.input.json`, lalu jalankan (4 kali).
+4. Bandingkan hasilnya dengan `scenario-<slug>.output.json`; jika ada perbedaan, tempel keluaran baru
+   ke `public/data/ai-summary.json` untuk skenario normal lalu commit sebagai revisi.
 
 > **Catatan kejujuran metodologi.** Lingkungan pengerjaan tidak punya akses Google AI Studio maupun
 > API key Gemini, sehingga bukti di bawah dihasilkan oleh provider `mock` (perangkum deterministik
 > yang mengikuti prompt & kontrak yang sama, tanpa memanggil model). Jalur `--provider=gemini`
-> sudah diimplementasikan (system instruction + `responseSchema` JSON) sehingga hasil model nyata
-> bisa dihasilkan dengan satu perintah begitu API key tersedia; validatornya tidak berubah.
+> sudah diimplementasikan penuh (system instruction, `responseSchema` JSON, header `x-goog-api-key`,
+> retry) dan diuji lewat `tests/gemini-client.test.mjs` dengan fetch tiruan, sehingga hasil model
+> nyata bisa dihasilkan dengan satu perintah begitu API key tersedia; validatornya tidak berubah.
 
 ### 4.3 Hasil empat skenario
 
@@ -247,10 +269,10 @@ Perilaku interaksi penting:
 
 ## 6. Testing
 
-### 6.1 Unit test (33 test, 2 berkas)
+### 6.1 Unit test (42 test, 3 berkas)
 
 ```
-npm run test    → Test Files 2 passed | Tests 33 passed
+npm run test    → Test Files 3 passed | Tests 42 passed
 ```
 
 - `tests/metrics.test.mjs` — dataset (12 hub, 21.036 completed visits, hub_id konsisten antar file,
@@ -260,6 +282,10 @@ npm run test    → Test Files 2 passed | Tests 33 passed
   ketahanan ketika lokasi hub tidak lengkap.
 - `tests/summary-contract.test.mjs` — prompt termuat dari markdown, payload 12 hub, validator
   menolak keluaran cacat, dan empat skenario AI berperilaku sesuai harapan.
+- `tests/gemini-client.test.mjs` — jalur AI Studio API: pembacaan kunci dari flag/env/.env, bentuk
+  permintaan (header `x-goog-api-key`, `responseMimeType`, skema uppercase), parsing jawaban
+  (termasuk yang terbalut pagar markdown), retry saat HTTP 429, pesan jelas saat kunci ditolak, dan
+  laporan saat model tidak mengembalikan teks. Diuji dengan fetch tiruan, tanpa jaringan.
 
 ### 6.2 Uji aplikasi (Playwright)
 
@@ -348,7 +374,7 @@ File yang tidak termasuk pekerjaan ini (sisa branch Laravel lain di mesin pengem
 ## 10. Catatan & Keterbatasan
 
 1. Bukti AI dihasilkan provider mock karena tidak ada akses AI Studio pada lingkungan ini; jalur
-   Gemini API sudah tersedia dan validatornya sama.
+   Gemini API sudah tersedia (kunci lewat `.env`/flag, sudah diuji unit) dan validatornya sama.
 2. Koordinat hub adalah pusat kota (data latihan), bukan alamat hub produksi.
 3. Ekspor Stitch berbentuk layar mobile; spesifikasi desktop 1440px dilengkapi lewat mockup lokal
    dan implementasi React.

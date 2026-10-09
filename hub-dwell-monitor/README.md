@@ -21,7 +21,7 @@ sebelumnya (Day 18 - Big Data Bottleneck Hubs) serta desain **Stitch** sebagai a
 ```bash
 npm install          # sekali saja
 npm run dev          # http://localhost:5173
-npm run test         # 33 unit test (logika metrics + kontrak AI)
+npm run test         # 42 unit test (logika metrics, kontrak AI, klien Gemini)
 npm run build        # build produksi ke dist/
 ```
 
@@ -35,6 +35,23 @@ Perintah pendukung:
 
 > `npm run shots` memakai Playwright dan mengharapkan dev server (`npm run dev`) sudah berjalan di
 > `http://localhost:5173` (bisa diubah lewat `BASE_URL`).
+
+### Menghubungkan Google AI Studio (opsional)
+
+Uji ringkasan AI bisa dijalankan ke model Gemini sungguhan:
+
+```bash
+cp .env.example .env        # lalu isi GEMINI_API_KEY dari https://aistudio.google.com/apikey
+npm run ai:test -- --provider=gemini
+# atau tanpa .env:
+GEMINI_API_KEY=... npm run ai:test -- --provider=gemini
+# atau lewat flag:
+npm run ai:test -- --provider=gemini --api-key=... --model=gemini-2.5-flash
+```
+
+Kunci dibaca dari flag `--api-key`, environment variable (`GEMINI_API_KEY`, `GOOGLE_API_KEY`,
+`AI_STUDIO_API_KEY`), atau `.env`; kunci dikirim lewat header `x-goog-api-key` dan tidak pernah
+masuk ke berkas bukti. Tanpa kunci, perintah tetap jalan memakai provider `mock` yang offline.
 
 ## Struktur
 
