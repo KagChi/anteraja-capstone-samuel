@@ -1,0 +1,54 @@
+{
+  "scenario": {
+    "id": "1-normal",
+    "slug": "normal",
+    "title": "Test 1 - Normal data",
+    "expect": "priority"
+  },
+  "provider": "mock-rule-based-v1 (offline stand-in)",
+  "generated_at": "2026-10-09T06:34:21.236Z",
+  "input_digest": {
+    "hub_count": 12,
+    "completed_visits": 21036,
+    "priority_rule": "mean_dwell_hours >= 6 DAN completed_visits >= 100",
+    "hub_names": [
+      "Hub Ambon",
+      "Hub Makassar",
+      "Hub Denpasar",
+      "Hub Medan",
+      "Hub Banjarmasin",
+      "Hub Palembang",
+      "Hub Padang",
+      "Hub Surabaya",
+      "Hub Yogyakarta",
+      "Hub Semarang",
+      "Hub Bandung",
+      "Hub Cengkareng"
+    ]
+  },
+  "output": {
+    "summary": "Ada 12 hub dengan total 21.036 completed visit (open visit tanpa DEPARTURE tidak dihitung). Mean dwell time global 7,10 jam dan median 6,61 jam. Hub dengan mean tertinggi adalah Hub Ambon sebesar 12,32 jam dari 36 kunjungan selesai. 9 hub melewati ambang prioritas (6 jam dan minimal 100 kunjungan), dipimpin oleh Hub Makassar (10,70 jam), Hub Denpasar (9,48 jam), Hub Medan (8,96 jam). Catatan sampel (tidak dipakai sebagai dasar prioritas): HUB_AMB 12,32 jam dari hanya 36 kunjungan selesai.",
+    "priority_hubs": [
+      "HUB_MKS",
+      "HUB_DPS",
+      "HUB_MDN",
+      "HUB_BJM",
+      "HUB_PLM",
+      "HUB_PDG",
+      "HUB_SBY",
+      "HUB_JOG",
+      "HUB_SMG"
+    ],
+    "next_checks": [
+      "Audit alur inbound/outbound dan kapasitas sorting di Hub Makassar (HUB_MKS) karena mean dwell time-nya 10,70 jam dari 1.928 kunjungan selesai.",
+      "Bandingkan proses scan dan kapasitas sorting HUB_DPS (9,48 jam) dan HUB_MDN (8,96 jam) terhadap hub dengan dwell time terendah pada data ini.",
+      "Perbaiki kualitas scan: 885 pasangan tanpa ARRIVAL, 848 tanpa DEPARTURE, dan 412 timestamp rusak, supaya dwell time tidak bias.",
+      "Pantau ulang metrik ini secara berkala dan validasi apakah dwell tinggi berasal dari proses hub atau dari scan DEPARTURE yang terlambat dicatat; ambang 6 jam hanya aturan simulasi latihan, bukan SLA."
+    ]
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  }
+}
