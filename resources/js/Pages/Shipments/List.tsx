@@ -124,6 +124,7 @@ export function ShipmentListPage() {
       )}
 
       <Pagination
+        className="mt-3"
         page={list.page}
         hasPrev={list.hasPrev}
         hasNext={list.hasNext}

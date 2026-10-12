@@ -12,9 +12,14 @@ export interface PaginationProps {
 }
 
 /**
- * Cursor prev/next pagination for a data table. Rendered bottom-right; hidden
- * when everything fits a single page.
+ * Cursor prev/next pagination for a data table. Rendered bottom-right as one
+ * segmented control; hidden when everything fits a single page.
  */
+
+/** Shared cell recipe so the three cells render at one height. */
+const SEGMENT =
+  "h-10 gap-1.5 whitespace-nowrap rounded-lg px-3 text-body-sm font-semibold";
+
 export function Pagination({
   page,
   hasPrev,
@@ -28,35 +33,40 @@ export function Pagination({
 
   return (
     <nav
-      className={cn("flex items-center justify-end gap-2", className ?? "pt-2")}
+      className={cn("flex justify-end", className)}
       aria-label="Navigasi halaman"
       aria-busy={isLoading || undefined}
     >
-      <Button
-        variant="secondary"
-        size="sm"
-        className="h-11 px-4 sm:h-9 sm:px-3"
-        disabled={!hasPrev || isLoading}
-        onClick={onPrev}
-      >
-        <MaterialIcon name="chevron_left" className="text-[18px]" /> Sebelumnya
-      </Button>
-      <span
-        className="tabular-nums whitespace-nowrap rounded-full bg-surface-container px-3 py-1.5 text-body-sm font-semibold text-on-surface-variant"
-        id="page-indicator"
-      >
-        Halaman{" "}
-        <strong className="font-extrabold text-on-surface">{page}</strong>
-      </span>
-      <Button
-        variant="secondary"
-        size="sm"
-        className="h-11 px-4 sm:h-9 sm:px-3"
-        disabled={!hasNext || isLoading}
-        onClick={onNext}
-      >
-        Berikutnya <MaterialIcon name="chevron_right" className="text-[18px]" />
-      </Button>
+      <div className="inline-flex items-center gap-1 rounded-xl bg-surface-container p-1">
+        <Button
+          variant="segment"
+          className={SEGMENT}
+          disabled={!hasPrev || isLoading}
+          onClick={onPrev}
+        >
+          <MaterialIcon name="chevron_left" className="text-[18px]" />
+          Sebelumnya
+        </Button>
+        <span
+          className={cn(
+            SEGMENT,
+            "inline-flex items-center justify-center bg-surface-container-lowest text-on-surface-variant tabular-nums shadow-sm",
+          )}
+          id="page-indicator"
+        >
+          Halaman{" "}
+          <strong className="font-extrabold text-on-surface">{page}</strong>
+        </span>
+        <Button
+          variant="segment"
+          className={SEGMENT}
+          disabled={!hasNext || isLoading}
+          onClick={onNext}
+        >
+          Berikutnya
+          <MaterialIcon name="chevron_right" className="text-[18px]" />
+        </Button>
+      </div>
     </nav>
   );
 }

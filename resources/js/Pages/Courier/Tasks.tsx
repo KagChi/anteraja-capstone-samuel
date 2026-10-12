@@ -274,6 +274,7 @@ export function TasksPage() {
         </ul>
 
         <Pagination
+          className="mt-3"
           page={tasksResource.page}
           hasPrev={tasksResource.hasPrev}
           hasNext={tasksResource.hasNext}
