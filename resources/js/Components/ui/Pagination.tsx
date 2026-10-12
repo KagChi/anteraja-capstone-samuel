@@ -6,6 +6,7 @@ import { Button } from "./Button";
 export interface PaginationProps {
   page: number;
   pageCount: number;
+  /** Pages exist beyond the window; the strip itself stays purely numeric. */
   hasMorePages: boolean;
   isLoading: boolean;
   isDiscovering: boolean;
@@ -14,30 +15,29 @@ export interface PaginationProps {
 
 /**
  * Numbered pagination for a data table, pinned to the bottom-right. The strip
- * renders a fixed set of slots - a gap, five page cells, a gap - so the control
- * keeps one width whether the list has two pages or forty, and while the pages
- * ahead are still being discovered.
+ * keeps a fixed set of page cells - never a marker cell or an ellipsis - so it
+ * shows a plain run of numbers at one width, with the run centred when the list
+ * has fewer pages than the window.
  */
 
 /** Arrow cell. The label is dropped under `sm` so the strip fits a phone. */
 const ARROW =
   "h-9 gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-body-sm font-semibold sm:h-10 sm:px-3";
 
-/** One page-number slot. */
+/** One page-number cell. */
 const CELL =
   "size-9 justify-center rounded-lg text-body-sm font-semibold tabular-nums sm:size-10";
 
-/** One gap slot, sized the same whether or not it draws an ellipsis. */
-const GAP = "grid h-9 w-4 place-items-center sm:h-10 sm:w-6";
-
-/** Empty slot: keeps the strip's width without drawing anything. */
+/** Empty cell: holds a slot open without drawing anything. */
 const BLANK = "inline-block size-9 sm:size-10";
 
+interface Slot {
+  key: string;
+  value: number | null;
+}
+
 /** A contiguous window of at most STRIP_PAGES pages that always holds `page`. */
-function pageItems(
-  page: number,
-  pageCount: number,
-): { key: string; value: number }[] {
+function pageItems(page: number, pageCount: number): number[] {
   const start = Math.max(
     1,
     Math.min(
@@ -47,46 +47,35 @@ function pageItems(
   );
   const end = Math.min(pageCount, start + STRIP_PAGES - 1);
 
-  return Array.from({ length: end - start + 1 }, (_, index) => ({
-    key: `page-${start + index}`,
-    value: start + index,
-  }));
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
 
-interface Slot {
-  key: string;
-  value: number | null;
-}
-
-/** The window, padded with empty slots so the strip is always STRIP_PAGES wide. */
+/**
+ * The window padded to STRIP_PAGES cells, split evenly around it, so every table
+ * renders the same strip width whatever its page count.
+ */
 function pageSlots(page: number, pageCount: number): Slot[] {
-  const slots: Slot[] = pageItems(page, pageCount).map((item) => ({
-    key: item.key,
-    value: item.value,
-  }));
+  const items = pageItems(page, pageCount);
+  const padding = STRIP_PAGES - items.length;
+  const before = Math.floor(padding / 2);
 
-  while (slots.length < STRIP_PAGES) {
-    slots.push({ key: `blank-${slots.length + 1}`, value: null });
-  }
+  const blank = (index: number, side: string): Slot => ({
+    key: `blank-${side}-${index}`,
+    value: null,
+  });
 
-  return slots;
-}
-
-function GapSlot({ show }: { show: boolean }) {
-  return (
-    <span
-      className={cn(GAP, "text-body-sm text-on-surface-variant")}
-      aria-hidden="true"
-    >
-      {show ? "…" : ""}
-    </span>
-  );
+  return [
+    ...Array.from({ length: before }, (_, index) => blank(index, "lead")),
+    ...items.map((value) => ({ key: `page-${value}`, value })),
+    ...Array.from({ length: padding - before }, (_, index) =>
+      blank(index, "trail"),
+    ),
+  ];
 }
 
 export function Pagination({
   page,
   pageCount,
-  hasMorePages,
   isLoading,
   isDiscovering,
   goTo,
@@ -95,10 +84,6 @@ export function Pagination({
   // Hold the strip until the first pass of discovery settles, so it appears
   // complete instead of filling in one number at a time.
   if (pageCount <= 1 || (isDiscovering && pageCount < STRIP_PAGES)) return null;
-
-  const items = pageItems(page, pageCount);
-  const first = items[0]?.value ?? 1;
-  const last = items[items.length - 1]?.value ?? pageCount;
 
   return (
     <nav
@@ -117,7 +102,6 @@ export function Pagination({
           <MaterialIcon name="chevron_left" className="text-[18px]" />
           <span className="hidden sm:inline">Sebelumnya</span>
         </Button>
-        <GapSlot show={first > 1} />
         {pageSlots(page, pageCount).map((slot) =>
           slot.value === null ? (
             <span key={slot.key} className={BLANK} aria-hidden="true" />
@@ -136,7 +120,6 @@ export function Pagination({
             </Button>
           ),
         )}
-        <GapSlot show={last < pageCount || hasMorePages} />
         <Button
           variant="segment"
           className={ARROW}
