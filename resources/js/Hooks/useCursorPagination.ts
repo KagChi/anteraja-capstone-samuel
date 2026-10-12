@@ -19,6 +19,7 @@ export interface CursorPagination<T> {
   pageCount: number;
   hasMorePages: boolean;
   isLoading: boolean;
+  isDiscovering: boolean;
   isRefreshing: boolean;
   isError: boolean;
   hasNext: boolean;
@@ -36,6 +37,7 @@ export function paginationOf<T>(resource: CursorPagination<T>) {
     pageCount: resource.pageCount,
     hasMorePages: resource.hasMorePages,
     isLoading: resource.isLoading,
+    isDiscovering: resource.isDiscovering,
     goTo: resource.goTo,
   };
 }
@@ -48,7 +50,7 @@ export const PER_PAGE = 10;
  * revealing a number each time the visitor walks forward, the hook fetches the
  * cursors for the pages it wants to show ahead of time.
  */
-const STRIP_PAGES = 5;
+export const STRIP_PAGES = 5;
 
 /** Pages kept discoverable past the current one. */
 const PAGES_AHEAD = 2;
@@ -68,6 +70,7 @@ export function useCursorPagination<T>(
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const [lastPage, setLastPage] = useState<number | null>(null);
+  const [isDiscovering, setIsDiscovering] = useState(false);
   const [isLoading, setIsLoading] = useState(Boolean(url));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -188,6 +191,7 @@ export function useCursorPagination<T>(
     setPage(1);
     setCursors([null]);
     setLastPage(null);
+    setIsDiscovering(false);
     setIsLoading(Boolean(url));
     setIsRefreshing(false);
     setIsError(false);
@@ -199,12 +203,20 @@ export function useCursorPagination<T>(
   // instead of growing a number at a time. Each completed step adds one
   // cursor, which re-runs this effect for the next step.
   useEffect(() => {
-    if (!url || lastPageRef.current !== null) return;
+    if (!url || lastPageRef.current !== null) {
+      setIsDiscovering(false);
+      return;
+    }
 
     const wanted = Math.max(STRIP_PAGES, page + PAGES_AHEAD);
-    if (cursors.length >= wanted) return;
+    if (cursors.length >= wanted) {
+      setIsDiscovering(false);
+      return;
+    }
 
     const chainAtStart = cursors;
+    setIsDiscovering(true);
+
     readPage(cursors[cursors.length - 1] ?? null)
       .then((response) => {
         // Drop the step if the query changed underneath it.
@@ -249,6 +261,7 @@ export function useCursorPagination<T>(
     page,
     pageCount,
     hasMorePages,
+    isDiscovering,
     isLoading,
     isRefreshing,
     isError,
