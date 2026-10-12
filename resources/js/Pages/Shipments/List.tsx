@@ -11,8 +11,8 @@ import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { TextField } from "../../Components/ui/TextField";
 import { useToast } from "../../Contexts/ToastContext";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
@@ -127,10 +127,7 @@ export function ShipmentListPage() {
         </ul>
       )}
 
-      <Pagination
-        className="mt-3"
-        {...paginationOf(list)}
-      />
+      <Pagination className="mt-3" {...paginationOf(list)} />
     </div>
   );
 }

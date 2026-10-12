@@ -11,8 +11,8 @@ import { useSession } from "../../Contexts/SessionContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useCourierAvatar } from "../../Hooks/useCourierAvatar";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useFlashToast } from "../../Hooks/useFlashToast";
@@ -279,6 +279,7 @@ export function TasksPage() {
 
         <Pagination
           className="mt-3"
+          align="center"
           {...paginationOf(tasksResource)}
         />
 

@@ -13,8 +13,8 @@ import {
   FilterTabs,
 } from "../../Components/ui/FilterBar";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useSeo } from "../../Hooks/useSeo";

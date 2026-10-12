@@ -9,8 +9,8 @@ import { PageHeader } from "../../Components/layout/PageHeader";
 import { Button } from "../../Components/ui/Button";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";

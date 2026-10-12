@@ -11,6 +11,8 @@ export interface PaginationProps {
   isLoading: boolean;
   isDiscovering: boolean;
   goTo: (page: number) => void;
+  /** Where the strip sits: the table footer puts it right, courier lists centre it. */
+  align?: "start" | "center" | "end";
 }
 
 /**
@@ -78,6 +80,7 @@ export function Pagination({
   isLoading,
   isDiscovering,
   goTo,
+  align = "end",
   className,
 }: PaginationProps & { className?: string }) {
   // Hold the strip until the first pass of discovery settles, so it appears
@@ -86,7 +89,11 @@ export function Pagination({
 
   return (
     <nav
-      className={cn("flex justify-end", className)}
+      className={cn(
+        "flex",
+        align === "center" ? "justify-center" : "justify-end",
+        className,
+      )}
       aria-label="Navigasi halaman"
       aria-busy={isLoading || undefined}
     >

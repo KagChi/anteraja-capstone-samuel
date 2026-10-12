@@ -16,8 +16,8 @@ import {
   SearchField,
 } from "../../Components/ui/FilterBar";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";

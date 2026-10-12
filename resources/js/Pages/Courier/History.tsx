@@ -5,8 +5,8 @@ import { Pagination } from "../../Components/ui/Pagination";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useSession } from "../../Contexts/SessionContext";
 import {
-  paginationOf,
   PER_PAGE,
+  paginationOf,
   useCursorPagination,
 } from "../../Hooks/useCursorPagination";
 import { useSeo } from "../../Hooks/useSeo";
