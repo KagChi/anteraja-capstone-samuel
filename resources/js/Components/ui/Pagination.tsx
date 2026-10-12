@@ -25,7 +25,8 @@ const NUMBER_CELL =
 /**
  * Width of the number strip. The list endpoints hand out one cursor at a time,
  * so the reachable pages grow as the visitor walks; capping the window keeps
- * the control the same width instead of stretching on every page.
+ * the control the same width instead of stretching on every page. The arrows
+ * drop their labels under `sm`, so the strip still fits a phone.
  */
 const WINDOW = 5;
 
@@ -70,9 +71,10 @@ export function Pagination({
           className={SEGMENT}
           disabled={page <= 1 || isLoading}
           onClick={() => goTo(page - 1)}
+          aria-label="Halaman sebelumnya"
         >
           <MaterialIcon name="chevron_left" className="text-[18px]" />
-          Sebelumnya
+          <span className="hidden sm:inline">Sebelumnya</span>
         </Button>
         {pageItems(page, pageCount).map((item) => (
           <Button
@@ -93,8 +95,9 @@ export function Pagination({
           className={SEGMENT}
           disabled={page >= pageCount || isLoading}
           onClick={() => goTo(page + 1)}
+          aria-label="Halaman berikutnya"
         >
-          Berikutnya
+          <span className="hidden sm:inline">Berikutnya</span>
           <MaterialIcon name="chevron_right" className="text-[18px]" />
         </Button>
       </div>
