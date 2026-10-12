@@ -5,6 +5,7 @@ import { Button } from "./Button";
 export interface PaginationProps {
   page: number;
   pageCount: number;
+  hasMorePages: boolean;
   isLoading: boolean;
   goTo: (page: number) => void;
 }
@@ -14,7 +15,7 @@ export interface PaginationProps {
  * bottom-right of the table; hidden when everything fits a single page.
  */
 
-/** Shared cell recipe so the three cells render at one height. */
+/** Shared cell recipe so every cell renders at one height. */
 const SEGMENT =
   "h-10 gap-1.5 whitespace-nowrap rounded-lg px-3 text-body-sm font-semibold";
 
@@ -22,12 +23,7 @@ const SEGMENT =
 const NUMBER_CELL =
   "size-10 justify-center rounded-lg text-body-sm font-semibold tabular-nums";
 
-/**
- * Width of the number strip. The list endpoints hand out one cursor at a time,
- * so the reachable pages grow as the visitor walks; capping the window keeps
- * the control the same width instead of stretching on every page. The arrows
- * drop their labels under `sm`, so the strip still fits a phone.
- */
+/** Page cells the strip shows at once. */
 const WINDOW = 5;
 
 /** A contiguous window of at most WINDOW pages that always holds `page`. */
@@ -50,14 +46,34 @@ function pageItems(
   }));
 }
 
+/** Placeholder for pages the strip is not showing right now. */
+function Gap() {
+  return (
+    <span
+      className={cn(
+        NUMBER_CELL,
+        "grid place-items-center text-on-surface-variant",
+      )}
+      aria-hidden="true"
+    >
+      …
+    </span>
+  );
+}
+
 export function Pagination({
   page,
   pageCount,
+  hasMorePages,
   isLoading,
   goTo,
   className,
 }: PaginationProps & { className?: string }) {
   if (pageCount <= 1) return null;
+
+  const items = pageItems(page, pageCount);
+  const first = items[0]?.value ?? 1;
+  const last = items[items.length - 1]?.value ?? pageCount;
 
   return (
     <nav
@@ -76,7 +92,8 @@ export function Pagination({
           <MaterialIcon name="chevron_left" className="text-[18px]" />
           <span className="hidden sm:inline">Sebelumnya</span>
         </Button>
-        {pageItems(page, pageCount).map((item) => (
+        {first > 1 ? <Gap key="gap-start" /> : null}
+        {items.map((item) => (
           <Button
             key={item.key}
             variant="segment"
@@ -90,6 +107,7 @@ export function Pagination({
             {item.value}
           </Button>
         ))}
+        {last < pageCount || hasMorePages ? <Gap key="gap-end" /> : null}
         <Button
           variant="segment"
           className={SEGMENT}

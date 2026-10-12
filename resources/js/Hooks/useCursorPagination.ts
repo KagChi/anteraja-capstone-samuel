@@ -17,6 +17,7 @@ export interface CursorPagination<T> {
   meta: CursorMeta | null;
   page: number;
   pageCount: number;
+  hasMorePages: boolean;
   isLoading: boolean;
   isRefreshing: boolean;
   isError: boolean;
@@ -33,6 +34,7 @@ export function paginationOf<T>(resource: CursorPagination<T>) {
   return {
     page: resource.page,
     pageCount: resource.pageCount,
+    hasMorePages: resource.hasMorePages,
     isLoading: resource.isLoading,
     goTo: resource.goTo,
   };
@@ -41,8 +43,20 @@ export function paginationOf<T>(resource: CursorPagination<T>) {
 export const PER_PAGE = 10;
 
 /**
+ * Page numbers the strip offers at once. These endpoints are keyset-only:
+ * every response carries one opaque cursor and nothing else, so instead of
+ * revealing a number each time the visitor walks forward, the hook fetches the
+ * cursors for the pages it wants to show ahead of time.
+ */
+const STRIP_PAGES = 5;
+
+/** Pages kept discoverable past the current one. */
+const PAGES_AHEAD = 2;
+
+/**
  * Cursor (keyset) pagination for a data table: keeps a stack of the cursors
- * used so "next"/"previous" can page forward and back without offset scans.
+ * used so any opened page stays reachable without offset scans, and walks the
+ * chain forward in the background so the number strip is complete on arrival.
  */
 export function useCursorPagination<T>(
   url: string | null,
@@ -53,12 +67,16 @@ export function useCursorPagination<T>(
   const [meta, setMeta] = useState<CursorMeta | null>(null);
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
+  const [lastPage, setLastPage] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(Boolean(url));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isError, setIsError] = useState(false);
   const [nonce, setNonce] = useState(0);
   const requestId = useRef(0);
   const hasItems = useRef(false);
+  const lastPageRef = useRef<number | null>(null);
+  const prefetching = useRef(false);
+  const cursorsRef = useRef<(string | null)[]>([null]);
 
   const paramsKey = useMemo(
     () =>
@@ -89,6 +107,11 @@ export function useCursorPagination<T>(
     [url, perPage, activeParams],
   );
 
+  const readPage = useCallback(
+    (cursor: string | null) => fetchJson<CursorResponse<T>>(buildUrl(cursor)),
+    [buildUrl],
+  );
+
   const load = useCallback(
     (cursor: string | null, targetPage: number) => {
       if (!url) return;
@@ -102,21 +125,24 @@ export function useCursorPagination<T>(
       setIsRefreshing(hasItems.current);
       setIsError(false);
 
-      fetchJson<CursorResponse<T>>(buildUrl(cursor))
+      readPage(cursor)
         .then((response) => {
           if (id !== requestId.current) return;
-          setItems(response.data ?? []);
-          hasItems.current = (response.data ?? []).length > 0;
+
+          const rows = response.data ?? [];
+          const ahead = response.meta?.next_cursor ?? null;
+
+          setItems(rows);
+          hasItems.current = rows.length > 0;
           setMeta(response.meta ?? null);
           setPage(targetPage);
           setCursors((previous) => {
             // Keep the cursors of pages already walked so jumping back never
-            // drops the page numbers further ahead, and record the cursor the
-            // server handed out for the page after this one.
+            // drops the numbers further ahead, and store the cursor the server
+            // handed out for the page after this one.
             const next = [...previous];
             next[targetPage - 1] = cursor;
 
-            const ahead = response.meta?.next_cursor ?? null;
             if (ahead) {
               next[targetPage] = ahead;
             } else {
@@ -125,6 +151,12 @@ export function useCursorPagination<T>(
 
             return next;
           });
+
+          if (!ahead || rows.length === 0) {
+            lastPageRef.current = targetPage;
+            setLastPage(targetPage);
+          }
+
           setIsLoading(false);
           setIsRefreshing(false);
         })
@@ -135,40 +167,79 @@ export function useCursorPagination<T>(
           setIsRefreshing(false);
         });
     },
-    [url, buildUrl],
+    [url, readPage],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: nonce forces a manual refetch via reload()
+  const queryKey = `${url ?? ""}|${paramsKey}`;
+
+  // A new query drops everything discovered for the previous one.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: queryKey covers url, params and nonce
   useEffect(() => {
-    if (!url) {
-      setItems([]);
-      hasItems.current = false;
-      setMeta(null);
-      setPage(1);
-      setCursors([null]);
-      setIsLoading(false);
-      setIsRefreshing(false);
-      setIsError(false);
-      return;
-    }
+    requestId.current += 1;
+    hasItems.current = false;
+    lastPageRef.current = null;
+    prefetching.current = false;
+    cursorsRef.current = [null];
 
-    load(null, 1);
-  }, [url, load, nonce]);
+    setItems([]);
+    setMeta(null);
+    setPage(1);
+    setCursors([null]);
+    setLastPage(null);
+    setIsLoading(Boolean(url));
+    setIsRefreshing(false);
+    setIsError(false);
 
-  const next = useCallback(() => {
-    const cursor = meta?.next_cursor;
-    if (!cursor || isLoading) return;
-    load(cursor, page + 1);
-  }, [meta, page, isLoading, load]);
+    if (url) load(null, 1);
+  }, [queryKey, url, load, nonce]);
 
-  const prev = useCallback(() => {
-    if (page <= 1 || isLoading) return;
-    load(cursors[page - 2] ?? null, page - 1);
-  }, [page, cursors, isLoading, load]);
+  // Walk the cursor chain forward so the strip can offer its pages together
+  // instead of growing a number at a time.
+  useEffect(() => {
+    if (!url || prefetching.current || lastPageRef.current !== null) return;
 
-  // One entry per reachable page: the cursor that opens it. The list endpoint
-  // is keyset-only, so a page becomes reachable once its cursor is known.
-  const pageCount = cursors.length;
+    const wanted = Math.max(STRIP_PAGES, page + PAGES_AHEAD);
+    if (cursors.length >= wanted) return;
+
+    const chainAtStart = cursors;
+    prefetching.current = true;
+
+    void (async () => {
+      let chain = [...chainAtStart];
+
+      try {
+        while (chain.length < wanted && lastPageRef.current === null) {
+          const response = await readPage(chain[chain.length - 1] ?? null);
+          const ahead = response.meta?.next_cursor ?? null;
+
+          if (!ahead || (response.data ?? []).length === 0) {
+            lastPageRef.current = chain.length;
+            break;
+          }
+
+          chain = [...chain, ahead];
+        }
+      } catch {
+        // Prefetching is an optimisation: a failure is not worth surfacing.
+      } finally {
+        prefetching.current = false;
+      }
+
+      // Ignore the walk if the query changed underneath it.
+      if (cursorsRef.current === chainAtStart) {
+        cursorsRef.current = chain;
+        setCursors(chain);
+        setLastPage(lastPageRef.current);
+      }
+    })();
+  }, [url, page, cursors, readPage]);
+
+  useEffect(() => {
+    cursorsRef.current = cursors;
+  }, [cursors]);
+
+  const pageCount = lastPage ?? cursors.length;
+  const hasMorePages = lastPage === null;
 
   const goTo = useCallback(
     (target: number) => {
@@ -181,6 +252,8 @@ export function useCursorPagination<T>(
     [cursors, isLoading, load, page, pageCount],
   );
 
+  const next = useCallback(() => goTo(page + 1), [goTo, page]);
+  const prev = useCallback(() => goTo(page - 1), [goTo, page]);
   const reload = useCallback(() => setNonce((value) => value + 1), []);
 
   return {
@@ -188,10 +261,11 @@ export function useCursorPagination<T>(
     meta,
     page,
     pageCount,
+    hasMorePages,
     isLoading,
     isRefreshing,
     isError,
-    hasNext: Boolean(meta?.next_cursor),
+    hasNext: page < pageCount,
     hasPrev: page > 1,
     next,
     prev,
