@@ -47,7 +47,7 @@ export function DataTable({
         </table>
       </div>
       {pagination && pagination.pageCount > 1 ? (
-        <footer className="flex items-center justify-center border-t border-border-subtle px-5 py-3">
+        <footer className="flex items-center justify-end border-t border-border-subtle px-5 py-3">
           <Pagination {...pagination} />
         </footer>
       ) : null}

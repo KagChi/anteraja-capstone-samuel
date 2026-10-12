@@ -10,8 +10,8 @@ export interface PaginationProps {
 }
 
 /**
- * Numbered pagination for a data table. One centered segmented control; hidden
- * when everything fits a single page.
+ * Numbered pagination for a data table. One segmented control, pinned to the
+ * bottom-right of the table; hidden when everything fits a single page.
  */
 
 /** Shared cell recipe so the three cells render at one height. */
@@ -23,32 +23,30 @@ const NUMBER_CELL =
   "size-10 justify-center rounded-lg text-body-sm font-semibold tabular-nums";
 
 /**
- * The numbers to render: every page on short runs, otherwise the ends plus a
- * window around the current page.
+ * Width of the number strip. The list endpoints hand out one cursor at a time,
+ * so the reachable pages grow as the visitor walks; capping the window keeps
+ * the control the same width instead of stretching on every page.
  */
+const WINDOW = 5;
+
+/** A contiguous window of at most WINDOW pages that always holds `page`. */
 function pageItems(
   page: number,
   pageCount: number,
-): { key: string; value: number | null }[] {
-  if (pageCount <= 7) {
-    return Array.from({ length: pageCount }, (_, index) => ({
-      key: `page-${index + 1}`,
-      value: index + 1,
-    }));
-  }
+): { key: string; value: number }[] {
+  const start = Math.max(
+    1,
+    Math.min(
+      page - Math.floor(WINDOW / 2),
+      Math.max(1, pageCount - WINDOW + 1),
+    ),
+  );
+  const end = Math.min(pageCount, start + WINDOW - 1);
 
-  const items: { key: string; value: number | null }[] = [
-    { key: "page-1", value: 1 },
-  ];
-  if (page > 3) items.push({ key: "gap-left", value: null });
-  for (const number of [page - 1, page, page + 1]) {
-    if (number > 1 && number < pageCount) {
-      items.push({ key: `page-${number}`, value: number });
-    }
-  }
-  if (page < pageCount - 2) items.push({ key: "gap-right", value: null });
-  items.push({ key: `page-${pageCount}`, value: pageCount });
-  return items;
+  return Array.from({ length: end - start + 1 }, (_, index) => ({
+    key: `page-${start + index}`,
+    value: start + index,
+  }));
 }
 
 export function Pagination({
@@ -62,7 +60,7 @@ export function Pagination({
 
   return (
     <nav
-      className={cn("flex justify-center", className)}
+      className={cn("flex justify-end", className)}
       aria-label="Navigasi halaman"
       aria-busy={isLoading || undefined}
     >
@@ -76,33 +74,20 @@ export function Pagination({
           <MaterialIcon name="chevron_left" className="text-[18px]" />
           Sebelumnya
         </Button>
-        {pageItems(page, pageCount).map((item) =>
-          item.value === null ? (
-            <span
-              key={item.key}
-              className={cn(
-                NUMBER_CELL,
-                "grid place-items-center text-on-surface-variant",
-              )}
-              aria-hidden="true"
-            >
-              …
-            </span>
-          ) : (
-            <Button
-              key={item.key}
-              variant="segment"
-              active={item.value === page}
-              className={NUMBER_CELL}
-              onClick={() => goTo(item.value as number)}
-              aria-label={`Halaman ${item.value}`}
-              aria-current={item.value === page ? "page" : undefined}
-              id={item.value === page ? "page-indicator" : undefined}
-            >
-              {item.value}
-            </Button>
-          ),
-        )}
+        {pageItems(page, pageCount).map((item) => (
+          <Button
+            key={item.key}
+            variant="segment"
+            active={item.value === page}
+            className={NUMBER_CELL}
+            onClick={() => goTo(item.value)}
+            aria-label={`Halaman ${item.value}`}
+            aria-current={item.value === page ? "page" : undefined}
+            id={item.value === page ? "page-indicator" : undefined}
+          >
+            {item.value}
+          </Button>
+        ))}
         <Button
           variant="segment"
           className={SEGMENT}
