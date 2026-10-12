@@ -75,8 +75,11 @@ export function useCursorPagination<T>(
   const requestId = useRef(0);
   const hasItems = useRef(false);
   const lastPageRef = useRef<number | null>(null);
-  const prefetching = useRef(false);
   const cursorsRef = useRef<(string | null)[]>([null]);
+
+  useEffect(() => {
+    cursorsRef.current = cursors;
+  }, [cursors]);
 
   const paramsKey = useMemo(
     () =>
@@ -178,7 +181,6 @@ export function useCursorPagination<T>(
     requestId.current += 1;
     hasItems.current = false;
     lastPageRef.current = null;
-    prefetching.current = false;
     cursorsRef.current = [null];
 
     setItems([]);
@@ -194,49 +196,34 @@ export function useCursorPagination<T>(
   }, [queryKey, url, load, nonce]);
 
   // Walk the cursor chain forward so the strip can offer its pages together
-  // instead of growing a number at a time.
+  // instead of growing a number at a time. Each completed step adds one
+  // cursor, which re-runs this effect for the next step.
   useEffect(() => {
-    if (!url || prefetching.current || lastPageRef.current !== null) return;
+    if (!url || lastPageRef.current !== null) return;
 
     const wanted = Math.max(STRIP_PAGES, page + PAGES_AHEAD);
     if (cursors.length >= wanted) return;
 
     const chainAtStart = cursors;
-    prefetching.current = true;
+    readPage(cursors[cursors.length - 1] ?? null)
+      .then((response) => {
+        // Drop the step if the query changed underneath it.
+        if (cursorsRef.current !== chainAtStart) return;
 
-    void (async () => {
-      let chain = [...chainAtStart];
+        const ahead = response.meta?.next_cursor ?? null;
 
-      try {
-        while (chain.length < wanted && lastPageRef.current === null) {
-          const response = await readPage(chain[chain.length - 1] ?? null);
-          const ahead = response.meta?.next_cursor ?? null;
-
-          if (!ahead || (response.data ?? []).length === 0) {
-            lastPageRef.current = chain.length;
-            break;
-          }
-
-          chain = [...chain, ahead];
+        if (!ahead || (response.data ?? []).length === 0) {
+          lastPageRef.current = cursors.length;
+          setLastPage(cursors.length);
+          return;
         }
-      } catch {
-        // Prefetching is an optimisation: a failure is not worth surfacing.
-      } finally {
-        prefetching.current = false;
-      }
 
-      // Ignore the walk if the query changed underneath it.
-      if (cursorsRef.current === chainAtStart) {
-        cursorsRef.current = chain;
-        setCursors(chain);
-        setLastPage(lastPageRef.current);
-      }
-    })();
+        setCursors([...chainAtStart, ahead]);
+      })
+      .catch(() => {
+        // Prefetching is an optimisation: a failure keeps the pages we have.
+      });
   }, [url, page, cursors, readPage]);
-
-  useEffect(() => {
-    cursorsRef.current = cursors;
-  }, [cursors]);
 
   const pageCount = lastPage ?? cursors.length;
   const hasMorePages = lastPage === null;
