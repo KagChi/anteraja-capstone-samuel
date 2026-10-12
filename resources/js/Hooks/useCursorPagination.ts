@@ -110,10 +110,19 @@ export function useCursorPagination<T>(
           setMeta(response.meta ?? null);
           setPage(targetPage);
           setCursors((previous) => {
-            // Keep the cursors of pages the visitor already walked, so jumping
-            // back never drops the page numbers further ahead.
+            // Keep the cursors of pages already walked so jumping back never
+            // drops the page numbers further ahead, and record the cursor the
+            // server handed out for the page after this one.
             const next = [...previous];
             next[targetPage - 1] = cursor;
+
+            const ahead = response.meta?.next_cursor ?? null;
+            if (ahead) {
+              next[targetPage] = ahead;
+            } else {
+              next.length = targetPage;
+            }
+
             return next;
           });
           setIsLoading(false);
@@ -157,11 +166,9 @@ export function useCursorPagination<T>(
     load(cursors[page - 2] ?? null, page - 1);
   }, [page, cursors, isLoading, load]);
 
-  // Every page whose first cursor is known is reachable again, and the visited
-  // frontier exposes exactly one page beyond it (the server's next cursor).
-  const knownPages = cursors.length;
-  const pageCount =
-    knownPages + (page === knownPages && meta?.next_cursor ? 1 : 0);
+  // One entry per reachable page: the cursor that opens it. The list endpoint
+  // is keyset-only, so a page becomes reachable once its cursor is known.
+  const pageCount = cursors.length;
 
   const goTo = useCallback(
     (target: number) => {
@@ -169,15 +176,9 @@ export function useCursorPagination<T>(
         return;
       }
 
-      if (target <= knownPages) {
-        load(cursors[target - 1] ?? null, target);
-        return;
-      }
-
-      const nextCursor = meta?.next_cursor;
-      if (nextCursor) load(nextCursor, target);
+      load(cursors[target - 1] ?? null, target);
     },
-    [cursors, isLoading, knownPages, load, meta, page, pageCount],
+    [cursors, isLoading, load, page, pageCount],
   );
 
   const reload = useCallback(() => setNonce((value) => value + 1), []);
