@@ -20,9 +20,8 @@ export interface PaginationProps {
  * has fewer pages than the window.
  */
 
-/** Arrow cell. The label is dropped under `sm` so the strip fits a phone. */
-const ARROW =
-  "h-9 gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-body-sm font-semibold sm:h-10 sm:px-3";
+/** Arrow cell: icon only, the same box as a page cell. */
+const ARROW = "size-9 justify-center rounded-lg sm:size-10";
 
 /** One page-number cell. */
 const CELL =
@@ -100,7 +99,6 @@ export function Pagination({
           aria-label="Halaman sebelumnya"
         >
           <MaterialIcon name="chevron_left" className="text-[18px]" />
-          <span className="hidden sm:inline">Sebelumnya</span>
         </Button>
         {pageSlots(page, pageCount).map((slot) =>
           slot.value === null ? (
@@ -127,7 +125,6 @@ export function Pagination({
           onClick={() => goTo(page + 1)}
           aria-label="Halaman berikutnya"
         >
-          <span className="hidden sm:inline">Berikutnya</span>
           <MaterialIcon name="chevron_right" className="text-[18px]" />
         </Button>
       </div>
