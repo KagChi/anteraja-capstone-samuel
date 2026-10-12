@@ -4,7 +4,11 @@ import { Button } from "../../Components/ui/Button";
 import { Pagination } from "../../Components/ui/Pagination";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useSession } from "../../Contexts/SessionContext";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useSeo } from "../../Hooks/useSeo";
 import type { CourierHistoryRow } from "../../types";
 
@@ -103,16 +107,7 @@ export function CourierHistoryPage() {
           ))}
         </ul>
 
-        <div className="mt-4 flex justify-center">
-          <Pagination
-            page={history.page}
-            hasPrev={history.hasPrev}
-            hasNext={history.hasNext}
-            isLoading={history.isLoading}
-            onPrev={history.prev}
-            onNext={history.next}
-          />
-        </div>
+        <Pagination className="mt-4" {...paginationOf(history)} />
       </main>
 
       <CourierBottomNav activeLabel="Riwayat" />

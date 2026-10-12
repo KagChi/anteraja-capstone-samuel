@@ -10,7 +10,11 @@ import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { useSession } from "../../Contexts/SessionContext";
 import { useToast } from "../../Contexts/ToastContext";
 import { useCourierAvatar } from "../../Hooks/useCourierAvatar";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useFlashToast } from "../../Hooks/useFlashToast";
 import { useSeo } from "../../Hooks/useSeo";
 import type { DeliveryTask, TaskBadge, TaskCategory } from "../../types";
@@ -275,12 +279,7 @@ export function TasksPage() {
 
         <Pagination
           className="mt-3"
-          page={tasksResource.page}
-          hasPrev={tasksResource.hasPrev}
-          hasNext={tasksResource.hasNext}
-          isLoading={tasksResource.isLoading}
-          onPrev={tasksResource.prev}
-          onNext={tasksResource.next}
+          {...paginationOf(tasksResource)}
         />
 
         <p className="m-0 px-1 pt-2 text-center">

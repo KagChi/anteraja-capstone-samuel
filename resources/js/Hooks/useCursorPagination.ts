@@ -16,6 +16,7 @@ export interface CursorPagination<T> {
   items: T[];
   meta: CursorMeta | null;
   page: number;
+  pageCount: number;
   isLoading: boolean;
   isRefreshing: boolean;
   isError: boolean;
@@ -23,7 +24,18 @@ export interface CursorPagination<T> {
   hasPrev: boolean;
   next: () => void;
   prev: () => void;
+  goTo: (page: number) => void;
   reload: () => void;
+}
+
+/** The slice of a cursor resource the shared Pagination control needs. */
+export function paginationOf<T>(resource: CursorPagination<T>) {
+  return {
+    page: resource.page,
+    pageCount: resource.pageCount,
+    isLoading: resource.isLoading,
+    goTo: resource.goTo,
+  };
 }
 
 export const PER_PAGE = 10;
@@ -98,7 +110,9 @@ export function useCursorPagination<T>(
           setMeta(response.meta ?? null);
           setPage(targetPage);
           setCursors((previous) => {
-            const next = previous.slice(0, targetPage - 1);
+            // Keep the cursors of pages the visitor already walked, so jumping
+            // back never drops the page numbers further ahead.
+            const next = [...previous];
             next[targetPage - 1] = cursor;
             return next;
           });
@@ -143,12 +157,36 @@ export function useCursorPagination<T>(
     load(cursors[page - 2] ?? null, page - 1);
   }, [page, cursors, isLoading, load]);
 
+  // Every page whose first cursor is known is reachable again, and the visited
+  // frontier exposes exactly one page beyond it (the server's next cursor).
+  const knownPages = cursors.length;
+  const pageCount =
+    knownPages + (page === knownPages && meta?.next_cursor ? 1 : 0);
+
+  const goTo = useCallback(
+    (target: number) => {
+      if (isLoading || target === page || target < 1 || target > pageCount) {
+        return;
+      }
+
+      if (target <= knownPages) {
+        load(cursors[target - 1] ?? null, target);
+        return;
+      }
+
+      const nextCursor = meta?.next_cursor;
+      if (nextCursor) load(nextCursor, target);
+    },
+    [cursors, isLoading, knownPages, load, meta, page, pageCount],
+  );
+
   const reload = useCallback(() => setNonce((value) => value + 1), []);
 
   return {
     items,
     meta,
     page,
+    pageCount,
     isLoading,
     isRefreshing,
     isError,
@@ -156,6 +194,7 @@ export function useCursorPagination<T>(
     hasPrev: page > 1,
     next,
     prev,
+    goTo,
     reload,
   };
 }

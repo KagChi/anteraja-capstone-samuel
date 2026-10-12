@@ -12,7 +12,11 @@ import {
   FilterTab,
   FilterTabs,
 } from "../../Components/ui/FilterBar";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
 import type { PinLockRow } from "../../types";
@@ -101,14 +105,7 @@ export function PinLocksPage() {
             </FilterTabs>
           </FilterBar>
         }
-        pagination={{
-          page: locks.page,
-          hasPrev: locks.hasPrev,
-          hasNext: locks.hasNext,
-          isLoading: locks.isLoading,
-          onPrev: locks.prev,
-          onNext: locks.next,
-        }}
+        pagination={paginationOf(locks)}
       >
         <caption className="sr-only">
           Tantangan PIN penerima yang menunggu keputusan admin

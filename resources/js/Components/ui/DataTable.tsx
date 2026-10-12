@@ -46,8 +46,8 @@ export function DataTable({
           {children}
         </table>
       </div>
-      {pagination && (pagination.hasPrev || pagination.hasNext) ? (
-        <footer className="flex items-center justify-end border-t border-border-subtle px-5 py-3">
+      {pagination && pagination.pageCount > 1 ? (
+        <footer className="flex items-center justify-center border-t border-border-subtle px-5 py-3">
           <Pagination {...pagination} />
         </footer>
       ) : null}

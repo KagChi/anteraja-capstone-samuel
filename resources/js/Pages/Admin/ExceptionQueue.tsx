@@ -15,7 +15,11 @@ import {
   FilterTabs,
   SearchField,
 } from "../../Components/ui/FilterBar";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useSeo } from "../../Hooks/useSeo";
 import { AdminLayout } from "../../Layouts/AdminLayout";
@@ -173,14 +177,7 @@ export function ExceptionQueuePage() {
               </FilterSearch>
             </FilterBar>
           }
-          pagination={{
-            page: exceptionsResource.page,
-            hasPrev: exceptionsResource.hasPrev,
-            hasNext: exceptionsResource.hasNext,
-            isLoading: exceptionsResource.isLoading,
-            onPrev: exceptionsResource.prev,
-            onNext: exceptionsResource.next,
-          }}
+          pagination={paginationOf(exceptionsResource)}
         >
           <caption className="sr-only">
             Pengajuan pengecualian geofence yang menunggu keputusan admin
@@ -329,14 +326,7 @@ export function ExceptionQueuePage() {
               </p>
             </FilterBar>
           }
-          pagination={{
-            page: gpsLocks.page,
-            hasPrev: gpsLocks.hasPrev,
-            hasNext: gpsLocks.hasNext,
-            isLoading: gpsLocks.isLoading,
-            onPrev: gpsLocks.prev,
-            onNext: gpsLocks.next,
-          }}
+          pagination={paginationOf(gpsLocks)}
         >
           <caption className="sr-only">
             Permintaan peninjauan blokir GPS yang menunggu keputusan admin

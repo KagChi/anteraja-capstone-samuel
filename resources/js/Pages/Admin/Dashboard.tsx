@@ -8,7 +8,11 @@ import { ShipmentList } from "../../Components/admin/dashboard/ShipmentList";
 import { PageHeader } from "../../Components/layout/PageHeader";
 import { Button } from "../../Components/ui/Button";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useLocationData } from "../../Hooks/useLocationData";
 import { useSeo } from "../../Hooks/useSeo";
@@ -96,14 +100,7 @@ export function DashboardPage() {
               onSearchChange={setSearch}
             />
           }
-          pagination={{
-            page: list.page,
-            hasPrev: list.hasPrev,
-            hasNext: list.hasNext,
-            isLoading: list.isLoading,
-            onPrev: list.prev,
-            onNext: list.next,
-          }}
+          pagination={paginationOf(list)}
         />
       ) : null}
     </>

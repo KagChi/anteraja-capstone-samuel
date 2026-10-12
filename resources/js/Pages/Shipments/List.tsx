@@ -10,7 +10,11 @@ import { Pagination } from "../../Components/ui/Pagination";
 import { StatusPanel } from "../../Components/ui/StatusPanel";
 import { TextField } from "../../Components/ui/TextField";
 import { useToast } from "../../Contexts/ToastContext";
-import { PER_PAGE, useCursorPagination } from "../../Hooks/useCursorPagination";
+import {
+  paginationOf,
+  PER_PAGE,
+  useCursorPagination,
+} from "../../Hooks/useCursorPagination";
 import { useDebouncedValue } from "../../Hooks/useDebouncedValue";
 import { useSeo } from "../../Hooks/useSeo";
 import { MainLayout } from "../../Layouts/MainLayout";
@@ -125,12 +129,7 @@ export function ShipmentListPage() {
 
       <Pagination
         className="mt-3"
-        page={list.page}
-        hasPrev={list.hasPrev}
-        hasNext={list.hasNext}
-        isLoading={list.isLoading}
-        onPrev={list.prev}
-        onNext={list.next}
+        {...paginationOf(list)}
       />
     </div>
   );
