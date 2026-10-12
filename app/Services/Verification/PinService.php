@@ -27,6 +27,24 @@ class PinService
      */
     private const DEMO_PIN = '123456';
 
+    /**
+     * The published demo code, padded to the segment's PIN length.
+     */
+    public static function demoCode(int $length = 6): string
+    {
+        return str_pad(substr(self::DEMO_PIN, 0, $length), $length, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * The hash a challenge must carry for that code. `demo:reset-shipments`
+     * rewrites stale demo challenges with it: a dataset seeded before the demo
+     * PIN was fixed would otherwise publish a code the stored hash rejects.
+     */
+    public static function demoHash(int $length = 6): string
+    {
+        return hash('sha256', 'pin:'.self::demoCode($length));
+    }
+
     public function policyFor(Shipment $shipment): ?GeofencePolicy
     {
         return GeofencePolicy::where('service_type', $shipment->service_type)->first();
@@ -60,7 +78,7 @@ class PinService
         $maxAttempts = $policy->pin_max_attempts ?? 3;
         $maxResends = self::resendLimit($shipment);
 
-        $code = str_pad(substr(self::DEMO_PIN, 0, $length), $length, '0', STR_PAD_LEFT);
+        $code = self::demoCode($length);
 
         $challenge = PinChallenge::where('shipment_id', $shipment->id)->first();
 

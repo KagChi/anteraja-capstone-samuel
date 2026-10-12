@@ -1,0 +1,83 @@
+{
+  "suite": "Anteraja Shipment Request — Regression Test",
+  "session": "session-1",
+  "runId": "2026-10-12T14-46-48-session-1",
+  "baseUrl": "http://127.0.0.1:8123",
+  "gitCommit": "2592ae3",
+  "startedAt": "2026-10-12T14:46:48.327Z",
+  "finishedAt": "2026-10-12T14:47:02.288Z",
+  "durationMs": 13961,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "scenarios": [
+    {
+      "id": "session-1-fundamentals",
+      "category": "walkthrough",
+      "title": "Open page, wait for element, interact, continue",
+      "shipment": "AJ2509000011",
+      "status": "PASS",
+      "durationMs": 13961,
+      "checks": [
+        {
+          "name": "login form reachable",
+          "expected": true,
+          "actual": true,
+          "status": "PASS"
+        },
+        {
+          "name": "task list rendered",
+          "expected": true,
+          "actual": 10,
+          "status": "PASS"
+        },
+        {
+          "name": "verification form rendered",
+          "expected": true,
+          "actual": true,
+          "status": "PASS"
+        },
+        {
+          "name": "demo PIN readable",
+          "expected": "6 digits",
+          "actual": "123456",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/01-login.png",
+        "screenshots/02-task-list.png",
+        "screenshots/03-verification.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    }
+  ],
+  "notes": "Walkthrough only: it drives the browser but asserts no business rule."
+}

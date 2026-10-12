@@ -1,0 +1,510 @@
+{
+  "suite": "Anteraja Shipment Request — Regression Test",
+  "session": "session-3",
+  "runId": "2026-10-12T14-54-53-session-3",
+  "baseUrl": "http://127.0.0.1:8123",
+  "gitCommit": "2592ae3",
+  "startedAt": "2026-10-12T14:54:53.524Z",
+  "finishedAt": "2026-10-12T14:57:10.811Z",
+  "durationMs": 137287,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0
+  },
+  "scenarios": [
+    {
+      "id": "happy-path-delivery",
+      "category": "happy",
+      "title": "Happy path: PIN benar, bukti foto, pengiriman selesai dan tampil di riwayat",
+      "shipment": "AJ2509000011",
+      "flow": "complete-delivery",
+      "status": "PASS",
+      "durationMs": 27178,
+      "checks": [
+        {
+          "name": "geofence admits the courier",
+          "expected": "contains \"Di dalam radius\"",
+          "actual": "Di dalam radius (Aman)",
+          "status": "PASS"
+        },
+        {
+          "name": "demo PIN issued on the form",
+          "expected": "a value",
+          "actual": "123456",
+          "status": "PASS"
+        },
+        {
+          "name": "moved to the proof step",
+          "expected": "contains \"/courier/bukti-foto\"",
+          "actual": "/courier/bukti-foto?tracking=AJ2509000011",
+          "status": "PASS"
+        },
+        {
+          "name": "live fix accepted at the proof step",
+          "expected": "contains \"ke tujuan\"",
+          "actual": "my_location 25 m ke tujuan • akurasi ±12 m",
+          "status": "PASS"
+        },
+        {
+          "name": "success screen",
+          "expected": "contains \"Pengiriman Berhasil\"",
+          "actual": "Pengiriman Berhasil",
+          "status": "PASS"
+        },
+        {
+          "name": "shipment appears in Riwayat",
+          "expected": "a value",
+          "actual": "AJ2509000011 Terverifikasi Fajar Nugraha • Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan schedule 12 Okt 2026 • 21:55 WIB • 25 m dari tujuan",
+          "status": "PASS"
+        },
+        {
+          "name": "Riwayat status label",
+          "expected": "contains \"Terverifikasi\"",
+          "actual": "AJ2509000011 Terverifikasi Fajar Nugraha • Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan schedule 12 Okt 2026 • 21:55 WIB • 25 m dari tujuan",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/happy-path-delivery--01-form-loaded.png",
+        "screenshots/happy-path-delivery--02-form-filled.png",
+        "screenshots/happy-path-delivery--03-proof-captured.png",
+        "screenshots/happy-path-delivery--04-success.png",
+        "screenshots/happy-path-delivery--05-riwayat.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    },
+    {
+      "id": "negative-incomplete-pin",
+      "category": "negative",
+      "title": "Negative: PIN belum lengkap harus ditolak dengan pesan validasi",
+      "shipment": "AJ2509000011",
+      "flow": "incomplete-pin",
+      "status": "PASS",
+      "durationMs": 12542,
+      "checks": [
+        {
+          "name": "validation error toast",
+          "expected": "contains \"Lengkapi 6 digit PIN terlebih dahulu.\"",
+          "actual": "errorLengkapi 6 digit PIN terlebih dahulu.",
+          "status": "PASS"
+        },
+        {
+          "name": "stays on the verification form",
+          "expected": "contains \"/courier/verifikasi\"",
+          "actual": "/courier/verifikasi?tracking=AJ2509000011",
+          "status": "PASS"
+        },
+        {
+          "name": "next step stays blocked",
+          "expected": "true",
+          "actual": "true",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/negative-incomplete-pin--01-validation-error.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    },
+    {
+      "id": "negative-wrong-pin",
+      "category": "negative",
+      "title": "Negative: PIN salah ditolak dan percobaan dihitung",
+      "shipment": "AJ2509000011",
+      "flow": "wrong-pin",
+      "status": "PASS",
+      "durationMs": 21876,
+      "checks": [
+        {
+          "name": "wrong PIN toast",
+          "expected": "contains \"PIN salah. Coba lagi.\"",
+          "actual": "errorPIN salah. Coba lagi.",
+          "status": "PASS"
+        },
+        {
+          "name": "stays on the verification form",
+          "expected": "contains \"/courier/verifikasi\"",
+          "actual": "/courier/verifikasi?tracking=AJ2509000011",
+          "status": "PASS"
+        },
+        {
+          "name": "fields cleared for the next try",
+          "expected": "",
+          "actual": "",
+          "status": "PASS"
+        },
+        {
+          "name": "server counted the failed attempt",
+          "expected": 1,
+          "actual": 1,
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/negative-wrong-pin--01-wrong-pin.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    },
+    {
+      "id": "edge-pin-lockout",
+      "category": "edge",
+      "title": "Edge case: tiga kali PIN salah mengunci verifikasi",
+      "shipment": "AJ2509000011",
+      "flow": "pin-lockout",
+      "status": "PASS",
+      "durationMs": 24023,
+      "checks": [
+        {
+          "name": "lock banner explains the lock",
+          "expected": "contains \"PIN Terkunci\"",
+          "actual": "lock PIN Terkunci Percobaan PIN habis. Minta Admin membuka blokir dari dashboard PIN Terkunci, lalu tekan perbarui status. refresh Perbarui Status",
+          "status": "PASS"
+        },
+        {
+          "name": "lock toast names the limit",
+          "expected": "contains \"PIN salah\"",
+          "actual": "errorPIN salah 3 kali. Hubungi Admin untuk membuka akses.",
+          "status": "PASS"
+        },
+        {
+          "name": "next step stays blocked",
+          "expected": "true",
+          "actual": "true",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/edge-pin-lockout--01-pin-locked.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    },
+    {
+      "id": "edge-mock-gps-blocked",
+      "category": "edge",
+      "title": "Edge case: fix lokasi tidak wajar (akurasi 0 m) memblokir bukti foto",
+      "shipment": "AJ2509000011",
+      "flow": "mock-gps-block",
+      "status": "PASS",
+      "durationMs": 26847,
+      "checks": [
+        {
+          "name": "POD refused with the integrity reason",
+          "expected": "contains \"Akurasi GPS tidak wajar\"",
+          "actual": "location_off Lokasi Terdeteksi Tidak Wajar Bukti foto tidak dapat disimpan. Matikan aplikasi lokasi palsu lalu ambil ulang foto, atau minta peninjauan Admin. Akurasi GPS tidak wajar Perangkat melaporkan akurasi ±0 m (ciri lokasi simulasi). Alasan permintaan peninjauan support_agent Minta Peninjauan Admin replay Coba Lagi",
+          "status": "PASS"
+        },
+        {
+          "name": "review request queued for admin",
+          "expected": "contains \"Menunggu Keputusan Admin\"",
+          "actual": "hourglass_top Menunggu Keputusan Admin Permintaan peninjauan terkirim 04:56 WIB. Setelah disetujui, ambil ulang foto lalu selesaikan pengiriman. refresh Perbarui Status",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/edge-mock-gps-blocked--01-form-loaded.png",
+        "screenshots/edge-mock-gps-blocked--02-gps-blocked.png",
+        "screenshots/edge-mock-gps-blocked--03-gps-review-requested.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 422 (Unprocessable Content)"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    },
+    {
+      "id": "edge-outside-geofence",
+      "category": "edge",
+      "title": "Edge case: di luar radius wajib mengirim alasan pengecualian",
+      "shipment": "AJ2509000011",
+      "flow": "outside-geofence",
+      "status": "PASS",
+      "durationMs": 23806,
+      "checks": [
+        {
+          "name": "exception card asks for a reason",
+          "expected": "contains \"Belum diajukan\"",
+          "actual": "wrong_location Pengecualian Radius Belum diajukan Posisi Anda di luar radius geofence. Tuliskan alasan agar keputusan dapat ditinjau Admin. Alasan pengecualian Ajukan Pengecualian ke Admin",
+          "status": "PASS"
+        },
+        {
+          "name": "next step is blocked before a reason",
+          "expected": "true",
+          "actual": "true",
+          "status": "PASS"
+        },
+        {
+          "name": "reason recorded on the card",
+          "expected": "contains \"Tercatat\"",
+          "actual": "wrong_location Pengecualian Radius Tercatat Posisi Anda di luar radius geofence. Alasan terkirim 04:57 WIB. Pengiriman boleh dilanjutkan; Admin tetap meninjau. “Lobi gedung dikunci satpam, paket dititipkan ke resepsionis.”",
+          "status": "PASS"
+        },
+        {
+          "name": "journey may continue",
+          "expected": "contains \"boleh dilanjutkan\"",
+          "actual": "Alasan pengecualian tersimpan (04:57 WIB). Pengiriman boleh dilanjutkan; Admin tetap dapat meninjau.",
+          "status": "PASS"
+        },
+        {
+          "name": "next step unlocks after the reason",
+          "expected": null,
+          "actual": null,
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/edge-outside-geofence--01-outside-radius.png",
+        "screenshots/edge-outside-geofence--02-exception-recorded.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    }
+  ],
+  "manualBaseline": {
+    "account": "budi.pratama@anteraja.example.com / password",
+    "steps": [
+      "Login sebagai kurir dan buka daftar tugas /courier/tugas.",
+      "Pilih shipment AJ2509000011 lalu tekan 'Mulai Antar'.",
+      "Halaman verifikasi menampilkan jarak ke tujuan, status 'Di dalam radius (Aman)', dan PIN demo 6 digit.",
+      "Isi 6 digit PIN, pilih hubungan penerima, tekan 'Lanjut Ambil Bukti Foto'.",
+      "Di /courier/bukti-foto ambil foto bukti lalu tekan 'Konfirmasi & Selesaikan'.",
+      "Halaman sukses menampilkan 'Pengiriman Berhasil' beserta nomor resi.",
+      "Buka /courier/riwayat: nomor resi muncul dengan label 'Terverifikasi'."
+    ],
+    "expectedResult": "Shipment selesai (delivered), bukti foto tersimpan dengan jarak ke tujuan, dan baris riwayat kurir menampilkan label 'Terverifikasi'."
+  },
+  "filters": null
+}

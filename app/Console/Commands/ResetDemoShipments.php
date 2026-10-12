@@ -6,11 +6,13 @@ use App\Models\AnomalyFlag;
 use App\Models\DeliveryEvent;
 use App\Models\DeliveryException;
 use App\Models\DeliveryProof;
+use App\Models\GeofencePolicy;
 use App\Models\GpsLockRequest;
 use App\Models\PinChallenge;
 use App\Models\Shipment;
 use App\Services\Delivery\DashboardService;
 use App\Services\Delivery\ShipmentCache;
+use App\Services\Verification\PinService;
 use App\Support\Date;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -93,6 +95,10 @@ class ResetDemoShipments extends Command
             PinChallenge::query()->where('shipment_id', $shipment->id)->update([
                 'status' => 'pending',
                 'attempts' => 0,
+                // Re-issue the published demo PIN, not just the challenge
+                // state: a dataset seeded with an older, random code would
+                // otherwise keep rejecting the code the courier screen shows.
+                'code_hash' => PinService::demoHash($this->pinLength($shipment)),
                 'verified_at' => null,
                 'locked_at' => null,
                 'override_by' => null,
@@ -110,5 +116,15 @@ class ResetDemoShipments extends Command
         ShipmentCache::bump();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The segment policy decides how many digits the demo PIN carries.
+     */
+    private function pinLength(Shipment $shipment): int
+    {
+        return (int) (GeofencePolicy::query()
+            ->where('service_type', $shipment->service_type)
+            ->value('pin_length') ?? 6);
     }
 }

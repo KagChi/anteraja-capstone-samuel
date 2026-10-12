@@ -1,0 +1,140 @@
+{
+  "suite": "Anteraja Shipment Request — Regression Test",
+  "session": "session-2",
+  "runId": "2026-10-12T14-47-02-session-2",
+  "baseUrl": "http://127.0.0.1:8123",
+  "gitCommit": "2592ae3",
+  "startedAt": "2026-10-12T14:47:02.512Z",
+  "finishedAt": "2026-10-12T14:47:31.754Z",
+  "durationMs": 29242,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "scenarios": [
+    {
+      "id": "happy-path-delivery",
+      "category": "happy",
+      "title": "Happy path: PIN benar, bukti foto, pengiriman selesai dan tampil di riwayat",
+      "shipment": "AJ2509000011",
+      "flow": "complete-delivery",
+      "status": "PASS",
+      "durationMs": 28840,
+      "checks": [
+        {
+          "name": "geofence admits the courier",
+          "expected": "contains \"Di dalam radius\"",
+          "actual": "Di dalam radius (Aman)",
+          "status": "PASS"
+        },
+        {
+          "name": "demo PIN issued on the form",
+          "expected": "a value",
+          "actual": "123456",
+          "status": "PASS"
+        },
+        {
+          "name": "moved to the proof step",
+          "expected": "contains \"/courier/bukti-foto\"",
+          "actual": "/courier/bukti-foto?tracking=AJ2509000011",
+          "status": "PASS"
+        },
+        {
+          "name": "live fix accepted at the proof step",
+          "expected": "contains \"ke tujuan\"",
+          "actual": "my_location 25 m ke tujuan • akurasi ±12 m",
+          "status": "PASS"
+        },
+        {
+          "name": "success screen",
+          "expected": "contains \"Pengiriman Berhasil\"",
+          "actual": "Pengiriman Berhasil",
+          "status": "PASS"
+        },
+        {
+          "name": "shipment appears in Riwayat",
+          "expected": "a value",
+          "actual": "AJ2509000011 Terverifikasi Fajar Nugraha • Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan schedule 12 Okt 2026 • 21:47 WIB • 25 m dari tujuan",
+          "status": "PASS"
+        },
+        {
+          "name": "Riwayat status label",
+          "expected": "contains \"Terverifikasi\"",
+          "actual": "AJ2509000011 Terverifikasi Fajar Nugraha • Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan schedule 12 Okt 2026 • 21:47 WIB • 25 m dari tujuan",
+          "status": "PASS"
+        }
+      ],
+      "screenshots": [
+        "screenshots/happy-path-delivery--01-form-loaded.png",
+        "screenshots/happy-path-delivery--02-form-filled.png",
+        "screenshots/happy-path-delivery--03-proof-captured.png",
+        "screenshots/happy-path-delivery--04-success.png",
+        "screenshots/happy-path-delivery--05-riwayat.png"
+      ],
+      "console": {
+        "messages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ],
+        "errors": []
+      },
+      "error": null
+    }
+  ],
+  "manualBaseline": {
+    "account": "budi.pratama@anteraja.example.com / password",
+    "steps": [
+      "Login sebagai kurir dan buka daftar tugas /courier/tugas.",
+      "Pilih shipment AJ2509000011 lalu tekan 'Mulai Antar'.",
+      "Halaman verifikasi menampilkan jarak ke tujuan, status 'Di dalam radius (Aman)', dan PIN demo 6 digit.",
+      "Isi 6 digit PIN, pilih hubungan penerima, tekan 'Lanjut Ambil Bukti Foto'.",
+      "Di /courier/bukti-foto ambil foto bukti lalu tekan 'Konfirmasi & Selesaikan'.",
+      "Halaman sukses menampilkan 'Pengiriman Berhasil' beserta nomor resi.",
+      "Buka /courier/riwayat: nomor resi muncul dengan label 'Terverifikasi'."
+    ],
+    "expectedResult": "Shipment selesai (delivered), bukti foto tersimpan dengan jarak ke tujuan, dan baris riwayat kurir menampilkan label 'Terverifikasi'."
+  }
+}

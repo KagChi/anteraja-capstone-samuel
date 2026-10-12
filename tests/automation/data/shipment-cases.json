@@ -1,0 +1,99 @@
+{
+  "workflow": "Shipment request kurir Anteraja Instant: mulai antar → verifikasi PIN → bukti foto → selesai → riwayat",
+  "manualBaseline": {
+    "account": "budi.pratama@anteraja.example.com / password",
+    "steps": [
+      "Login sebagai kurir dan buka daftar tugas /courier/tugas.",
+      "Pilih shipment AJ2509000011 lalu tekan 'Mulai Antar'.",
+      "Halaman verifikasi menampilkan jarak ke tujuan, status 'Di dalam radius (Aman)', dan PIN demo 6 digit.",
+      "Isi 6 digit PIN, pilih hubungan penerima, tekan 'Lanjut Ambil Bukti Foto'.",
+      "Di /courier/bukti-foto ambil foto bukti lalu tekan 'Konfirmasi & Selesaikan'.",
+      "Halaman sukses menampilkan 'Pengiriman Berhasil' beserta nomor resi.",
+      "Buka /courier/riwayat: nomor resi muncul dengan label 'Terverifikasi'."
+    ],
+    "expectedResult": "Shipment selesai (delivered), bukti foto tersimpan dengan jarak ke tujuan, dan baris riwayat kurir menampilkan label 'Terverifikasi'."
+  },
+  "scenarios": [
+    {
+      "id": "happy-path-delivery",
+      "category": "happy",
+      "title": "Happy path: PIN benar, bukti foto, pengiriman selesai dan tampil di riwayat",
+      "flow": "complete-delivery",
+      "shipment": "AJ2509000011",
+      "input": {
+        "pin": "valid",
+        "relation": "keluarga",
+        "position": "destination",
+        "accuracyMeters": 12
+      },
+      "expect": {
+        "successTitle": "Pengiriman Berhasil",
+        "history": { "statusLabel": "Terverifikasi" }
+      }
+    },
+    {
+      "id": "negative-incomplete-pin",
+      "category": "negative",
+      "title": "Negative: PIN belum lengkap harus ditolak dengan pesan validasi",
+      "flow": "incomplete-pin",
+      "shipment": "AJ2509000011",
+      "input": { "digits": "1234", "position": "destination" },
+      "expect": {
+        "toast": "Lengkapi 6 digit PIN terlebih dahulu."
+      }
+    },
+    {
+      "id": "negative-wrong-pin",
+      "category": "negative",
+      "title": "Negative: PIN salah ditolak dan percobaan dihitung",
+      "flow": "wrong-pin",
+      "shipment": "AJ2509000011",
+      "input": { "pin": "000000", "position": "destination" },
+      "expect": {
+        "toast": "PIN salah. Coba lagi.",
+        "attempts": 1
+      }
+    },
+    {
+      "id": "edge-pin-lockout",
+      "category": "edge",
+      "title": "Edge case: tiga kali PIN salah mengunci verifikasi",
+      "flow": "pin-lockout",
+      "shipment": "AJ2509000011",
+      "input": { "pin": "000000", "attempts": 3, "position": "destination" },
+      "expect": {
+        "banner": "PIN Terkunci"
+      }
+    },
+    {
+      "id": "edge-mock-gps-blocked",
+      "category": "edge",
+      "title": "Edge case: fix lokasi tidak wajar (akurasi 0 m) memblokir bukti foto",
+      "flow": "mock-gps-block",
+      "shipment": "AJ2509000011",
+      "input": {
+        "position": "destination",
+        "accuracyMeters": 0,
+        "reason": "Perangkat melaporkan akurasi 0 meter."
+      },
+      "expect": {
+        "blockedPanel": "Akurasi GPS tidak wajar",
+        "lockPending": "Menunggu Keputusan Admin"
+      }
+    },
+    {
+      "id": "edge-outside-geofence",
+      "category": "edge",
+      "title": "Edge case: di luar radius wajib mengirim alasan pengecualian",
+      "flow": "outside-geofence",
+      "shipment": "AJ2509000011",
+      "input": {
+        "position": "outside",
+        "reason": "Lobi gedung dikunci satpam, paket dititipkan ke resepsionis."
+      },
+      "expect": {
+        "lockReason": "boleh dilanjutkan"
+      }
+    }
+  ]
+}
