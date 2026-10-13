@@ -47,6 +47,9 @@ Homestead.yaml
 /playwright-report
 /playwright/.cache
 
+# Puppeteer regression runs: screenshots and test-results.json per run
+/tests/automation/artifacts
+
 # Deployment secrets: created in the cluster, never committed.
 deploy/secrets.env
 
